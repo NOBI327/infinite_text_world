@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "infinite_text_world"
+version = "0.1.0"
+description = "Infinite Text World"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+    "fastapi>=0.110",
+    "pydantic-settings>=2.0",
+    "sqlalchemy>=2.0",
+    "uvicorn[standard]>=0.29",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx",
+    "pytest",
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
