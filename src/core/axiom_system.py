@@ -333,7 +333,7 @@ if __name__ == "__main__":
 
     # 통계 출력
     stats = loader.get_stats()
-    print(f"\n=== Axiom Statistics ===")
+    print("\n=== Axiom Statistics ===")
     print(f"Total: {stats['total']}")
     print(f"By Tier: {stats['by_tier']}")
     print(f"By Domain: {stats['by_domain']}")
@@ -351,7 +351,7 @@ if __name__ == "__main__":
     aqua = loader.get_by_latin("Aqua")
     if ignis and aqua:
         interaction = loader.calculate_interaction(ignis, aqua)
-        print(f"\n=== Interaction: Ignis → Aqua ===")
+        print("\n=== Interaction: Ignis → Aqua ===")
         print(f"Result: {interaction}")
 
     # 벡터 테스트
@@ -359,6 +359,6 @@ if __name__ == "__main__":
     swamp_vector.add("axiom_lutum", 0.6)
     swamp_vector.add("axiom_aqua", 0.4)
     swamp_vector.add("axiom_putredo", 0.3)
-    print(f"\n=== Swamp Vector ===")
+    print("\n=== Swamp Vector ===")
     print(f"Vector: {swamp_vector}")
     print(f"Dominant: {swamp_vector.get_dominant()}")

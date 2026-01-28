@@ -10,11 +10,11 @@ ITW Core Engine - Module 2: World Generation
 import json
 import random
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 from enum import Enum
 
-from src.core.axiom_system import AxiomLoader, AxiomVector, Axiom, DomainType, ResonanceType
+from src.core.axiom_system import AxiomLoader, AxiomVector, Axiom, DomainType
 
 
 class NodeTier(Enum):
@@ -608,7 +608,7 @@ if __name__ == "__main__":
 
     # 통계
     stats = world.get_stats()
-    print(f"\nWorld Stats:")
+    print("\nWorld Stats:")
     print(f"  Total Nodes: {stats['total_nodes']}")
     print(f"  Tier Distribution: {stats['tier_distribution']}")
     print(f"  Unique Clusters: {stats['unique_clusters']}")

@@ -12,14 +12,13 @@ import random
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from datetime import datetime
-from pathlib import Path
 
 # 엔진 모듈 임포트
-from src.core.axiom_system import AxiomLoader, AxiomVector, Axiom
-from src.core.world_generator import WorldGenerator, MapNode, NodeTier, Resource, Echo
-from src.core.navigator import Navigator, Direction, LocationView, TravelResult, render_compass
+from src.core.axiom_system import AxiomLoader
+from src.core.world_generator import WorldGenerator
+from src.core.navigator import Navigator, Direction, LocationView, render_compass
 from src.core.echo_system import EchoManager, EchoCategory
-from src.core.core_rule import CharacterSheet, StatType, ResolutionEngine
+from src.core.core_rule import CharacterSheet, ResolutionEngine
 
 
 @dataclass
@@ -639,7 +638,7 @@ def run_cli():
 
             elif action == "stats":
                 stats = engine.get_world_stats()
-                print(f"\n=== 월드 통계 ===")
+                print("\n=== 월드 통계 ===")
                 print(f"엔진 버전: {stats['engine_version']}")
                 print(f"총 노드: {stats['world']['total_nodes']}")
                 print(f"티어 분포: {stats['world']['tier_distribution']}")

@@ -7,11 +7,11 @@ ITW Core Engine - Module 3: Navigation & Fog of War
 이동에는 Supply 아이템이 소모되며, 거리 제한이 있습니다.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 from enum import Enum
 
-from src.core.axiom_system import AxiomLoader, AxiomVector
+from src.core.axiom_system import AxiomLoader
 from src.core.world_generator import WorldGenerator, MapNode, NodeTier
 
 
@@ -457,7 +457,6 @@ def render_compass(location_view: LocationView) -> str:
 # === 테스트 코드 ===
 
 if __name__ == "__main__":
-    import json
 
     # 초기화
     loader = AxiomLoader("itw_214_divine_axioms.json")
