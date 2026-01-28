@@ -1,0 +1,7805 @@
+[
+  {
+    "id": 0,
+    "code": "axiom_ignis",
+    "name_latin": "Ignis",
+    "name_kr": "화염",
+    "name_en": "Fire",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_burn_dot"
+      ],
+      "on_contact": {
+        "Aqua": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Glacies": {
+          "effect": "transform",
+          "result": "Aqua"
+        },
+        "Ventus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.2,
+        "vs_inorganic": 0.8
+      }
+    },
+    "tags": [
+      "elemental",
+      "energy",
+      "destructive"
+    ],
+    "flavor": "만물을 태우는 원초의 불꽃. 문명의 시작이자 종말의 상징."
+  },
+  {
+    "id": 1,
+    "code": "axiom_aqua",
+    "name_latin": "Aqua",
+    "name_kr": "물",
+    "name_en": "Water",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "extinguish_fire"
+      ],
+      "on_contact": {
+        "Ignis": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Frigus": {
+          "effect": "transform",
+          "result": "Glacies"
+        },
+        "Fulgur": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        }
+      },
+      "damage_mod": {
+        "vs_elemental": 1.1
+      }
+    },
+    "tags": [
+      "elemental",
+      "fluid",
+      "adaptive"
+    ],
+    "flavor": "형태 없이 모든 형태를 취하는 근원. 생명의 어머니이자 침식의 손길."
+  },
+  {
+    "id": 2,
+    "code": "axiom_ventus",
+    "name_latin": "Ventus",
+    "name_kr": "바람",
+    "name_en": "Wind",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_speed"
+      ],
+      "on_contact": {
+        "Ignis": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Terra": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Pulvis": {
+          "effect": "trigger",
+          "result": "sandstorm"
+        }
+      },
+      "damage_mod": {
+        "vs_unarmored": 1.2
+      }
+    },
+    "tags": [
+      "elemental",
+      "movement",
+      "invisible"
+    ],
+    "flavor": "보이지 않는 손으로 세상을 쓰다듬는 숨결. 자유의 화신이자 폭풍의 전조."
+  },
+  {
+    "id": 3,
+    "code": "axiom_terra",
+    "name_latin": "Terra",
+    "name_kr": "대지",
+    "name_en": "Earth",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Aqua": {
+          "effect": "transform",
+          "result": "Lutum"
+        },
+        "Ventus": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Fulgur": {
+          "effect": "ignore"
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.3
+      }
+    },
+    "tags": [
+      "elemental",
+      "solid",
+      "foundational"
+    ],
+    "flavor": "모든 것을 품고 지탱하는 어머니. 흔들림 없는 영원의 토대."
+  },
+  {
+    "id": 4,
+    "code": "axiom_glacies",
+    "name_latin": "Glacies",
+    "name_kr": "얼음",
+    "name_en": "Ice",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_freeze_slow"
+      ],
+      "on_contact": {
+        "Ignis": {
+          "effect": "transform",
+          "result": "Aqua"
+        },
+        "Aqua": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Calor": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.1,
+        "vs_armored": 0.9
+      }
+    },
+    "tags": [
+      "elemental",
+      "cold",
+      "brittle"
+    ],
+    "flavor": "시간을 멈추는 정적의 결정. 고요한 아름다움 속에 잔혹한 죽음을 숨긴다."
+  },
+  {
+    "id": 5,
+    "code": "axiom_fulgur",
+    "name_latin": "Fulgur",
+    "name_kr": "번개",
+    "name_en": "Lightning",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_stun",
+        "chain_effect"
+      ],
+      "on_contact": {
+        "Aqua": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Terra": {
+          "effect": "ignore"
+        },
+        "Ferrum": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.3,
+        "vs_organic": 1.1
+      }
+    },
+    "tags": [
+      "elemental",
+      "energy",
+      "instant"
+    ],
+    "flavor": "하늘의 분노가 응축된 섬광. 순간에 만물을 심판하는 천벌의 창."
+  },
+  {
+    "id": 6,
+    "code": "axiom_lux",
+    "name_latin": "Lux",
+    "name_kr": "빛",
+    "name_en": "Light",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "remove_blind",
+        "reveal_hidden"
+      ],
+      "on_contact": {
+        "Tenebrae": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Umbra": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Crystallum": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {
+        "vs_undead": 1.5,
+        "vs_magical": 1.1
+      }
+    },
+    "tags": [
+      "elemental",
+      "radiant",
+      "purifying"
+    ],
+    "flavor": "어둠을 몰아내는 진리의 광휘. 희망의 등불이자 모든 것을 드러내는 심판자."
+  },
+  {
+    "id": 7,
+    "code": "axiom_tenebrae",
+    "name_latin": "Tenebrae",
+    "name_kr": "어둠",
+    "name_en": "Darkness",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_blind",
+        "hide_presence"
+      ],
+      "on_contact": {
+        "Lux": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Umbra": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Ignis": {
+          "effect": "resist",
+          "ratio": 0.3
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.0,
+        "vs_undead": 0.5
+      }
+    },
+    "tags": [
+      "elemental",
+      "shadow",
+      "concealing"
+    ],
+    "flavor": "모든 것을 삼키는 무(無)의 심연. 공포의 어머니이자 비밀의 수호자."
+  },
+  {
+    "id": 8,
+    "code": "axiom_calor",
+    "name_latin": "Calor",
+    "name_kr": "열기",
+    "name_en": "Heat",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_burn_dot"
+      ],
+      "on_contact": {
+        "Frigus": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Glacies": {
+          "effect": "transform",
+          "result": "Aqua"
+        },
+        "Ferrum": {
+          "effect": "trigger",
+          "result": "soften_metal"
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.1
+      }
+    },
+    "tags": [
+      "energy",
+      "thermal",
+      "pervasive"
+    ],
+    "flavor": "불꽃 없이 스며드는 보이지 않는 불. 존재 자체를 달구는 순수한 에너지."
+  },
+  {
+    "id": 9,
+    "code": "axiom_frigus",
+    "name_latin": "Frigus",
+    "name_kr": "냉기",
+    "name_en": "Cold",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Calor": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Aqua": {
+          "effect": "transform",
+          "result": "Glacies"
+        },
+        "Ignis": {
+          "effect": "resist",
+          "ratio": 0.7
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.1
+      }
+    },
+    "tags": [
+      "energy",
+      "thermal",
+      "entropic"
+    ],
+    "flavor": "열을 빨아들이는 공허한 손길. 움직임을 멈추고 생명을 잠재우는 고요."
+  },
+  {
+    "id": 10,
+    "code": "axiom_electricitas",
+    "name_latin": "Electricitas",
+    "name_kr": "전기",
+    "name_en": "Electricity",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "chain_effect"
+      ],
+      "on_contact": {
+        "Aqua": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Terra": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Ferrum": {
+          "effect": "trigger",
+          "result": "conduct"
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.2
+      },
+      "special": "conductive_chain"
+    },
+    "tags": [
+      "energy",
+      "technological",
+      "flowing"
+    ],
+    "flavor": "보이지 않는 강물처럼 흐르는 힘. 문명을 밝히고 신경을 타고 흐르는 생명의 불꽃."
+  },
+  {
+    "id": 11,
+    "code": "axiom_radiatio",
+    "name_latin": "Radiatio",
+    "name_kr": "복사",
+    "name_en": "Radiation",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_poison_dot",
+        "pierce_armor"
+      ],
+      "on_contact": {
+        "Plumbum": {
+          "effect": "resist",
+          "ratio": 0.2
+        },
+        "Aqua": {
+          "effect": "ignore"
+        },
+        "Vita": {
+          "effect": "trigger",
+          "result": "mutation"
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.4,
+        "vs_inorganic": 0.6
+      },
+      "special": "delayed_effect"
+    },
+    "tags": [
+      "energy",
+      "invisible",
+      "corrupting"
+    ],
+    "flavor": "눈에 보이지 않는 죽음의 빛. 물질의 근본을 흔들어 서서히 부패시킨다."
+  },
+  {
+    "id": 12,
+    "code": "axiom_plasma",
+    "name_latin": "Plasma",
+    "name_kr": "플라즈마",
+    "name_en": "Plasma",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_burn_dot",
+        "pierce_armor"
+      ],
+      "on_contact": {
+        "Aqua": {
+          "effect": "transform",
+          "result": "Vapor"
+        },
+        "Ferrum": {
+          "effect": "transform",
+          "result": "molten_metal"
+        },
+        "Terra": {
+          "effect": "transform",
+          "result": "Vitrum"
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.4,
+        "vs_structure": 1.3
+      },
+      "special": "state_transcendence"
+    },
+    "tags": [
+      "energy",
+      "extreme",
+      "transformative"
+    ],
+    "flavor": "물질의 네 번째 상태, 성난 태양의 조각. 닿는 모든 것을 원자로 분해한다."
+  },
+  {
+    "id": 13,
+    "code": "axiom_aether",
+    "name_latin": "Aether",
+    "name_kr": "에테르",
+    "name_en": "Aether",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "regen_mp",
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Vacuum": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Magia": {
+          "effect": "amplify",
+          "multiplier": 2.0
+        },
+        "Materia": {
+          "effect": "transform",
+          "result": "ethereal_matter"
+        }
+      },
+      "damage_mod": {
+        "vs_magical": 1.5,
+        "vs_elemental": 1.3
+      },
+      "special": "magic_medium"
+    },
+    "tags": [
+      "metaphysical",
+      "magical",
+      "primordial"
+    ],
+    "flavor": "천상의 숨결, 마법이 흐르는 투명한 강. 물질과 영혼 사이를 잇는 다섯 번째 원소."
+  },
+  {
+    "id": 14,
+    "code": "axiom_vacuum",
+    "name_latin": "Vacuum",
+    "name_kr": "허공",
+    "name_en": "Void",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_silence"
+      ],
+      "on_contact": {
+        "Ventus": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Sonus": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Ignis": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.2
+      },
+      "special": "negate_wave"
+    },
+    "tags": [
+      "absence",
+      "negating",
+      "suffocating"
+    ],
+    "flavor": "아무것도 없는 완전한 무(無). 소리도 숨결도 삼키는 침묵의 공간."
+  },
+  {
+    "id": 15,
+    "code": "axiom_sonus",
+    "name_latin": "Sonus",
+    "name_kr": "음파",
+    "name_en": "Sound",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "area_effect"
+      ],
+      "on_contact": {
+        "Vacuum": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Crystallum": {
+          "effect": "trigger",
+          "result": "shatter"
+        },
+        "Aqua": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.2,
+        "vs_organic": 1.0
+      }
+    },
+    "tags": [
+      "wave",
+      "vibrational",
+      "pervasive"
+    ],
+    "flavor": "공기를 타고 퍼지는 진동의 파문. 속삭임에서 천둥까지, 세상을 울리는 목소리."
+  },
+  {
+    "id": 16,
+    "code": "axiom_umbra",
+    "name_latin": "Umbra",
+    "name_kr": "그림자",
+    "name_en": "Shadow",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "hide_presence"
+      ],
+      "on_contact": {
+        "Lux": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Tenebrae": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Corpus": {
+          "effect": "trigger",
+          "result": "shadow_bind"
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 0.9
+      }
+    },
+    "tags": [
+      "derivative",
+      "stealth",
+      "binding"
+    ],
+    "flavor": "빛이 만든 어둠의 자식. 모든 존재의 이면에 붙어 따라다니는 충실한 복제."
+  },
+  {
+    "id": 17,
+    "code": "axiom_pulvis",
+    "name_latin": "Pulvis",
+    "name_kr": "먼지",
+    "name_en": "Dust",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_blind"
+      ],
+      "on_contact": {
+        "Ventus": {
+          "effect": "trigger",
+          "result": "sandstorm"
+        },
+        "Aqua": {
+          "effect": "transform",
+          "result": "Lutum"
+        },
+        "Ignis": {
+          "effect": "trigger",
+          "result": "dust_explosion"
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 0.8
+      }
+    },
+    "tags": [
+      "particulate",
+      "pervasive",
+      "erosive"
+    ],
+    "flavor": "만물의 종착점이자 시작점. 바람에 실려 세상을 덮는 망각의 입자."
+  },
+  {
+    "id": 18,
+    "code": "axiom_vapor",
+    "name_latin": "Vapor",
+    "name_kr": "증기",
+    "name_en": "Steam",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_burn_dot",
+        "obscure_vision"
+      ],
+      "on_contact": {
+        "Frigus": {
+          "effect": "transform",
+          "result": "Aqua"
+        },
+        "Calor": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Ventus": {
+          "effect": "trigger",
+          "result": "disperse"
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.1
+      }
+    },
+    "tags": [
+      "transitional",
+      "scalding",
+      "obscuring"
+    ],
+    "flavor": "물과 불의 결합이 낳은 뜨거운 안개. 보이지 않는 화상을 새기며 퍼져나간다."
+  },
+  {
+    "id": 19,
+    "code": "axiom_crystallum",
+    "name_latin": "Crystallum",
+    "name_kr": "결정",
+    "name_en": "Crystal",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "reflect_damage"
+      ],
+      "on_contact": {
+        "Lux": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Sonus": {
+          "effect": "trigger",
+          "result": "shatter"
+        },
+        "Magia": {
+          "effect": "trigger",
+          "result": "store_magic"
+        }
+      },
+      "damage_mod": {
+        "vs_magical": 1.2
+      },
+      "special": "light_refraction"
+    },
+    "tags": [
+      "structured",
+      "refractive",
+      "resonant"
+    ],
+    "flavor": "완벽한 질서로 배열된 물질의 정수. 빛을 굴절시키고 마력을 담아 빛나는 보석."
+  },
+  {
+    "id": 20,
+    "code": "axiom_acidum",
+    "name_latin": "Acidum",
+    "name_kr": "산성",
+    "name_en": "Acid",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_poison_dot",
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Ferrum": {
+          "effect": "trigger",
+          "result": "corrode"
+        },
+        "Calcium": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Vitrum": {
+          "effect": "resist",
+          "ratio": 0.2
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.3,
+        "vs_organic": 1.1
+      }
+    },
+    "tags": [
+      "chemical",
+      "corrosive",
+      "dissolving"
+    ],
+    "flavor": "만물을 녹이는 탐욕스러운 액체. 가장 단단한 갑옷도 서서히 무너뜨린다."
+  },
+  {
+    "id": 21,
+    "code": "axiom_calcium",
+    "name_latin": "Calcium",
+    "name_kr": "알칼리",
+    "name_en": "Alkaline",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_burn_dot"
+      ],
+      "on_contact": {
+        "Acidum": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Aqua": {
+          "effect": "trigger",
+          "result": "exothermic"
+        },
+        "Oleum": {
+          "effect": "transform",
+          "result": "soap"
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.2
+      }
+    },
+    "tags": [
+      "chemical",
+      "caustic",
+      "neutralizing"
+    ],
+    "flavor": "산을 잠재우는 쓰디쓴 균형자. 그러나 그 자체로도 살을 태우는 위험한 힘."
+  },
+  {
+    "id": 22,
+    "code": "axiom_magnetis",
+    "name_latin": "Magnetis",
+    "name_kr": "자기",
+    "name_en": "Magnetism",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "attract_metal"
+      ],
+      "on_contact": {
+        "Ferrum": {
+          "effect": "trigger",
+          "result": "attract"
+        },
+        "Electricitas": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Aurum": {
+          "effect": "ignore"
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.1
+      },
+      "special": "metal_manipulation"
+    },
+    "tags": [
+      "force",
+      "invisible",
+      "attracting"
+    ],
+    "flavor": "보이지 않는 끌어당김과 밀어냄. 철을 지배하고 번개와 춤추는 신비한 힘."
+  },
+  {
+    "id": 23,
+    "code": "axiom_gravitas",
+    "name_latin": "Gravitas",
+    "name_kr": "중력",
+    "name_en": "Gravity",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Levitas": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Ventus": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Corpus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.2
+      },
+      "special": "weight_manipulation"
+    },
+    "tags": [
+      "fundamental",
+      "universal",
+      "binding"
+    ],
+    "flavor": "만물을 대지로 끌어당기는 보이지 않는 사슬. 우주를 하나로 엮는 근원적 힘."
+  },
+  {
+    "id": 24,
+    "code": "axiom_levitas",
+    "name_latin": "Levitas",
+    "name_kr": "부양",
+    "name_en": "Levity",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_speed",
+        "negate_fall"
+      ],
+      "on_contact": {
+        "Gravitas": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Terra": {
+          "effect": "resist",
+          "ratio": 0.8
+        },
+        "Ventus": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "anti-gravity",
+      "ascending",
+      "liberating"
+    ],
+    "flavor": "중력의 사슬을 끊는 상승의 힘. 무거운 것을 깃털처럼 하늘로 띄워 올린다."
+  },
+  {
+    "id": 25,
+    "code": "axiom_magia",
+    "name_latin": "Magia",
+    "name_kr": "마력",
+    "name_en": "Magic",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "regen_mp"
+      ],
+      "on_contact": {
+        "Aether": {
+          "effect": "amplify",
+          "multiplier": 2.0
+        },
+        "Vacuum": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Ferrum": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {
+        "vs_magical": 1.3,
+        "vs_inorganic": 0.8
+      },
+      "special": "spell_catalyst"
+    },
+    "tags": [
+      "mystical",
+      "catalytic",
+      "fundamental"
+    ],
+    "flavor": "불가능을 가능케 하는 초자연의 에너지. 의지와 지식으로 세상을 재편하는 힘."
+  },
+  {
+    "id": 26,
+    "code": "axiom_natura",
+    "name_latin": "Natura",
+    "name_kr": "자연력",
+    "name_en": "Nature",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Vita": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Toxicum": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Artificium": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {
+        "vs_undead": 1.2,
+        "vs_elemental": 1.1
+      },
+      "special": "life_affinity"
+    },
+    "tags": [
+      "primal",
+      "life-giving",
+      "balancing"
+    ],
+    "flavor": "생명의 순환을 관장하는 푸른 힘. 숲과 바다, 모든 생명체를 관통하는 맥동."
+  },
+  {
+    "id": 27,
+    "code": "axiom_chaos",
+    "name_latin": "Chaos",
+    "name_kr": "혼돈",
+    "name_en": "Chaos",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "conditional_trigger"
+      ],
+      "on_contact": {
+        "Ordo": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Magia": {
+          "effect": "trigger",
+          "result": "wild_surge"
+        },
+        "Fatum": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "random_effect"
+    },
+    "tags": [
+      "primordial",
+      "unpredictable",
+      "transformative"
+    ],
+    "flavor": "질서 이전의 원초적 무질서. 모든 가능성이 뒤엉킨 창조와 파괴의 도가니."
+  },
+  {
+    "id": 28,
+    "code": "axiom_ordo",
+    "name_latin": "Ordo",
+    "name_kr": "질서",
+    "name_en": "Order",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Chaos": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Magia": {
+          "effect": "trigger",
+          "result": "stabilize"
+        },
+        "Crystallum": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {},
+      "special": "pattern_enforcement"
+    },
+    "tags": [
+      "primordial",
+      "stabilizing",
+      "structural"
+    ],
+    "flavor": "혼돈을 정돈하는 우주의 법칙. 만물에 규칙과 형태를 부여하는 근원적 틀."
+  },
+  {
+    "id": 29,
+    "code": "axiom_materia",
+    "name_latin": "Materia",
+    "name_kr": "원질",
+    "name_en": "Prima Materia",
+    "domain": "Primordial",
+    "resonance": "Thermal",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "absorb_element"
+      ],
+      "on_contact": {
+        "Aether": {
+          "effect": "transform",
+          "result": "ethereal_matter"
+        },
+        "Ignis": {
+          "effect": "absorb",
+          "ratio": 0.5
+        },
+        "Aqua": {
+          "effect": "absorb",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "elemental_synthesis"
+    },
+    "tags": [
+      "primordial",
+      "foundational",
+      "transmutable"
+    ],
+    "flavor": "모든 물질의 어머니, 형태 없는 근원. 연금술사가 찾아 헤매는 변환의 씨앗."
+  },
+  {
+    "id": 30,
+    "code": "axiom_ferrum",
+    "name_latin": "Ferrum",
+    "name_kr": "철",
+    "name_en": "Iron",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Acidum": {
+          "effect": "trigger",
+          "result": "corrode"
+        },
+        "Fulgur": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Magnetis": {
+          "effect": "trigger",
+          "result": "attract"
+        }
+      },
+      "damage_mod": {
+        "vs_unarmored": 1.2
+      }
+    },
+    "tags": [
+      "metal",
+      "common",
+      "sturdy"
+    ],
+    "flavor": "문명의 뼈대를 이루는 금속. 검과 쟁기, 사슬과 기둥이 되어 세상을 지탱한다."
+  },
+  {
+    "id": 31,
+    "code": "axiom_chalybs",
+    "name_latin": "Chalybs",
+    "name_kr": "강철",
+    "name_en": "Steel",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense",
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Ferrum": {
+          "effect": "resist",
+          "ratio": 0.3
+        },
+        "Acidum": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Calor": {
+          "effect": "trigger",
+          "result": "temper"
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.1,
+        "vs_unarmored": 1.2
+      }
+    },
+    "tags": [
+      "metal",
+      "refined",
+      "balanced"
+    ],
+    "flavor": "불과 인간의 지혜가 빚어낸 완성형. 철의 강인함에 유연함을 더한 금속의 왕."
+  },
+  {
+    "id": 32,
+    "code": "axiom_aurum",
+    "name_latin": "Aurum",
+    "name_kr": "금",
+    "name_en": "Gold",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "resist_corrosion"
+      ],
+      "on_contact": {
+        "Acidum": {
+          "effect": "resist",
+          "ratio": 0.1
+        },
+        "Magia": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Magnetis": {
+          "effect": "ignore"
+        }
+      },
+      "damage_mod": {},
+      "special": "value_multiplier"
+    },
+    "tags": [
+      "metal",
+      "precious",
+      "eternal"
+    ],
+    "flavor": "부패하지 않는 태양의 금속. 왕관과 신상을 장식하는 영원한 가치의 상징."
+  },
+  {
+    "id": 33,
+    "code": "axiom_argentum",
+    "name_latin": "Argentum",
+    "name_kr": "은",
+    "name_en": "Silver",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "purify"
+      ],
+      "on_contact": {
+        "Toxicum": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        },
+        "Tenebrae": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Luna": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {
+        "vs_undead": 1.5,
+        "vs_magical": 1.2
+      }
+    },
+    "tags": [
+      "metal",
+      "precious",
+      "purifying"
+    ],
+    "flavor": "달빛을 담은 청명한 금속. 어둠의 존재를 물리치고 독을 드러내는 성스러운 물질."
+  },
+  {
+    "id": 34,
+    "code": "axiom_cuprum",
+    "name_latin": "Cuprum",
+    "name_kr": "동",
+    "name_en": "Copper",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Electricitas": {
+          "effect": "trigger",
+          "result": "conduct"
+        },
+        "Acidum": {
+          "effect": "trigger",
+          "result": "patina"
+        },
+        "Stannum": {
+          "effect": "transform",
+          "result": "bronze"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "metal",
+      "conductive",
+      "malleable"
+    ],
+    "flavor": "인류가 처음 다룬 금속의 붉은 빛. 전류를 품고 세월에 푸르게 물드는 가변의 물질."
+  },
+  {
+    "id": 35,
+    "code": "axiom_plumbum",
+    "name_latin": "Plumbum",
+    "name_kr": "납",
+    "name_en": "Lead",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Radiatio": {
+          "effect": "resist",
+          "ratio": 0.2
+        },
+        "Magia": {
+          "effect": "resist",
+          "ratio": 0.7
+        },
+        "Fulgur": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {
+        "vs_magical": 0.5
+      },
+      "special": "magic_dampening"
+    },
+    "tags": [
+      "metal",
+      "heavy",
+      "blocking"
+    ],
+    "flavor": "무겁고 둔탁한 회색 금속. 마법과 복사를 차단하는 침묵의 방패."
+  },
+  {
+    "id": 36,
+    "code": "axiom_stannum",
+    "name_latin": "Stannum",
+    "name_kr": "주석",
+    "name_en": "Tin",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Cuprum": {
+          "effect": "transform",
+          "result": "bronze"
+        },
+        "Acidum": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "metal",
+      "soft",
+      "alloying"
+    ],
+    "flavor": "부드럽고 유순한 은빛 금속. 다른 금속과 어우러져 청동의 어머니가 된다."
+  },
+  {
+    "id": 37,
+    "code": "axiom_mithrilum",
+    "name_latin": "Mithrilum",
+    "name_kr": "미스릴",
+    "name_en": "Mithril",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_defense",
+        "reduce_weight"
+      ],
+      "on_contact": {
+        "Ferrum": {
+          "effect": "resist",
+          "ratio": 0.3
+        },
+        "Magia": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Tenebrae": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {
+        "vs_magical": 1.3
+      },
+      "special": "magic_conductivity"
+    },
+    "tags": [
+      "metal",
+      "magical",
+      "rare"
+    ],
+    "flavor": "달빛을 머금은 신비의 금속. 마법과 공명하며 깃털처럼 가볍다."
+  },
+  {
+    "id": 38,
+    "code": "axiom_adamantium",
+    "name_latin": "Adamantium",
+    "name_kr": "아다만티움",
+    "name_en": "Adamantine",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "boost_defense",
+        "reflect_damage"
+      ],
+      "on_contact": {
+        "Chalybs": {
+          "effect": "resist",
+          "ratio": 0.1
+        },
+        "Acidum": {
+          "effect": "resist",
+          "ratio": 0.1
+        },
+        "Magia": {
+          "effect": "resist",
+          "ratio": 0.3
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.5
+      },
+      "special": "indestructible"
+    },
+    "tags": [
+      "metal",
+      "legendary",
+      "unbreakable"
+    ],
+    "flavor": "신들의 감옥을 만든 전설의 금속. 어떤 힘으로도 부수거나 녹일 수 없는 절대 물질."
+  },
+  {
+    "id": 39,
+    "code": "axiom_orichalcum",
+    "name_latin": "Orichalcum",
+    "name_kr": "오리할콘",
+    "name_en": "Orichalcum",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "boost_attack",
+        "regen_mp"
+      ],
+      "on_contact": {
+        "Magia": {
+          "effect": "amplify",
+          "multiplier": 2.0
+        },
+        "Aether": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Aqua": {
+          "effect": "resist",
+          "ratio": 0.2
+        }
+      },
+      "damage_mod": {
+        "vs_magical": 1.4,
+        "vs_elemental": 1.3
+      },
+      "special": "magic_amplification"
+    },
+    "tags": [
+      "metal",
+      "legendary",
+      "magical"
+    ],
+    "flavor": "잃어버린 대륙의 황금빛 금속. 마력을 증폭시키는 고대의 비밀 물질."
+  },
+  {
+    "id": 40,
+    "code": "axiom_petra",
+    "name_latin": "Petra",
+    "name_kr": "암석",
+    "name_en": "Stone",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Aqua": {
+          "effect": "trigger",
+          "result": "erosion"
+        },
+        "Acidum": {
+          "effect": "trigger",
+          "result": "dissolve"
+        },
+        "Terra": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.1
+      }
+    },
+    "tags": [
+      "mineral",
+      "solid",
+      "enduring"
+    ],
+    "flavor": "대지의 뼈, 산의 살. 세월을 견디며 문명의 토대가 되는 원초적 물질."
+  },
+  {
+    "id": 41,
+    "code": "axiom_gemma",
+    "name_latin": "Gemma",
+    "name_kr": "보석",
+    "name_en": "Gem",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Lux": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Magia": {
+          "effect": "trigger",
+          "result": "store_magic"
+        },
+        "Sonus": {
+          "effect": "trigger",
+          "result": "resonate"
+        }
+      },
+      "damage_mod": {},
+      "special": "magic_storage"
+    },
+    "tags": [
+      "mineral",
+      "precious",
+      "crystalline"
+    ],
+    "flavor": "대지가 수억 년에 걸쳐 빚어낸 광채. 마력을 담고 빛을 굴절시키는 욕망의 결정."
+  },
+  {
+    "id": 42,
+    "code": "axiom_obsidianus",
+    "name_latin": "Obsidianus",
+    "name_kr": "흑요석",
+    "name_en": "Obsidian",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "pierce_armor"
+      ],
+      "on_contact": {
+        "Ignis": {
+          "effect": "resist",
+          "ratio": 0.3
+        },
+        "Impactus": {
+          "effect": "trigger",
+          "result": "shatter"
+        },
+        "Tenebrae": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {
+        "vs_unarmored": 1.4,
+        "vs_armored": 0.8
+      }
+    },
+    "tags": [
+      "mineral",
+      "volcanic",
+      "sharp"
+    ],
+    "flavor": "화산의 눈물이 굳어 만든 검은 유리. 면도날보다 날카롭지만 깨지기 쉬운 양날의 검."
+  },
+  {
+    "id": 43,
+    "code": "axiom_vitrum",
+    "name_latin": "Vitrum",
+    "name_kr": "유리",
+    "name_en": "Glass",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Lux": {
+          "effect": "trigger",
+          "result": "transmit"
+        },
+        "Impactus": {
+          "effect": "trigger",
+          "result": "shatter"
+        },
+        "Sonus": {
+          "effect": "trigger",
+          "result": "shatter"
+        },
+        "Acidum": {
+          "effect": "resist",
+          "ratio": 0.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "artificial",
+      "transparent",
+      "fragile"
+    ],
+    "flavor": "불과 모래가 만난 투명한 기적. 빛을 통과시키고 세상을 담아내는 깨지기 쉬운 창."
+  },
+  {
+    "id": 44,
+    "code": "axiom_lignum",
+    "name_latin": "Lignum",
+    "name_kr": "목재",
+    "name_en": "Wood",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Ignis": {
+          "effect": "trigger",
+          "result": "burn"
+        },
+        "Aqua": {
+          "effect": "trigger",
+          "result": "swell"
+        },
+        "Natura": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "organic",
+      "natural",
+      "workable"
+    ],
+    "flavor": "나무의 선물, 숲의 유산. 집과 배, 활과 지팡이가 되어 인간과 함께하는 물질."
+  },
+  {
+    "id": 45,
+    "code": "axiom_corium",
+    "name_latin": "Corium",
+    "name_kr": "가죽",
+    "name_en": "Leather",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Ignis": {
+          "effect": "trigger",
+          "result": "burn"
+        },
+        "Aqua": {
+          "effect": "trigger",
+          "result": "soften"
+        },
+        "Acidum": {
+          "effect": "trigger",
+          "result": "tan"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "organic",
+      "flexible",
+      "protective"
+    ],
+    "flavor": "짐승의 두 번째 삶. 무두질로 새 생명을 얻어 인간의 피부가 되는 물질."
+  },
+  {
+    "id": 46,
+    "code": "axiom_os",
+    "name_latin": "Os",
+    "name_kr": "뼈",
+    "name_en": "Bone",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Acidum": {
+          "effect": "trigger",
+          "result": "dissolve"
+        },
+        "Necros": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Vita": {
+          "effect": "trigger",
+          "result": "mend"
+        }
+      },
+      "damage_mod": {
+        "vs_undead": 0.8
+      }
+    },
+    "tags": [
+      "organic",
+      "structural",
+      "remnant"
+    ],
+    "flavor": "생명의 뼈대, 죽음의 유물. 살아서는 몸을 지탱하고 죽어서는 기억을 전한다."
+  },
+  {
+    "id": 47,
+    "code": "axiom_ebur",
+    "name_latin": "Ebur",
+    "name_kr": "상아",
+    "name_en": "Ivory",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "purify"
+      ],
+      "on_contact": {
+        "Necros": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Magia": {
+          "effect": "trigger",
+          "result": "inscribe"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "organic",
+      "precious",
+      "carvable"
+    ],
+    "flavor": "거대한 짐승의 유산, 백색의 보물. 조각되어 예술이 되고 마법을 새기는 캔버스."
+  },
+  {
+    "id": 48,
+    "code": "axiom_liquidum",
+    "name_latin": "Liquidum",
+    "name_kr": "액체",
+    "name_en": "Liquid",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Calor": {
+          "effect": "transform",
+          "result": "Vapor"
+        },
+        "Frigus": {
+          "effect": "transform",
+          "result": "Solidum"
+        },
+        "Vacuum": {
+          "effect": "trigger",
+          "result": "boil"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "flowing",
+      "adaptable"
+    ],
+    "flavor": "형태 없이 형태를 취하는 물질의 상태. 담기는 그릇을 따라 흐르는 유연함의 본질."
+  },
+  {
+    "id": 49,
+    "code": "axiom_gas",
+    "name_latin": "Gas",
+    "name_kr": "기체",
+    "name_en": "Gas",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "area_effect"
+      ],
+      "on_contact": {
+        "Frigus": {
+          "effect": "transform",
+          "result": "Liquidum"
+        },
+        "Vacuum": {
+          "effect": "trigger",
+          "result": "disperse"
+        },
+        "Ignis": {
+          "effect": "trigger",
+          "result": "explosion"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "pervasive",
+      "invisible"
+    ],
+    "flavor": "보이지 않는 자유의 상태. 어디든 스며들고 퍼지는 물질의 가장 가벼운 형태."
+  },
+  {
+    "id": 50,
+    "code": "axiom_gelum",
+    "name_latin": "Gelum",
+    "name_kr": "젤",
+    "name_en": "Gel",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Calor": {
+          "effect": "transform",
+          "result": "Liquidum"
+        },
+        "Impactus": {
+          "effect": "absorb",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "viscous",
+      "trapping"
+    ],
+    "flavor": "액체와 고체 사이의 모호한 존재. 스며들어 움직임을 옭아매는 끈적한 덫."
+  },
+  {
+    "id": 51,
+    "code": "axiom_mucus",
+    "name_latin": "Mucus",
+    "name_kr": "점액",
+    "name_en": "Slime",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed",
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Ignis": {
+          "effect": "resist",
+          "ratio": 0.3
+        },
+        "Acidum": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "organic",
+      "viscous",
+      "corrosive"
+    ],
+    "flavor": "생물이 분비하는 미끄러운 분비물. 보호하거나 소화하거나, 때로는 둘 다."
+  },
+  {
+    "id": 52,
+    "code": "axiom_oleum",
+    "name_latin": "Oleum",
+    "name_kr": "기름",
+    "name_en": "Oil",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Ignis": {
+          "effect": "amplify",
+          "multiplier": 2.0
+        },
+        "Aqua": {
+          "effect": "resist",
+          "ratio": 0.8
+        },
+        "Frictio": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "organic",
+      "flammable",
+      "lubricating"
+    ],
+    "flavor": "물을 밀어내고 불을 부르는 미끄러운 액체. 기계의 피이자 화염의 먹이."
+  },
+  {
+    "id": 53,
+    "code": "axiom_cite",
+    "name_latin": "Cite",
+    "name_kr": "천",
+    "name_en": "Cloth",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Ignis": {
+          "effect": "trigger",
+          "result": "burn"
+        },
+        "Aqua": {
+          "effect": "trigger",
+          "result": "soak"
+        },
+        "Scindere": {
+          "effect": "trigger",
+          "result": "tear"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "woven",
+      "flexible",
+      "common"
+    ],
+    "flavor": "실이 엮여 만든 문명의 두 번째 피부. 몸을 감싸고 지위를 드러내는 인간의 동반자."
+  },
+  {
+    "id": 54,
+    "code": "axiom_charta",
+    "name_latin": "Charta",
+    "name_kr": "종이",
+    "name_en": "Paper",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Ignis": {
+          "effect": "trigger",
+          "result": "burn"
+        },
+        "Aqua": {
+          "effect": "trigger",
+          "result": "dissolve"
+        },
+        "Atrum": {
+          "effect": "trigger",
+          "result": "inscribe"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "processed",
+      "fragile",
+      "inscribable"
+    ],
+    "flavor": "지식의 그릇, 기억의 저장소. 불과 물에 약하지만 시대를 초월해 생각을 전한다."
+  },
+  {
+    "id": 55,
+    "code": "axiom_argilla",
+    "name_latin": "Argilla",
+    "name_kr": "점토",
+    "name_en": "Clay",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Aqua": {
+          "effect": "trigger",
+          "result": "soften"
+        },
+        "Ignis": {
+          "effect": "transform",
+          "result": "ceramic"
+        },
+        "Terra": {
+          "effect": "amplify",
+          "multiplier": 1.1
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "mineral",
+      "moldable",
+      "transitional"
+    ],
+    "flavor": "물과 흙이 만난 유순한 물질. 손 아래서 형태를 얻고 불 속에서 영원을 얻는다."
+  },
+  {
+    "id": 56,
+    "code": "axiom_lutum",
+    "name_latin": "Lutum",
+    "name_kr": "진흙",
+    "name_en": "Mud",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Calor": {
+          "effect": "transform",
+          "result": "Terra"
+        },
+        "Aqua": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Ventus": {
+          "effect": "trigger",
+          "result": "dry"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "mixture",
+      "trapping",
+      "primal"
+    ],
+    "flavor": "땅과 물이 뒤섞인 원초의 혼합물. 발을 붙잡고 때로는 생명을 빚어내는 창조의 재료."
+  },
+  {
+    "id": 57,
+    "code": "axiom_pulpa",
+    "name_latin": "Pulpa",
+    "name_kr": "과육",
+    "name_en": "Flesh",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Ignis": {
+          "effect": "trigger",
+          "result": "cook"
+        },
+        "Toxicum": {
+          "effect": "trigger",
+          "result": "rot"
+        },
+        "Vita": {
+          "effect": "trigger",
+          "result": "heal"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "organic",
+      "soft",
+      "living"
+    ],
+    "flavor": "생명이 깃든 부드러운 물질. 칼에 베이고 불에 익으며 시간에 썩어가는 유한의 본질."
+  },
+  {
+    "id": 58,
+    "code": "axiom_calite",
+    "name_latin": "Calite",
+    "name_kr": "석회",
+    "name_en": "ite",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Aqua": {
+          "effect": "trigger",
+          "result": "harden"
+        },
+        "Acidum": {
+          "effect": "trigger",
+          "result": "effervesce"
+        },
+        "Petra": {
+          "effect": "trigger",
+          "result": "mortar"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "mineral",
+      "binding",
+      "alkaline"
+    ],
+    "flavor": "돌을 녹이고 다시 굳히는 연결자. 건물을 세우고 뼈를 이루는 하얀 접착제."
+  },
+  {
+    "id": 59,
+    "code": "axiom_ite",
+    "name_latin": "ite",
+    "name_kr": "염",
+    "name_en": "Salt",
+    "domain": "Material",
+    "resonance": "Structural",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "purify"
+      ],
+      "on_contact": {
+        "Aqua": {
+          "effect": "trigger",
+          "result": "dissolve"
+        },
+        "Putredo": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Glacies": {
+          "effect": "trigger",
+          "result": "melt"
+        }
+      },
+      "damage_mod": {
+        "vs_undead": 1.2
+      }
+    },
+    "tags": [
+      "mineral",
+      "preserving",
+      "essential"
+    ],
+    "flavor": "바다의 결정, 대지의 보물. 부패를 막고 맛을 살리며 악을 물리치는 하얀 수호자."
+  },
+  {
+    "id": 60,
+    "code": "axiom_scindere",
+    "name_latin": "Scindere",
+    "name_kr": "베기",
+    "name_en": "Slash",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_bleed_dot"
+      ],
+      "on_contact": {
+        "Cite": {
+          "effect": "trigger",
+          "result": "tear"
+        },
+        "Chalybs": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Pulpa": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {
+        "vs_unarmored": 1.4,
+        "vs_armored": 0.7
+      }
+    },
+    "tags": [
+      "attack",
+      "bladed",
+      "precise"
+    ],
+    "flavor": "날카로운 궤적이 그리는 붉은 선. 살을 가르고 천을 찢는 검의 본질."
+  },
+  {
+    "id": 61,
+    "code": "axiom_punctura",
+    "name_latin": "Punctura",
+    "name_kr": "찌르기",
+    "name_en": "Pierce",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "pierce_armor"
+      ],
+      "on_contact": {
+        "Corium": {
+          "effect": "trigger",
+          "result": "penetrate"
+        },
+        "Chalybs": {
+          "effect": "resist",
+          "ratio": 0.3
+        },
+        "Scutum": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.3,
+        "vs_structure": 0.6
+      }
+    },
+    "tags": [
+      "attack",
+      "pointed",
+      "penetrating"
+    ],
+    "flavor": "한 점에 집중된 파괴의 의지. 갑옷의 틈을 파고드는 창과 송곳의 철학."
+  },
+  {
+    "id": 62,
+    "code": "axiom_ictus",
+    "name_latin": "Ictus",
+    "name_kr": "타격",
+    "name_en": "Strike",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_stun"
+      ],
+      "on_contact": {
+        "Os": {
+          "effect": "trigger",
+          "result": "fracture"
+        },
+        "Vitrum": {
+          "effect": "trigger",
+          "result": "shatter"
+        },
+        "Ferrum": {
+          "effect": "trigger",
+          "result": "dent"
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.1,
+        "vs_structure": 1.2
+      }
+    },
+    "tags": [
+      "attack",
+      "blunt",
+      "stunning"
+    ],
+    "flavor": "뭉툭한 힘이 전달하는 충격. 뼈를 부러뜨리고 갑옷을 찌그러뜨리는 망치의 정의."
+  },
+  {
+    "id": 63,
+    "code": "axiom_contusio",
+    "name_latin": "Contusio",
+    "name_kr": "분쇄",
+    "name_en": "Crush",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Petra": {
+          "effect": "trigger",
+          "result": "pulverize"
+        },
+        "Os": {
+          "effect": "trigger",
+          "result": "shatter"
+        },
+        "Adamantium": {
+          "effect": "resist",
+          "ratio": 0.1
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.4,
+        "vs_structure": 1.5
+      }
+    },
+    "tags": [
+      "attack",
+      "overwhelming",
+      "destructive"
+    ],
+    "flavor": "압도적인 무게가 짓누르는 절대 파괴. 형태를 잃고 가루가 되는 종말."
+  },
+  {
+    "id": 64,
+    "code": "axiom_impactus",
+    "name_latin": "Impactus",
+    "name_kr": "충격",
+    "name_en": "Impact",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "area_effect"
+      ],
+      "on_contact": {
+        "Vitrum": {
+          "effect": "trigger",
+          "result": "shatter"
+        },
+        "Gelum": {
+          "effect": "absorb",
+          "ratio": 0.5
+        },
+        "Aqua": {
+          "effect": "trigger",
+          "result": "splash"
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.2
+      }
+    },
+    "tags": [
+      "force",
+      "sudden",
+      "kinetic"
+    ],
+    "flavor": "운동이 정지할 때 방출되는 순간의 에너지. 충돌의 순간에 피어나는 파괴의 꽃."
+  },
+  {
+    "id": 65,
+    "code": "axiom_pressura",
+    "name_latin": "Pressura",
+    "name_kr": "압력",
+    "name_en": "Pressure",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Gas": {
+          "effect": "trigger",
+          "result": "compress"
+        },
+        "Liquidum": {
+          "effect": "trigger",
+          "result": "pressurize"
+        },
+        "Vacuum": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "force",
+      "constant",
+      "compressing"
+    ],
+    "flavor": "사방에서 조여오는 보이지 않는 손. 깊은 바다와 땅속에서 만물을 압축하는 힘."
+  },
+  {
+    "id": 66,
+    "code": "axiom_tensio",
+    "name_latin": "Tensio",
+    "name_kr": "장력",
+    "name_en": "Tension",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Cite": {
+          "effect": "trigger",
+          "result": "stretch"
+        },
+        "Ferrum": {
+          "effect": "trigger",
+          "result": "strain"
+        },
+        "Elasticum": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "force",
+      "pulling",
+      "straining"
+    ],
+    "flavor": "양쪽으로 당기는 보이지 않는 줄다리기. 끊어지기 직전까지 버티는 인내의 물리학."
+  },
+  {
+    "id": 67,
+    "code": "axiom_frictio",
+    "name_latin": "Frictio",
+    "name_kr": "마찰",
+    "name_en": "Friction",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed",
+        "apply_burn_dot"
+      ],
+      "on_contact": {
+        "Oleum": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Glacies": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        },
+        "Calor": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "force",
+      "resisting",
+      "heating"
+    ],
+    "flavor": "움직임에 저항하는 표면의 악수. 열을 낳고 속도를 삼키는 보이지 않는 브레이크."
+  },
+  {
+    "id": 68,
+    "code": "axiom_elasticum",
+    "name_latin": "Elasticum",
+    "name_kr": "탄성",
+    "name_en": "Elasticity",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reflect_damage"
+      ],
+      "on_contact": {
+        "Impactus": {
+          "effect": "trigger",
+          "result": "bounce"
+        },
+        "Tensio": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Rigiditas": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "property",
+      "resilient",
+      "returning"
+    ],
+    "flavor": "변형 후 원래로 돌아가려는 물질의 기억. 활시위와 용수철에 깃든 되돌림의 힘."
+  },
+  {
+    "id": 69,
+    "code": "axiom_rigiditas",
+    "name_latin": "Rigiditas",
+    "name_kr": "강성",
+    "name_en": "Rigidity",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Elasticum": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Impactus": {
+          "effect": "trigger",
+          "result": "transfer"
+        },
+        "Flexio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "property",
+      "unyielding",
+      "structural"
+    ],
+    "flavor": "휘어지지 않는 완고한 저항. 형태를 지키거나 부러지거나, 타협 없는 물질의 의지."
+  },
+  {
+    "id": 70,
+    "code": "axiom_flexio",
+    "name_latin": "Flexio",
+    "name_kr": "유연",
+    "name_en": "Flexibility",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Rigiditas": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Impactus": {
+          "effect": "absorb",
+          "ratio": 0.4
+        },
+        "Scindere": {
+          "effect": "resist",
+          "ratio": 0.3
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "property",
+      "adaptable",
+      "absorbing"
+    ],
+    "flavor": "힘에 순응하며 살아남는 지혜. 바람에 휘어지되 꺾이지 않는 갈대의 철학."
+  },
+  {
+    "id": 71,
+    "code": "axiom_acceleratio",
+    "name_latin": "Acceleratio",
+    "name_kr": "가속",
+    "name_en": "Acceleration",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_speed"
+      ],
+      "on_contact": {
+        "Motus": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Frictio": {
+          "effect": "resist",
+          "ratio": 0.4
+        },
+        "Inertia": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "motion",
+      "increasing",
+      "dynamic"
+    ],
+    "flavor": "속도의 변화, 힘이 낳은 운동의 자식. 정지에서 폭주로 치닫는 가속의 열광."
+  },
+  {
+    "id": 72,
+    "code": "axiom_deceleratio",
+    "name_latin": "Deceleratio",
+    "name_kr": "감속",
+    "name_en": "Deceleration",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Motus": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Acceleratio": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Inertia": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "motion",
+      "decreasing",
+      "restraining"
+    ],
+    "flavor": "질주를 멈추게 하는 부정의 힘. 화살을 멈추고 돌진을 제어하는 균형의 손길."
+  },
+  {
+    "id": 73,
+    "code": "axiom_inertia",
+    "name_latin": "Inertia",
+    "name_kr": "관성",
+    "name_en": "Inertia",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Acceleratio": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Deceleratio": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Impactus": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {},
+      "special": "state_preservation"
+    },
+    "tags": [
+      "fundamental",
+      "resisting",
+      "conserving"
+    ],
+    "flavor": "움직이는 것은 계속 움직이려 하고, 멈춘 것은 계속 멈추려 한다. 변화를 거부하는 물질의 고집."
+  },
+  {
+    "id": 74,
+    "code": "axiom_motus",
+    "name_latin": "Motus",
+    "name_kr": "운동",
+    "name_en": "Motion",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_speed"
+      ],
+      "on_contact": {
+        "Stasis": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Acceleratio": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Frictio": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "fundamental",
+      "kinetic",
+      "essential"
+    ],
+    "flavor": "정지의 반대, 존재의 증명. 위치의 변화로 세상에 자신을 새기는 근본 현상."
+  },
+  {
+    "id": 75,
+    "code": "axiom_stasis",
+    "name_latin": "Stasis",
+    "name_kr": "정지",
+    "name_en": "Stasis",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_stun"
+      ],
+      "on_contact": {
+        "Motus": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Tempus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Chaos": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "freeze_state"
+    },
+    "tags": [
+      "fundamental",
+      "static",
+      "preserving"
+    ],
+    "flavor": "시간 속에 얼어붙은 순간. 움직임이 사라진 완벽한 정적, 영원의 조각."
+  },
+  {
+    "id": 76,
+    "code": "axiom_rotatio",
+    "name_latin": "Rotatio",
+    "name_kr": "회전",
+    "name_en": "Rotation",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Motus": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Scindere": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Stasis": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "motion",
+      "circular",
+      "continuous"
+    ],
+    "flavor": "축을 중심으로 도는 끝없는 춤. 톱니바퀴와 회오리, 행성의 궤도를 그리는 원환."
+  },
+  {
+    "id": 77,
+    "code": "axiom_vibratio",
+    "name_latin": "Vibratio",
+    "name_kr": "진동",
+    "name_en": "Vibration",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Sonus": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Crystallum": {
+          "effect": "trigger",
+          "result": "resonate"
+        },
+        "Petra": {
+          "effect": "trigger",
+          "result": "crumble"
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.2
+      }
+    },
+    "tags": [
+      "motion",
+      "oscillating",
+      "resonant"
+    ],
+    "flavor": "왕복하는 미세한 움직임의 연속. 소리를 낳고 구조를 무너뜨리는 떨림의 파동."
+  },
+  {
+    "id": 78,
+    "code": "axiom_unda",
+    "name_latin": "Unda",
+    "name_kr": "충격파",
+    "name_en": "Shockwave",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "area_effect",
+        "apply_stun"
+      ],
+      "on_contact": {
+        "Impactus": {
+          "effect": "trigger",
+          "result": "propagate"
+        },
+        "Vacuum": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Aqua": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {
+        "vs_unarmored": 1.3
+      }
+    },
+    "tags": [
+      "force",
+      "expanding",
+      "devastating"
+    ],
+    "flavor": "폭발에서 태어난 팽창하는 파괴의 고리. 닿는 모든 것을 밀어내고 쓰러뜨리는 무형의 주먹."
+  },
+  {
+    "id": 79,
+    "code": "axiom_repulsio",
+    "name_latin": "Repulsio",
+    "name_kr": "반발",
+    "name_en": "Repulsion",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "reflect_damage"
+      ],
+      "on_contact": {
+        "Attractio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Impactus": {
+          "effect": "trigger",
+          "result": "deflect"
+        },
+        "Magnetis": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "force",
+      "pushing",
+      "defensive"
+    ],
+    "flavor": "밀어내는 보이지 않는 방패. 다가오는 모든 것을 거부하는 척력의 장."
+  },
+  {
+    "id": 80,
+    "code": "axiom_attractio",
+    "name_latin": "Attractio",
+    "name_kr": "인력",
+    "name_en": "Attraction",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Repulsio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Gravitas": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Magnetis": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "force",
+      "pulling",
+      "binding"
+    ],
+    "flavor": "끌어당기는 보이지 않는 사슬. 떨어진 것들을 하나로 모으려는 우주적 갈망."
+  },
+  {
+    "id": 81,
+    "code": "axiom_torque",
+    "name_latin": "Torque",
+    "name_kr": "토크",
+    "name_en": "Torque",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Rotatio": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Rigiditas": {
+          "effect": "trigger",
+          "result": "twist"
+        },
+        "Os": {
+          "effect": "trigger",
+          "result": "spiral_fracture"
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.3
+      }
+    },
+    "tags": [
+      "force",
+      "rotational",
+      "twisting"
+    ],
+    "flavor": "축을 비트는 회전의 힘. 나사를 조이고 뼈를 비틀어 부러뜨리는 나선의 폭력."
+  },
+  {
+    "id": 82,
+    "code": "axiom_momentum",
+    "name_latin": "Momentum",
+    "name_kr": "운동량",
+    "name_en": "Momentum",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Motus": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Inertia": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Impactus": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        }
+      },
+      "damage_mod": {},
+      "special": "mass_velocity_product"
+    },
+    "tags": [
+      "fundamental",
+      "conserved",
+      "transferable"
+    ],
+    "flavor": "질량과 속도가 곱해진 운동의 무게. 충돌에서 전달되고 보존되는 물리의 화폐."
+  },
+  {
+    "id": 83,
+    "code": "axiom_levamen",
+    "name_latin": "Levamen",
+    "name_kr": "지렛대",
+    "name_en": "Leverage",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Torque": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Gravitas": {
+          "effect": "trigger",
+          "result": "lift"
+        },
+        "Impactus": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "mechanical",
+      "amplifying",
+      "efficient"
+    ],
+    "flavor": "작은 힘으로 큰 것을 움직이는 지혜. 받침점을 중심으로 세상을 들어올리는 지렛대의 원리."
+  },
+  {
+    "id": 84,
+    "code": "axiom_percussio",
+    "name_latin": "Percussio",
+    "name_kr": "반동",
+    "name_en": "Recoil",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Impactus": {
+          "effect": "trigger",
+          "result": "reverse"
+        },
+        "Momentum": {
+          "effect": "trigger",
+          "result": "conserve"
+        },
+        "Inertia": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "reaction",
+      "equal",
+      "opposite"
+    ],
+    "flavor": "작용에 대한 반작용, 뉴턴의 세 번째 약속. 밀어내면 밀려오는 물리의 균형."
+  },
+  {
+    "id": 85,
+    "code": "axiom_explosio",
+    "name_latin": "Explosio",
+    "name_kr": "폭발",
+    "name_en": "Explosion",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "area_effect"
+      ],
+      "on_contact": {
+        "Ignis": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Gas": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Vacuum": {
+          "effect": "resist",
+          "ratio": 0.3
+        }
+      },
+      "damage_mod": {
+        "vs_unarmored": 1.4,
+        "vs_structure": 1.3
+      }
+    },
+    "tags": [
+      "force",
+      "violent",
+      "expanding"
+    ],
+    "flavor": "순간적인 팽창이 낳은 파괴의 꽃. 에너지가 사방으로 터져나가는 폭력의 정점."
+  },
+  {
+    "id": 86,
+    "code": "axiom_implosio",
+    "name_latin": "Implosio",
+    "name_kr": "내파",
+    "name_en": "Implosion",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "area_effect"
+      ],
+      "on_contact": {
+        "Vacuum": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Pressura": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Gas": {
+          "effect": "trigger",
+          "result": "collapse"
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.4
+      }
+    },
+    "tags": [
+      "force",
+      "collapsing",
+      "concentrated"
+    ],
+    "flavor": "안으로 무너지는 역폭발. 허공이 스스로를 삼키며 모든 것을 중심으로 빨아들인다."
+  },
+  {
+    "id": 87,
+    "code": "axiom_penetratio",
+    "name_latin": "Penetratio",
+    "name_kr": "관통",
+    "name_en": "Penetration",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "pierce_armor"
+      ],
+      "on_contact": {
+        "Scutum": {
+          "effect": "ignore"
+        },
+        "Chalybs": {
+          "effect": "resist",
+          "ratio": 0.4
+        },
+        "Adamantium": {
+          "effect": "resist",
+          "ratio": 0.2
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.5
+      },
+      "special": "armor_bypass"
+    },
+    "tags": [
+      "force",
+      "piercing",
+      "unstoppable"
+    ],
+    "flavor": "모든 방어를 무시하고 뚫고 나가는 극한의 집중. 방패를 비웃는 화살의 의지."
+  },
+  {
+    "id": 88,
+    "code": "axiom_dispersio",
+    "name_latin": "Dispersio",
+    "name_kr": "분산",
+    "name_en": "Dispersion",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "area_effect"
+      ],
+      "on_contact": {
+        "Concentratio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Gas": {
+          "effect": "trigger",
+          "result": "spread"
+        },
+        "Magia": {
+          "effect": "trigger",
+          "result": "diffuse"
+        }
+      },
+      "damage_mod": {
+        "vs_unarmored": 0.8
+      }
+    },
+    "tags": [
+      "force",
+      "spreading",
+      "diluting"
+    ],
+    "flavor": "하나를 여럿으로 흩트리는 힘. 집중된 것을 퍼뜨려 약화시키는 분산의 원리."
+  },
+  {
+    "id": 89,
+    "code": "axiom_concentratio",
+    "name_latin": "Concentratio",
+    "name_kr": "집중",
+    "name_en": "Concentration",
+    "domain": "Force",
+    "resonance": "Kinetic",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Dispersio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Magia": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Lux": {
+          "effect": "trigger",
+          "result": "focus_beam"
+        }
+      },
+      "damage_mod": {
+        "vs_armored": 1.2
+      },
+      "special": "power_focus"
+    },
+    "tags": [
+      "force",
+      "focusing",
+      "intensifying"
+    ],
+    "flavor": "흩어진 것을 한 점으로 모으는 수렴. 희미한 빛도 모이면 강철을 녹인다."
+  },
+  {
+    "id": 90,
+    "code": "axiom_vita",
+    "name_latin": "Vita",
+    "name_kr": "생명력",
+    "name_en": "Life Force",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Necros": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Natura": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Toxicum": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {
+        "vs_undead": 1.4
+      }
+    },
+    "tags": [
+      "fundamental",
+      "healing",
+      "sustaining"
+    ],
+    "flavor": "모든 생명체에 깃든 신비로운 불꽃. 숨 쉬고 자라고 치유하게 하는 근원적 에너지."
+  },
+  {
+    "id": 91,
+    "code": "axiom_necros",
+    "name_latin": "Necros",
+    "name_kr": "사기",
+    "name_en": "Death Energy",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_poison_dot"
+      ],
+      "on_contact": {
+        "Vita": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Os": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Lux": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.3,
+        "vs_undead": 0.3
+      },
+      "special": "life_drain"
+    },
+    "tags": [
+      "fundamental",
+      "corrupting",
+      "draining"
+    ],
+    "flavor": "생명을 갉아먹는 검은 안개. 살아있는 것을 시들게 하고 죽은 것을 깨우는 역생의 힘."
+  },
+  {
+    "id": 92,
+    "code": "axiom_cor",
+    "name_latin": "Cor",
+    "name_kr": "심장",
+    "name_en": "Heart",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Sanguis": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Fulgur": {
+          "effect": "trigger",
+          "result": "shock"
+        },
+        "Punctura": {
+          "effect": "trigger",
+          "result": "critical"
+        }
+      },
+      "damage_mod": {},
+      "special": "vital_point"
+    },
+    "tags": [
+      "organ",
+      "vital",
+      "rhythmic"
+    ],
+    "flavor": "생명의 북, 피의 펌프. 멈추면 모든 것이 끝나는 가장 소중한 장기."
+  },
+  {
+    "id": 93,
+    "code": "axiom_cerebrum",
+    "name_latin": "Cerebrum",
+    "name_kr": "뇌",
+    "name_en": "Brain",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Psyche": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Electricitas": {
+          "effect": "trigger",
+          "result": "overload"
+        },
+        "Impactus": {
+          "effect": "trigger",
+          "result": "concussion"
+        }
+      },
+      "damage_mod": {},
+      "special": "consciousness_seat"
+    },
+    "tags": [
+      "organ",
+      "vital",
+      "thinking"
+    ],
+    "flavor": "사고와 명령의 중추. 신경의 왕좌에 앉아 온몸을 지배하는 젖빛 군주."
+  },
+  {
+    "id": 94,
+    "code": "axiom_sanguis",
+    "name_latin": "Sanguis",
+    "name_kr": "혈액",
+    "name_en": "Blood",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Cor": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Toxicum": {
+          "effect": "trigger",
+          "result": "spread_poison"
+        },
+        "Ferrum": {
+          "effect": "trigger",
+          "result": "coagulate"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "fluid",
+      "vital",
+      "carrying"
+    ],
+    "flavor": "생명을 운반하는 붉은 강. 산소와 영양을 실어 나르는 몸속의 대동맥."
+  },
+  {
+    "id": 95,
+    "code": "axiom_musculus",
+    "name_latin": "Musculus",
+    "name_kr": "근육",
+    "name_en": "Muscle",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Electricitas": {
+          "effect": "trigger",
+          "result": "contract"
+        },
+        "Toxicum": {
+          "effect": "trigger",
+          "result": "paralyze"
+        },
+        "Nutrimentum": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "tissue",
+      "strength",
+      "movement"
+    ],
+    "flavor": "수축과 이완으로 힘을 만드는 붉은 섬유. 의지를 행동으로 바꾸는 육체의 엔진."
+  },
+  {
+    "id": 96,
+    "code": "axiom_cutis",
+    "name_latin": "Cutis",
+    "name_kr": "피부",
+    "name_en": "Skin",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Ignis": {
+          "effect": "trigger",
+          "result": "burn"
+        },
+        "Acidum": {
+          "effect": "trigger",
+          "result": "corrode"
+        },
+        "Scindere": {
+          "effect": "trigger",
+          "result": "wound"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "tissue",
+      "protective",
+      "sensory"
+    ],
+    "flavor": "안과 밖을 나누는 살아있는 경계. 세상을 느끼고 몸을 지키는 최초의 방어선."
+  },
+  {
+    "id": 97,
+    "code": "axiom_nervus",
+    "name_latin": "Nervus",
+    "name_kr": "신경",
+    "name_en": "Nerve",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Electricitas": {
+          "effect": "trigger",
+          "result": "overload"
+        },
+        "Toxicum": {
+          "effect": "trigger",
+          "result": "numb"
+        },
+        "Dolor": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        }
+      },
+      "damage_mod": {},
+      "special": "signal_transmission"
+    },
+    "tags": [
+      "tissue",
+      "signaling",
+      "sensitive"
+    ],
+    "flavor": "전기 신호가 달리는 생체 전선. 감각을 전하고 명령을 내리는 정보의 고속도로."
+  },
+  {
+    "id": 98,
+    "code": "axiom_pulmo",
+    "name_latin": "Pulmo",
+    "name_kr": "폐",
+    "name_en": "Lung",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Ventus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Gas": {
+          "effect": "trigger",
+          "result": "inhale"
+        },
+        "Vacuum": {
+          "effect": "trigger",
+          "result": "suffocate"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "organ",
+      "breathing",
+      "vital"
+    ],
+    "flavor": "공기와 피가 만나는 분홍빛 숲. 숨을 들이쉬고 내쉬며 생명을 이어가는 풀무."
+  },
+  {
+    "id": 99,
+    "code": "axiom_toxicum",
+    "name_latin": "Toxicum",
+    "name_kr": "독",
+    "name_en": "Poison",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_poison_dot"
+      ],
+      "on_contact": {
+        "Vita": {
+          "effect": "resist",
+          "ratio": 0.4
+        },
+        "Sanguis": {
+          "effect": "trigger",
+          "result": "spread_poison"
+        },
+        "Antidotum": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.4,
+        "vs_inorganic": 0.2
+      }
+    },
+    "tags": [
+      "substance",
+      "harmful",
+      "insidious"
+    ],
+    "flavor": "생명을 조용히 갉아먹는 악의. 몸속에 스며들어 안에서부터 무너뜨리는 보이지 않는 살인자."
+  },
+  {
+    "id": 100,
+    "code": "axiom_antidotum",
+    "name_latin": "Antidotum",
+    "name_kr": "해독",
+    "name_en": "Antidote",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Toxicum": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Morbus": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Vita": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "substance",
+      "curative",
+      "counteracting"
+    ],
+    "flavor": "독에 맞서는 독, 구원의 약. 죽음의 문턱에서 생명을 되돌리는 반대의 묘약."
+  },
+  {
+    "id": 101,
+    "code": "axiom_morbus",
+    "name_latin": "Morbus",
+    "name_kr": "질병",
+    "name_en": "Disease",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_poison_dot",
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Vita": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Contagio": {
+          "effect": "trigger",
+          "result": "spread"
+        },
+        "Cura": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.3
+      },
+      "special": "progressive_damage"
+    },
+    "tags": [
+      "condition",
+      "spreading",
+      "weakening"
+    ],
+    "flavor": "몸을 갉아먹는 보이지 않는 침략자. 열과 고통으로 생명을 서서히 소진시킨다."
+  },
+  {
+    "id": 102,
+    "code": "axiom_contagio",
+    "name_latin": "Contagio",
+    "name_kr": "감염",
+    "name_en": "Infection",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "chain_effect"
+      ],
+      "on_contact": {
+        "Morbus": {
+          "effect": "trigger",
+          "result": "spread"
+        },
+        "Corpus": {
+          "effect": "trigger",
+          "result": "invade"
+        },
+        "Ignis": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "transmission"
+    },
+    "tags": [
+      "mechanism",
+      "spreading",
+      "invasive"
+    ],
+    "flavor": "숙주에서 숙주로 뛰어넘는 악의 씨앗. 접촉으로 퍼지는 보이지 않는 전쟁."
+  },
+  {
+    "id": 103,
+    "code": "axiom_cura",
+    "name_latin": "Cura",
+    "name_kr": "치유",
+    "name_en": "Healing",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Vulnus": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Morbus": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Necros": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {
+        "vs_undead": 1.2
+      }
+    },
+    "tags": [
+      "process",
+      "restorative",
+      "benevolent"
+    ],
+    "flavor": "상처를 닫고 병을 물리치는 생명의 기적. 몸이 스스로를 고치는 신비로운 힘."
+  },
+  {
+    "id": 104,
+    "code": "axiom_vulnus",
+    "name_latin": "Vulnus",
+    "name_kr": "상처",
+    "name_en": "Wound",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_bleed_dot"
+      ],
+      "on_contact": {
+        "Cura": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Contagio": {
+          "effect": "trigger",
+          "result": "infect"
+        },
+        "Sal": {
+          "effect": "trigger",
+          "result": "pain"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "condition",
+      "damaging",
+      "vulnerable"
+    ],
+    "flavor": "몸에 새겨진 파괴의 흔적. 피가 흐르고 고름이 고이는 열린 문."
+  },
+  {
+    "id": 105,
+    "code": "axiom_crescere",
+    "name_latin": "Crescere",
+    "name_kr": "성장",
+    "name_en": "Growth",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Nutrimentum": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Tempus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Toxicum": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "process",
+      "developing",
+      "expanding"
+    ],
+    "flavor": "작은 것이 커지고 약한 것이 강해지는 변화. 시간이 빚어내는 생명의 경이."
+  },
+  {
+    "id": 106,
+    "code": "axiom_senectus",
+    "name_latin": "Senectus",
+    "name_kr": "노화",
+    "name_en": "Aging",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "reduce_speed",
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Tempus": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Vita": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Juventus": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {},
+      "special": "gradual_decay"
+    },
+    "tags": [
+      "process",
+      "inevitable",
+      "declining"
+    ],
+    "flavor": "시간이 생명에 새기는 흔적. 피할 수 없이 찾아오는 쇠락의 그림자."
+  },
+  {
+    "id": 107,
+    "code": "axiom_juventus",
+    "name_latin": "Juventus",
+    "name_kr": "젊음",
+    "name_en": "Youth",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_speed",
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Senectus": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Vita": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Tempus": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "vigorous",
+      "fleeting"
+    ],
+    "flavor": "생명이 가장 찬란하게 빛나는 순간. 무한해 보이는 가능성의 황금기."
+  },
+  {
+    "id": 108,
+    "code": "axiom_regeneratio",
+    "name_latin": "Regeneratio",
+    "name_kr": "재생",
+    "name_en": "Regeneration",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Vulnus": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Scindere": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Ignis": {
+          "effect": "resist",
+          "ratio": 0.3
+        }
+      },
+      "damage_mod": {},
+      "special": "limb_regrowth"
+    },
+    "tags": [
+      "process",
+      "miraculous",
+      "restoring"
+    ],
+    "flavor": "잃어버린 것을 되찾는 생명의 기적. 도마뱀 꼬리처럼 다시 자라나는 회복의 신비."
+  },
+  {
+    "id": 109,
+    "code": "axiom_mutatio",
+    "name_latin": "Mutatio",
+    "name_kr": "변이",
+    "name_en": "Mutation",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "conditional_trigger"
+      ],
+      "on_contact": {
+        "Radiatio": {
+          "effect": "trigger",
+          "result": "random_change"
+        },
+        "Chaos": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Ordo": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "random_stat_change"
+    },
+    "tags": [
+      "process",
+      "chaotic",
+      "transforming"
+    ],
+    "flavor": "생명의 설계도가 뒤틀리는 순간. 괴물이 되거나 진화하거나, 주사위의 결과."
+  },
+  {
+    "id": 110,
+    "code": "axiom_nutrimentum",
+    "name_latin": "Nutrimentum",
+    "name_kr": "영양",
+    "name_en": "Nutrition",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Crescere": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Musculus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Fames": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "substance",
+      "sustaining",
+      "essential"
+    ],
+    "flavor": "생명을 유지하는 보이지 않는 연료. 먹고 소화하여 힘이 되는 물질."
+  },
+  {
+    "id": 111,
+    "code": "axiom_fames",
+    "name_latin": "Fames",
+    "name_kr": "굶주림",
+    "name_en": "Hunger",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_defense",
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Nutrimentum": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Vita": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Necros": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "condition",
+      "depleting",
+      "driving"
+    ],
+    "flavor": "비어가는 뱃속이 보내는 절박한 신호. 모든 것을 먹어치우게 만드는 원초적 갈망."
+  },
+  {
+    "id": 112,
+    "code": "axiom_sitis",
+    "name_latin": "Sitis",
+    "name_kr": "갈증",
+    "name_en": "Thirst",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Aqua": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Calor": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Sanguis": {
+          "effect": "trigger",
+          "result": "thicken"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "condition",
+      "urgent",
+      "desiccating"
+    ],
+    "flavor": "말라가는 몸이 외치는 물의 갈망. 해결하지 않으면 죽음으로 이끄는 절박함."
+  },
+  {
+    "id": 113,
+    "code": "axiom_somnus",
+    "name_latin": "Somnus",
+    "name_kr": "수면",
+    "name_en": "Sleep",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "regen_hp",
+        "apply_stun"
+      ],
+      "on_contact": {
+        "Vigilia": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Somnium": {
+          "effect": "trigger",
+          "result": "dream"
+        },
+        "Sonus": {
+          "effect": "trigger",
+          "result": "wake"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "restorative",
+      "vulnerable"
+    ],
+    "flavor": "의식이 잠기는 작은 죽음. 몸과 마음을 회복하는 필수적인 휴식."
+  },
+  {
+    "id": 114,
+    "code": "axiom_vigilia",
+    "name_latin": "Vigilia",
+    "name_kr": "각성",
+    "name_en": "Wakefulness",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_speed"
+      ],
+      "on_contact": {
+        "Somnus": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Lux": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Tenebrae": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "alert",
+      "conscious"
+    ],
+    "flavor": "열린 눈, 깨어있는 정신. 세상을 인식하고 반응할 수 있는 의식의 상태."
+  },
+  {
+    "id": 115,
+    "code": "axiom_dolor",
+    "name_latin": "Dolor",
+    "name_kr": "고통",
+    "name_en": "Pain",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Nervus": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Vulnus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Analgesium": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "sensation",
+      "warning",
+      "debilitating"
+    ],
+    "flavor": "몸이 보내는 위험 신호. 불쾌하지만 생존을 위해 필수적인 경고음."
+  },
+  {
+    "id": 116,
+    "code": "axiom_voluptas",
+    "name_latin": "Voluptas",
+    "name_kr": "쾌감",
+    "name_en": "Pleasure",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Dolor": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        },
+        "Amor": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Addictio": {
+          "effect": "trigger",
+          "result": "dependency"
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "sensation",
+      "rewarding",
+      "enticing"
+    ],
+    "flavor": "몸과 마음이 느끼는 긍정적 보상. 행동을 유도하고 삶을 달콤하게 만드는 미끼."
+  },
+  {
+    "id": 117,
+    "code": "axiom_corpus",
+    "name_latin": "Corpus",
+    "name_kr": "육체",
+    "name_en": "Body",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Anima": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Umbra": {
+          "effect": "trigger",
+          "result": "shadow_bind"
+        },
+        "Gravitas": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "fundamental",
+      "physical",
+      "vessel"
+    ],
+    "flavor": "영혼이 머무는 물질의 집. 살과 뼈로 이루어진 존재의 그릇."
+  },
+  {
+    "id": 118,
+    "code": "axiom_reproductio",
+    "name_latin": "Reproductio",
+    "name_kr": "번식",
+    "name_en": "Reproduction",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Vita": {
+          "effect": "trigger",
+          "result": "create_life"
+        },
+        "Tempus": {
+          "effect": "trigger",
+          "result": "gestation"
+        },
+        "Mutatio": {
+          "effect": "trigger",
+          "result": "inherit_mutation"
+        }
+      },
+      "damage_mod": {},
+      "special": "life_creation"
+    },
+    "tags": [
+      "process",
+      "perpetuating",
+      "fundamental"
+    ],
+    "flavor": "생명이 생명을 낳는 신비. 종을 이어가는 가장 근본적인 충동."
+  },
+  {
+    "id": 119,
+    "code": "axiom_putredo",
+    "name_latin": "Putredo",
+    "name_kr": "부패",
+    "name_en": "Decay",
+    "domain": "Organic",
+    "resonance": "Bio",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_poison_dot"
+      ],
+      "on_contact": {
+        "Vita": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Sal": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Necros": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.2
+      }
+    },
+    "tags": [
+      "process",
+      "decomposing",
+      "natural"
+    ],
+    "flavor": "죽음 이후의 필연적 과정. 복잡한 것을 단순하게 되돌리는 자연의 재활용."
+  },
+  {
+    "id": 120,
+    "code": "axiom_timor",
+    "name_latin": "Timor",
+    "name_kr": "공포",
+    "name_en": "Fear",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "apply_fear"
+      ],
+      "on_contact": {
+        "Fortitudo": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Tenebrae": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Lux": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.1
+      }
+    },
+    "tags": [
+      "emotion",
+      "primal",
+      "paralyzing"
+    ],
+    "flavor": "얼어붙게 만드는 원초적 경고. 도망치거나 싸우라고 외치는 생존의 속삭임."
+  },
+  {
+    "id": 121,
+    "code": "axiom_ira",
+    "name_latin": "Ira",
+    "name_kr": "분노",
+    "name_en": "Anger",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_attack",
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Pax": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Ignis": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Ratio": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "aggressive",
+      "empowering"
+    ],
+    "flavor": "이성을 태우는 붉은 불꽃. 파괴적이지만 때로는 정의를 위한 연료가 된다."
+  },
+  {
+    "id": 122,
+    "code": "axiom_tristitia",
+    "name_latin": "Tristitia",
+    "name_kr": "슬픔",
+    "name_en": "Sadness",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Gaudium": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Aqua": {
+          "effect": "amplify",
+          "multiplier": 1.1
+        },
+        "Spes": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "heavy",
+      "reflective"
+    ],
+    "flavor": "가슴을 짓누르는 무거운 구름. 상실 앞에 흐르는 눈물의 강."
+  },
+  {
+    "id": 123,
+    "code": "axiom_gaudium",
+    "name_latin": "Gaudium",
+    "name_kr": "기쁨",
+    "name_en": "Joy",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_speed",
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Tristitia": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Lux": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Timor": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "uplifting",
+      "radiant"
+    ],
+    "flavor": "마음에서 피어나는 따스한 빛. 세상을 밝히고 고통을 잊게 하는 생의 선물."
+  },
+  {
+    "id": 124,
+    "code": "axiom_nausea",
+    "name_latin": "Nausea",
+    "name_kr": "혐오",
+    "name_en": "Disgust",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Toxicum": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Putredo": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Puritas": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "rejecting",
+      "protective"
+    ],
+    "flavor": "밀어내는 본능적 거부감. 해로운 것을 피하게 만드는 생존의 역겨움."
+  },
+  {
+    "id": 125,
+    "code": "axiom_amor",
+    "name_latin": "Amor",
+    "name_kr": "사랑",
+    "name_en": "Love",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_defense",
+        "regen_hp"
+      ],
+      "on_contact": {
+        "Odium": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Vita": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Voluptas": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "binding",
+      "transcendent"
+    ],
+    "flavor": "영혼을 잇는 보이지 않는 실. 희생을 부르고 산을 옮기는 가장 강한 감정."
+  },
+  {
+    "id": 126,
+    "code": "axiom_odium",
+    "name_latin": "Odium",
+    "name_kr": "증오",
+    "name_en": "Hatred",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Amor": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Ira": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Necros": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.2
+      }
+    },
+    "tags": [
+      "emotion",
+      "consuming",
+      "destructive"
+    ],
+    "flavor": "사랑의 뒤틀린 그림자. 대상의 파멸만을 갈구하는 어두운 집념."
+  },
+  {
+    "id": 127,
+    "code": "axiom_invidia",
+    "name_latin": "Invidia",
+    "name_kr": "질투",
+    "name_en": "Envy",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Contentum": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Odium": {
+          "effect": "trigger",
+          "result": "intensify"
+        },
+        "Gaudium": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "comparing",
+      "corrosive"
+    ],
+    "flavor": "남의 것을 탐하는 초록빛 눈. 자신을 갉아먹는 불만족의 독."
+  },
+  {
+    "id": 128,
+    "code": "axiom_reverentia",
+    "name_latin": "Reverentia",
+    "name_kr": "경외",
+    "name_en": "Awe",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_stun"
+      ],
+      "on_contact": {
+        "Divinum": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Magia": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Contemptus": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "overwhelming",
+      "humbling"
+    ],
+    "flavor": "위대함 앞에 무릎 꿇는 감정. 경이와 두려움이 뒤섞인 압도적 존경."
+  },
+  {
+    "id": 129,
+    "code": "axiom_insania",
+    "name_latin": "Insania",
+    "name_kr": "광기",
+    "name_en": "Madness",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack",
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Ratio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Chaos": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Sanitas": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "random_behavior"
+    },
+    "tags": [
+      "state",
+      "chaotic",
+      "liberating"
+    ],
+    "flavor": "이성의 사슬이 끊어진 상태. 예측 불가의 폭풍이지만 때로는 천재의 문."
+  },
+  {
+    "id": 130,
+    "code": "axiom_sanitas",
+    "name_latin": "Sanitas",
+    "name_kr": "정신건강",
+    "name_en": "Sanity",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Insania": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        },
+        "Ratio": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Chaos": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "balanced",
+      "stable"
+    ],
+    "flavor": "균형 잡힌 마음의 상태. 현실을 있는 그대로 인식하는 건강한 정신."
+  },
+  {
+    "id": 131,
+    "code": "axiom_confusio",
+    "name_latin": "Confusio",
+    "name_kr": "혼란",
+    "name_en": "Confusion",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_speed",
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Claritas": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Chaos": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Ordo": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "disorienting",
+      "paralyzing"
+    ],
+    "flavor": "방향을 잃은 나침반. 판단이 흐려지고 행동이 엉키는 정신의 안개."
+  },
+  {
+    "id": 132,
+    "code": "axiom_claritas",
+    "name_latin": "Claritas",
+    "name_kr": "명료",
+    "name_en": "Clarity",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack",
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Confusio": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Lux": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Tenebrae": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "focused",
+      "perceptive"
+    ],
+    "flavor": "수정처럼 맑아진 정신. 본질을 꿰뚫어보는 날카로운 통찰의 순간."
+  },
+  {
+    "id": 133,
+    "code": "axiom_focus",
+    "name_latin": "Focus",
+    "name_kr": "집중",
+    "name_en": "Focus",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Distractio": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Magia": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Chaos": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "state",
+      "directed",
+      "powerful"
+    ],
+    "flavor": "흩어진 마음을 한 점에 모으는 힘. 주의력의 레이저가 되는 정신 상태."
+  },
+  {
+    "id": 134,
+    "code": "axiom_memoria",
+    "name_latin": "Memoria",
+    "name_kr": "기억",
+    "name_en": "Memory",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Oblivio": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Tempus": {
+          "effect": "resist",
+          "ratio": 0.4
+        },
+        "Experientia": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {},
+      "special": "knowledge_retention"
+    },
+    "tags": [
+      "function",
+      "preserving",
+      "connecting"
+    ],
+    "flavor": "과거를 현재로 불러오는 마음의 창고. 경험을 저장하고 자아를 이어주는 다리."
+  },
+  {
+    "id": 135,
+    "code": "axiom_oblivio",
+    "name_latin": "Oblivio",
+    "name_kr": "망각",
+    "name_en": "Oblivion",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Memoria": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Dolor": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        },
+        "Identitas": {
+          "effect": "trigger",
+          "result": "erode"
+        }
+      },
+      "damage_mod": {},
+      "special": "knowledge_erasure"
+    },
+    "tags": [
+      "function",
+      "erasing",
+      "liberating"
+    ],
+    "flavor": "기억을 삼키는 검은 안개. 고통을 지우지만 자아도 함께 녹여버린다."
+  },
+  {
+    "id": 136,
+    "code": "axiom_hallucinatio",
+    "name_latin": "Hallucinatio",
+    "name_kr": "환각",
+    "name_en": "Hallucination",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_blind"
+      ],
+      "on_contact": {
+        "Veritas": {
+          "effect": "resist",
+          "ratio": 0.7
+        },
+        "Insania": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Claritas": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "false_perception"
+    },
+    "tags": [
+      "state",
+      "deceiving",
+      "surreal"
+    ],
+    "flavor": "없는 것을 보고 듣는 마음의 속임수. 현실과 환상의 경계가 무너지는 순간."
+  },
+  {
+    "id": 137,
+    "code": "axiom_intuitio",
+    "name_latin": "Intuitio",
+    "name_kr": "직관",
+    "name_en": "Intuition",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Ratio": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Periculum": {
+          "effect": "trigger",
+          "result": "sense_danger"
+        },
+        "Veritas": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "danger_sense"
+    },
+    "tags": [
+      "function",
+      "instinctive",
+      "guiding"
+    ],
+    "flavor": "논리 없이 아는 앎. 설명할 수 없지만 정확한 내면의 나침반."
+  },
+  {
+    "id": 138,
+    "code": "axiom_ratio",
+    "name_latin": "Ratio",
+    "name_kr": "이성",
+    "name_en": "Reason",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Insania": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Ira": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Ordo": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "function",
+      "analytical",
+      "ordering"
+    ],
+    "flavor": "감정의 폭풍을 잠재우는 차가운 빛. 논리로 세상을 이해하려는 정신의 도구."
+  },
+  {
+    "id": 139,
+    "code": "axiom_fortitudo",
+    "name_latin": "Fortitudo",
+    "name_kr": "용기",
+    "name_en": "Courage",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Timor": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Spes": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Desperatio": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "virtue",
+      "empowering",
+      "defiant"
+    ],
+    "flavor": "두려움에도 나아가는 의지. 벌벌 떨면서도 발을 내딛는 진정한 용맹."
+  },
+  {
+    "id": 140,
+    "code": "axiom_desperatio",
+    "name_latin": "Desperatio",
+    "name_kr": "절망",
+    "name_en": "Despair",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "reduce_defense",
+        "reduce_speed"
+      ],
+      "on_contact": {
+        "Spes": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Tenebrae": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Necros": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "crushing",
+      "nihilistic"
+    ],
+    "flavor": "모든 희망이 꺼진 어둠. 더 이상 시도할 이유조차 없는 영혼의 바닥."
+  },
+  {
+    "id": 141,
+    "code": "axiom_spes",
+    "name_latin": "Spes",
+    "name_kr": "희망",
+    "name_en": "Hope",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "regen_hp",
+        "boost_speed"
+      ],
+      "on_contact": {
+        "Desperatio": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Lux": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Fortitudo": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "emotion",
+      "sustaining",
+      "luminous"
+    ],
+    "flavor": "어둠 속에서 깜빡이는 작은 불씨. 내일을 향해 발을 내딛게 하는 힘."
+  },
+  {
+    "id": 142,
+    "code": "axiom_determinatio",
+    "name_latin": "Determinatio",
+    "name_kr": "결의",
+    "name_en": "Determination",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack",
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Timor": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Desperatio": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Voluntas": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {}
+    },
+    "tags": [
+      "virtue",
+      "unwavering",
+      "focused"
+    ],
+    "flavor": "무엇이 와도 굽히지 않는 강철 의지. 목표를 향해 나아가는 불굴의 결심."
+  },
+  {
+    "id": 143,
+    "code": "axiom_voluntas",
+    "name_latin": "Voluntas",
+    "name_kr": "의지",
+    "name_en": "Will",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Dominatio": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Magia": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Chaos": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {},
+      "special": "resist_control"
+    },
+    "tags": [
+      "fundamental",
+      "driving",
+      "sovereign"
+    ],
+    "flavor": "행동의 근원, 선택의 힘. 외부의 강요에 맞서는 내면의 주권."
+  },
+  {
+    "id": 144,
+    "code": "axiom_fascinum",
+    "name_latin": "Fascinum",
+    "name_kr": "매혹",
+    "name_en": "Charm",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_charm"
+      ],
+      "on_contact": {
+        "Voluntas": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Amor": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Ratio": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "mind_influence"
+    },
+    "tags": [
+      "effect",
+      "enticing",
+      "controlling"
+    ],
+    "flavor": "마음을 사로잡는 달콤한 올가미. 저항할 수 없는 끌림으로 의지를 무너뜨린다."
+  },
+  {
+    "id": 145,
+    "code": "axiom_dominatio",
+    "name_latin": "Dominatio",
+    "name_kr": "지배",
+    "name_en": "Domination",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Voluntas": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Libertas": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Fortitudo": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "mind_control"
+    },
+    "tags": [
+      "effect",
+      "controlling",
+      "absolute"
+    ],
+    "flavor": "타인의 의지를 꺾고 복종시키는 힘. 정신을 노예로 만드는 금지된 지배술."
+  },
+  {
+    "id": 146,
+    "code": "axiom_libertas",
+    "name_latin": "Libertas",
+    "name_kr": "자유",
+    "name_en": "Freedom",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Dominatio": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Vinculum": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Voluntas": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {},
+      "special": "break_control"
+    },
+    "tags": [
+      "state",
+      "liberating",
+      "sovereign"
+    ],
+    "flavor": "모든 속박을 끊는 해방의 바람. 자신의 운명을 스스로 결정하는 권리."
+  },
+  {
+    "id": 147,
+    "code": "axiom_somnium",
+    "name_latin": "Somnium",
+    "name_kr": "꿈",
+    "name_en": "Dream",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Somnus": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Hallucinatio": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Vigilia": {
+          "effect": "resist",
+          "ratio": 0.7
+        }
+      },
+      "damage_mod": {},
+      "special": "dream_realm"
+    },
+    "tags": [
+      "state",
+      "surreal",
+      "prophetic"
+    ],
+    "flavor": "잠든 정신이 펼치는 또 다른 세계. 예언이 속삭이고 악몽이 숨 쉬는 경계."
+  },
+  {
+    "id": 148,
+    "code": "axiom_conscientia",
+    "name_latin": "Conscientia",
+    "name_kr": "의식",
+    "name_en": "Consciousness",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Anima": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Cerebrum": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Oblivio": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "self_awareness"
+    },
+    "tags": [
+      "fundamental",
+      "aware",
+      "mysterious"
+    ],
+    "flavor": "자신을 아는 앎, 존재의 신비. 물질에서 피어난 설명할 수 없는 주관적 경험."
+  },
+  {
+    "id": 149,
+    "code": "axiom_psyche",
+    "name_latin": "Psyche",
+    "name_kr": "정신",
+    "name_en": "Psyche",
+    "domain": "Mind",
+    "resonance": "Psyche",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "regen_mp"
+      ],
+      "on_contact": {
+        "Corpus": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Anima": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Necros": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "mental_fortitude"
+    },
+    "tags": [
+      "fundamental",
+      "intangible",
+      "essential"
+    ],
+    "flavor": "육체에 깃든 비물질적 본질. 생각하고 느끼고 원하는 보이지 않는 자아."
+  },
+  {
+    "id": 150,
+    "code": "axiom_conditio",
+    "name_latin": "Conditio",
+    "name_kr": "조건",
+    "name_en": "Condition",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "conditional_trigger"
+      ],
+      "on_contact": {
+        "Veritas": {
+          "effect": "trigger",
+          "result": "evaluate"
+        },
+        "Effectus": {
+          "effect": "trigger",
+          "result": "activate"
+        },
+        "Chaos": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "if_then_logic"
+    },
+    "tags": [
+      "logical",
+      "branching",
+      "fundamental"
+    ],
+    "flavor": "만약 ~라면의 힘. 원인과 결과를 잇는 논리의 가장 기본적인 분기점."
+  },
+  {
+    "id": 151,
+    "code": "axiom_et",
+    "name_latin": "Et",
+    "name_kr": "그리고",
+    "name_en": "And",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Vel": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Non": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Conditio": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "conjunction"
+    },
+    "tags": [
+      "logical",
+      "combining",
+      "strict"
+    ],
+    "flavor": "둘 다 참이어야 하는 엄격한 결합. 조건들을 하나로 묶는 논리의 접착제."
+  },
+  {
+    "id": 152,
+    "code": "axiom_vel",
+    "name_latin": "Vel",
+    "name_kr": "또는",
+    "name_en": "Or",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Et": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Non": {
+          "effect": "amplify",
+          "multiplier": 1.1
+        },
+        "Conditio": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "disjunction"
+    },
+    "tags": [
+      "logical",
+      "alternative",
+      "flexible"
+    ],
+    "flavor": "하나만 참이면 되는 관대한 선택. 가능성을 열어두는 논리의 갈림길."
+  },
+  {
+    "id": 153,
+    "code": "axiom_non",
+    "name_latin": "Non",
+    "name_kr": "아님",
+    "name_en": "Not",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Veritas": {
+          "effect": "transform",
+          "result": "Falsitas"
+        },
+        "Falsitas": {
+          "effect": "transform",
+          "result": "Veritas"
+        },
+        "Non": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        }
+      },
+      "damage_mod": {},
+      "special": "negation"
+    },
+    "tags": [
+      "logical",
+      "inverting",
+      "fundamental"
+    ],
+    "flavor": "참을 거짓으로, 거짓을 참으로. 모든 것을 뒤집는 부정의 거울."
+  },
+  {
+    "id": 154,
+    "code": "axiom_iteratio",
+    "name_latin": "Iteratio",
+    "name_kr": "반복",
+    "name_en": "Loop",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Finis": {
+          "effect": "trigger",
+          "result": "break"
+        },
+        "Conditio": {
+          "effect": "trigger",
+          "result": "continue"
+        },
+        "Infinitum": {
+          "effect": "trigger",
+          "result": "infinite_loop"
+        }
+      },
+      "damage_mod": {},
+      "special": "cycle_execution"
+    },
+    "tags": [
+      "logical",
+      "cycling",
+      "persistent"
+    ],
+    "flavor": "끝날 때까지 되풀이하는 지속의 고리. 조건이 깨질 때까지 멈추지 않는 반복."
+  },
+  {
+    "id": 155,
+    "code": "axiom_tactus",
+    "name_latin": "Tactus",
+    "name_kr": "접촉",
+    "name_en": "Touch",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Corpus": {
+          "effect": "trigger",
+          "result": "activate_on_touch"
+        },
+        "Effectus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Distantia": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        }
+      },
+      "damage_mod": {},
+      "special": "proximity_trigger"
+    },
+    "tags": [
+      "trigger",
+      "physical",
+      "immediate"
+    ],
+    "flavor": "닿는 순간 발동하는 가장 직접적인 방아쇠. 물리적 접촉이 시작하는 연쇄반응."
+  },
+  {
+    "id": 156,
+    "code": "axiom_tempus_trigger",
+    "name_latin": "Horologium",
+    "name_kr": "시간발동",
+    "name_en": "Timer",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "delayed_effect"
+      ],
+      "on_contact": {
+        "Tempus": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Stasis": {
+          "effect": "trigger",
+          "result": "pause"
+        },
+        "Acceleratio": {
+          "effect": "trigger",
+          "result": "hasten"
+        }
+      },
+      "damage_mod": {},
+      "special": "time_based_activation"
+    },
+    "tags": [
+      "trigger",
+      "temporal",
+      "delayed"
+    ],
+    "flavor": "정해진 시간에 깨어나는 잠든 방아쇠. 틱틱거리며 순간을 기다리는 시한장치."
+  },
+  {
+    "id": 157,
+    "code": "axiom_limen",
+    "name_latin": "Limen",
+    "name_kr": "임계치",
+    "name_en": "Threshold",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "conditional_trigger"
+      ],
+      "on_contact": {
+        "Mensura": {
+          "effect": "trigger",
+          "result": "compare"
+        },
+        "Effectus": {
+          "effect": "trigger",
+          "result": "activate_at_limit"
+        },
+        "Gradus": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "threshold_activation"
+    },
+    "tags": [
+      "trigger",
+      "quantitative",
+      "boundary"
+    ],
+    "flavor": "경계선을 넘으면 발동하는 조건. 더하거나 덜해지면 열리는 논리의 문."
+  },
+  {
+    "id": 158,
+    "code": "axiom_potentia",
+    "name_latin": "Potentia",
+    "name_kr": "동력",
+    "name_en": "Power",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Machina": {
+          "effect": "trigger",
+          "result": "activate"
+        },
+        "Electricitas": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Vacuum": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {},
+      "special": "energy_supply"
+    },
+    "tags": [
+      "mechanism",
+      "enabling",
+      "fundamental"
+    ],
+    "flavor": "기계를 깨우는 에너지의 흐름. 잠든 장치에 생명을 불어넣는 동력원."
+  },
+  {
+    "id": 159,
+    "code": "axiom_transmissio",
+    "name_latin": "Transmissio",
+    "name_kr": "전달",
+    "name_en": "Transmission",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Potentia": {
+          "effect": "trigger",
+          "result": "transfer_power"
+        },
+        "Informatio": {
+          "effect": "trigger",
+          "result": "transfer_data"
+        },
+        "Frictio": {
+          "effect": "resist",
+          "ratio": 0.4
+        }
+      },
+      "damage_mod": {},
+      "special": "force_transfer"
+    },
+    "tags": [
+      "mechanism",
+      "connecting",
+      "flowing"
+    ],
+    "flavor": "힘과 정보를 한 곳에서 다른 곳으로. 톱니바퀴와 전선이 이어주는 전달의 원리."
+  },
+  {
+    "id": 160,
+    "code": "axiom_receptaculum",
+    "name_latin": "Receptaculum",
+    "name_kr": "저장",
+    "name_en": "Storage",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Potentia": {
+          "effect": "trigger",
+          "result": "store_energy"
+        },
+        "Informatio": {
+          "effect": "trigger",
+          "result": "store_data"
+        },
+        "Magia": {
+          "effect": "trigger",
+          "result": "store_magic"
+        }
+      },
+      "damage_mod": {},
+      "special": "capacity_holding"
+    },
+    "tags": [
+      "mechanism",
+      "containing",
+      "preserving"
+    ],
+    "flavor": "에너지와 정보를 담아두는 그릇. 필요할 때까지 보관하는 창고의 원리."
+  },
+  {
+    "id": 161,
+    "code": "axiom_conversio",
+    "name_latin": "Conversio",
+    "name_kr": "변환",
+    "name_en": "Conversion",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Calor": {
+          "effect": "transform",
+          "result": "Motus"
+        },
+        "Lux": {
+          "effect": "transform",
+          "result": "Electricitas"
+        },
+        "Magia": {
+          "effect": "transform",
+          "result": "Potentia"
+        }
+      },
+      "damage_mod": {},
+      "special": "energy_transformation"
+    },
+    "tags": [
+      "mechanism",
+      "transforming",
+      "efficient"
+    ],
+    "flavor": "한 형태의 에너지를 다른 형태로. 열을 움직임으로, 빛을 전기로 바꾸는 연금술."
+  },
+  {
+    "id": 162,
+    "code": "axiom_connexio",
+    "name_latin": "Connexio",
+    "name_kr": "연결",
+    "name_en": "Connection",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Separatio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Transmissio": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Informatio": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "link_establishment"
+    },
+    "tags": [
+      "system",
+      "linking",
+      "enabling"
+    ],
+    "flavor": "떨어진 것들을 하나로 잇는 다리. 소통과 상호작용의 첫 번째 조건."
+  },
+  {
+    "id": 163,
+    "code": "axiom_separatio",
+    "name_latin": "Separatio",
+    "name_kr": "분리",
+    "name_en": "Separation",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Connexio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Transmissio": {
+          "effect": "trigger",
+          "result": "sever"
+        },
+        "Vinculum": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {},
+      "special": "link_severance"
+    },
+    "tags": [
+      "system",
+      "isolating",
+      "protecting"
+    ],
+    "flavor": "연결된 것을 끊어내는 단절. 독립시키고 격리하는 논리의 가위."
+  },
+  {
+    "id": 164,
+    "code": "axiom_synchronia",
+    "name_latin": "Synchronia",
+    "name_kr": "동기화",
+    "name_en": "Synchronization",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Tempus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Connexio": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Chaos": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "state_alignment"
+    },
+    "tags": [
+      "system",
+      "coordinating",
+      "harmonizing"
+    ],
+    "flavor": "여러 부분을 하나의 박자에 맞추는 조율. 동시에 움직이게 하는 조화의 원리."
+  },
+  {
+    "id": 165,
+    "code": "axiom_cascata",
+    "name_latin": "Cascata",
+    "name_kr": "연쇄",
+    "name_en": "Cascade",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "chain_effect"
+      ],
+      "on_contact": {
+        "Effectus": {
+          "effect": "trigger",
+          "result": "chain_reaction"
+        },
+        "Limen": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Stasis": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "chain_activation"
+    },
+    "tags": [
+      "system",
+      "chaining",
+      "escalating"
+    ],
+    "flavor": "하나가 다음을 부르는 도미노 효과. 작은 시작이 거대한 결과로 이어지는 연쇄."
+  },
+  {
+    "id": 166,
+    "code": "axiom_cryptum",
+    "name_latin": "Cryptum",
+    "name_kr": "암호화",
+    "name_en": "Encryption",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Informatio": {
+          "effect": "trigger",
+          "result": "encrypt"
+        },
+        "Clavis": {
+          "effect": "trigger",
+          "result": "lock"
+        },
+        "Apertum": {
+          "effect": "resist",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {},
+      "special": "data_protection"
+    },
+    "tags": [
+      "information",
+      "protecting",
+      "obfuscating"
+    ],
+    "flavor": "읽을 수 없게 만드는 비밀의 장막. 열쇠 없이는 의미를 알 수 없는 보호막."
+  },
+  {
+    "id": 167,
+    "code": "axiom_apertum",
+    "name_latin": "Apertum",
+    "name_kr": "복호화",
+    "name_en": "Decryption",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Cryptum": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Clavis": {
+          "effect": "trigger",
+          "result": "unlock"
+        },
+        "Informatio": {
+          "effect": "trigger",
+          "result": "reveal"
+        }
+      },
+      "damage_mod": {},
+      "special": "data_revelation"
+    },
+    "tags": [
+      "information",
+      "revealing",
+      "decoding"
+    ],
+    "flavor": "암호를 풀어 의미를 드러내는 해독. 닫힌 비밀의 문을 여는 열쇠."
+  },
+  {
+    "id": 168,
+    "code": "axiom_informatio",
+    "name_latin": "Informatio",
+    "name_kr": "정보",
+    "name_en": "Information",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Transmissio": {
+          "effect": "trigger",
+          "result": "transfer_data"
+        },
+        "Receptaculum": {
+          "effect": "trigger",
+          "result": "store_data"
+        },
+        "Corruptio": {
+          "effect": "trigger",
+          "result": "damage_data"
+        }
+      },
+      "damage_mod": {},
+      "special": "data_essence"
+    },
+    "tags": [
+      "fundamental",
+      "abstract",
+      "valuable"
+    ],
+    "flavor": "의미를 담은 패턴, 지식의 원자. 물질 없이도 존재하는 무형의 가치."
+  },
+  {
+    "id": 169,
+    "code": "axiom_corruptio",
+    "name_latin": "Corruptio",
+    "name_kr": "손상",
+    "name_en": "Corruption",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Informatio": {
+          "effect": "trigger",
+          "result": "damage_data"
+        },
+        "Ordo": {
+          "effect": "trigger",
+          "result": "disorder"
+        },
+        "Integritas": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {},
+      "special": "data_degradation"
+    },
+    "tags": [
+      "information",
+      "degrading",
+      "chaotic"
+    ],
+    "flavor": "질서를 무너뜨리는 데이터의 부패. 의미를 갉아먹고 혼란을 부르는 손상."
+  },
+  {
+    "id": 170,
+    "code": "axiom_machina",
+    "name_latin": "Machina",
+    "name_kr": "기계",
+    "name_en": "Machine",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Potentia": {
+          "effect": "trigger",
+          "result": "activate"
+        },
+        "Transmissio": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Corruptio": {
+          "effect": "trigger",
+          "result": "malfunction"
+        }
+      },
+      "damage_mod": {},
+      "special": "mechanical_function"
+    },
+    "tags": [
+      "device",
+      "functional",
+      "automated"
+    ],
+    "flavor": "정해진 대로 작동하는 인공의 질서. 톱니바퀴와 레버가 조합된 목적의 구현."
+  },
+  {
+    "id": 171,
+    "code": "axiom_automatarium",
+    "name_latin": "Automatarium",
+    "name_kr": "자동화",
+    "name_en": "Automation",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Machina": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Iteratio": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Voluntas": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "self_operation"
+    },
+    "tags": [
+      "device",
+      "autonomous",
+      "efficient"
+    ],
+    "flavor": "인간의 손 없이 스스로 작동하는 원리. 한번 시작하면 멈출 때까지 계속되는 자동."
+  },
+  {
+    "id": 172,
+    "code": "axiom_clavis",
+    "name_latin": "Clavis",
+    "name_kr": "열쇠",
+    "name_en": "Key",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Sera": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Cryptum": {
+          "effect": "trigger",
+          "result": "unlock"
+        },
+        "Accessus": {
+          "effect": "trigger",
+          "result": "grant"
+        }
+      },
+      "damage_mod": {},
+      "special": "access_key"
+    },
+    "tags": [
+      "device",
+      "unlocking",
+      "authorizing"
+    ],
+    "flavor": "자물쇠에 맞는 유일한 형태. 접근과 권한을 부여하는 인증의 상징."
+  },
+  {
+    "id": 173,
+    "code": "axiom_sera",
+    "name_latin": "Sera",
+    "name_kr": "자물쇠",
+    "name_en": "Lock",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Clavis": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Accessus": {
+          "effect": "resist",
+          "ratio": 0.9
+        },
+        "Separatio": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "access_denial"
+    },
+    "tags": [
+      "device",
+      "blocking",
+      "securing"
+    ],
+    "flavor": "열쇠 없이는 열리지 않는 보호. 허가되지 않은 접근을 막는 논리의 장벽."
+  },
+  {
+    "id": 174,
+    "code": "axiom_sensus",
+    "name_latin": "Sensus",
+    "name_kr": "감지",
+    "name_en": "Sensor",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Motus": {
+          "effect": "trigger",
+          "result": "detect_motion"
+        },
+        "Calor": {
+          "effect": "trigger",
+          "result": "detect_heat"
+        },
+        "Lux": {
+          "effect": "trigger",
+          "result": "detect_light"
+        }
+      },
+      "damage_mod": {},
+      "special": "environmental_detection"
+    },
+    "tags": [
+      "device",
+      "detecting",
+      "responsive"
+    ],
+    "flavor": "환경의 변화를 알아채는 인공의 감각. 보고 듣고 느끼는 기계의 눈과 귀."
+  },
+  {
+    "id": 175,
+    "code": "axiom_effectus",
+    "name_latin": "Effectus",
+    "name_kr": "효과",
+    "name_en": "Effect",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Causa": {
+          "effect": "trigger",
+          "result": "link"
+        },
+        "Conditio": {
+          "effect": "trigger",
+          "result": "activate"
+        },
+        "Non": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {},
+      "special": "result_manifestation"
+    },
+    "tags": [
+      "fundamental",
+      "resultant",
+      "manifesting"
+    ],
+    "flavor": "원인이 낳은 결과, 조건이 만든 현상. 논리의 끝에서 현실로 나타나는 것."
+  },
+  {
+    "id": 176,
+    "code": "axiom_causa",
+    "name_latin": "Causa",
+    "name_kr": "원인",
+    "name_en": "Cause",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Effectus": {
+          "effect": "trigger",
+          "result": "link"
+        },
+        "Tempus": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Fatum": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {},
+      "special": "causation_chain"
+    },
+    "tags": [
+      "fundamental",
+      "originating",
+      "preceding"
+    ],
+    "flavor": "결과를 낳는 시작점. 모든 현상의 뿌리에 있는 논리의 씨앗."
+  },
+  {
+    "id": 177,
+    "code": "axiom_veritas",
+    "name_latin": "Veritas",
+    "name_kr": "참",
+    "name_en": "True",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Falsitas": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Non": {
+          "effect": "transform",
+          "result": "Falsitas"
+        },
+        "Lux": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "truth_value"
+    },
+    "tags": [
+      "logical",
+      "fundamental",
+      "affirming"
+    ],
+    "flavor": "그러하다는 긍정의 값. 논리의 두 기둥 중 하나, 빛의 면."
+  },
+  {
+    "id": 178,
+    "code": "axiom_falsitas",
+    "name_latin": "Falsitas",
+    "name_kr": "거짓",
+    "name_en": "False",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Veritas": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Non": {
+          "effect": "transform",
+          "result": "Veritas"
+        },
+        "Tenebrae": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "false_value"
+    },
+    "tags": [
+      "logical",
+      "fundamental",
+      "negating"
+    ],
+    "flavor": "그러하지 않다는 부정의 값. 논리의 두 기둥 중 하나, 그림자의 면."
+  },
+  {
+    "id": 179,
+    "code": "axiom_computatio",
+    "name_latin": "Computatio",
+    "name_kr": "연산",
+    "name_en": "Computation",
+    "domain": "Logic",
+    "resonance": "Data",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Informatio": {
+          "effect": "trigger",
+          "result": "process"
+        },
+        "Veritas": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Machina": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {},
+      "special": "data_processing"
+    },
+    "tags": [
+      "process",
+      "calculating",
+      "transforming"
+    ],
+    "flavor": "입력을 출력으로 바꾸는 논리적 변환. 숫자와 기호를 조작하는 정신의 기계화."
+  },
+  {
+    "id": 180,
+    "code": "axiom_imperium",
+    "name_latin": "Imperium",
+    "name_kr": "왕권",
+    "name_en": "Sovereignty",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack",
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Rebellio": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Reverentia": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Anarchia": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        }
+      },
+      "damage_mod": {},
+      "special": "command_authority"
+    },
+    "tags": [
+      "power",
+      "ruling",
+      "absolute"
+    ],
+    "flavor": "다스릴 권리, 명령할 힘. 왕관이 부여하는 최고의 권위."
+  },
+  {
+    "id": 181,
+    "code": "axiom_auctoritas",
+    "name_latin": "Auctoritas",
+    "name_kr": "권위",
+    "name_en": "Authority",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Oboedientia": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Rebellio": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Contemptus": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "influence_weight"
+    },
+    "tags": [
+      "power",
+      "legitimate",
+      "respected"
+    ],
+    "flavor": "인정받은 힘, 존중받는 지위. 말에 무게를 싣는 사회적 자본."
+  },
+  {
+    "id": 182,
+    "code": "axiom_dominatus",
+    "name_latin": "Dominatus",
+    "name_kr": "지배",
+    "name_en": "Dominance",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Submissio": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Libertas": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Aequitas": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        }
+      },
+      "damage_mod": {},
+      "special": "power_hierarchy"
+    },
+    "tags": [
+      "power",
+      "controlling",
+      "hierarchical"
+    ],
+    "flavor": "위에서 아래로 내리누르는 힘. 복종을 강요하는 수직적 관계."
+  },
+  {
+    "id": 183,
+    "code": "axiom_submissio",
+    "name_latin": "Submissio",
+    "name_kr": "복종",
+    "name_en": "Submission",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Dominatus": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Rebellio": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Libertas": {
+          "effect": "resist",
+          "ratio": 0.7
+        }
+      },
+      "damage_mod": {},
+      "special": "yield_status"
+    },
+    "tags": [
+      "power",
+      "yielding",
+      "subordinate"
+    ],
+    "flavor": "강한 자 앞에 무릎 꿇는 상태. 저항을 포기하고 따르는 순응."
+  },
+  {
+    "id": 184,
+    "code": "axiom_commercium",
+    "name_latin": "Commercium",
+    "name_kr": "거래",
+    "name_en": "Trade",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Valor": {
+          "effect": "trigger",
+          "result": "exchange"
+        },
+        "Fides": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Fraudulentia": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "value_exchange"
+    },
+    "tags": [
+      "economic",
+      "exchanging",
+      "mutual"
+    ],
+    "flavor": "주고받는 경제의 기본 단위. 가치를 교환하는 문명의 동맥."
+  },
+  {
+    "id": 185,
+    "code": "axiom_debitum",
+    "name_latin": "Debitum",
+    "name_kr": "부채",
+    "name_en": "Debt",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Valor": {
+          "effect": "trigger",
+          "result": "owe"
+        },
+        "Tempus": {
+          "effect": "trigger",
+          "result": "interest"
+        },
+        "Solutio": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        }
+      },
+      "damage_mod": {},
+      "special": "obligation_bond"
+    },
+    "tags": [
+      "economic",
+      "binding",
+      "leveraging"
+    ],
+    "flavor": "갚아야 할 빚, 미래를 당겨 쓴 대가. 채권자와 채무자를 묶는 사슬."
+  },
+  {
+    "id": 186,
+    "code": "axiom_valor",
+    "name_latin": "Valor",
+    "name_kr": "가치",
+    "name_en": "Value",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Commercium": {
+          "effect": "trigger",
+          "result": "exchange"
+        },
+        "Raritas": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Abundantia": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "worth_measure"
+    },
+    "tags": [
+      "economic",
+      "measuring",
+      "subjective"
+    ],
+    "flavor": "원하는 것에 붙는 무게. 희소성과 필요가 결정하는 주관적 척도."
+  },
+  {
+    "id": 187,
+    "code": "axiom_possessio",
+    "name_latin": "Possessio",
+    "name_kr": "소유",
+    "name_en": "Possession",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Furtum": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Ius": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Communis": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {},
+      "special": "ownership_right"
+    },
+    "tags": [
+      "economic",
+      "claiming",
+      "exclusive"
+    ],
+    "flavor": "이것은 내 것이라는 선언. 배타적 권리를 주장하는 소유의 본질."
+  },
+  {
+    "id": 188,
+    "code": "axiom_pactum",
+    "name_latin": "Pactum",
+    "name_kr": "계약",
+    "name_en": "Contract",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Fides": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Violatio": {
+          "effect": "trigger",
+          "result": "penalty"
+        },
+        "Ius": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "binding_agreement"
+    },
+    "tags": [
+      "legal",
+      "binding",
+      "formal"
+    ],
+    "flavor": "서로의 약속을 문자로 새긴 구속. 어기면 벌을 받는 합의의 사슬."
+  },
+  {
+    "id": 189,
+    "code": "axiom_crimen",
+    "name_latin": "Crimen",
+    "name_kr": "범죄",
+    "name_en": "Crime",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Ius": {
+          "effect": "trigger",
+          "result": "violation"
+        },
+        "Poena": {
+          "effect": "trigger",
+          "result": "invoke"
+        },
+        "Infamia": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {},
+      "special": "law_violation"
+    },
+    "tags": [
+      "legal",
+      "transgressing",
+      "punishable"
+    ],
+    "flavor": "사회가 정한 선을 넘는 행위. 처벌을 부르는 금지된 위반."
+  },
+  {
+    "id": 190,
+    "code": "axiom_poena",
+    "name_latin": "Poena",
+    "name_kr": "처벌",
+    "name_en": "Punishment",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Crimen": {
+          "effect": "trigger",
+          "result": "apply"
+        },
+        "Iustitia": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Misericordia": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "consequence_enforcement"
+    },
+    "tags": [
+      "legal",
+      "enforcing",
+      "deterring"
+    ],
+    "flavor": "잘못에 대한 대가, 사회의 복수. 억제와 교정을 위한 고통의 부과."
+  },
+  {
+    "id": 191,
+    "code": "axiom_iustitia",
+    "name_latin": "Iustitia",
+    "name_kr": "정의",
+    "name_en": "Justice",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Iniuria": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Aequitas": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Crimen": {
+          "effect": "trigger",
+          "result": "judge"
+        }
+      },
+      "damage_mod": {},
+      "special": "fairness_principle"
+    },
+    "tags": [
+      "virtue",
+      "balancing",
+      "ideal"
+    ],
+    "flavor": "공정한 저울, 눈먼 심판. 옳고 그름을 가리려는 사회의 이상."
+  },
+  {
+    "id": 192,
+    "code": "axiom_foedus",
+    "name_latin": "Foedus",
+    "name_kr": "동맹",
+    "name_en": "Alliance",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "boost_defense"
+      ],
+      "on_contact": {
+        "Fides": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Proditio": {
+          "effect": "trigger",
+          "result": "break"
+        },
+        "Hostilitas": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "mutual_defense"
+    },
+    "tags": [
+      "relation",
+      "unifying",
+      "protective"
+    ],
+    "flavor": "공동의 적에 맞서는 손잡음. 힘을 합쳐 더 강해지는 연대."
+  },
+  {
+    "id": 193,
+    "code": "axiom_hostilitas",
+    "name_latin": "Hostilitas",
+    "name_kr": "적대",
+    "name_en": "Hostility",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "boost_attack"
+      ],
+      "on_contact": {
+        "Amicitia": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Foedus": {
+          "effect": "resist",
+          "ratio": 0.5
+        },
+        "Odium": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {},
+      "special": "enemy_state"
+    },
+    "tags": [
+      "relation",
+      "opposing",
+      "aggressive"
+    ],
+    "flavor": "서로를 적으로 선언한 관계. 기회가 오면 해치려 하는 대립."
+  },
+  {
+    "id": 194,
+    "code": "axiom_fides",
+    "name_latin": "Fides",
+    "name_kr": "신뢰",
+    "name_en": "Trust",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Proditio": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        },
+        "Pactum": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Commercium": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "reliability_bond"
+    },
+    "tags": [
+      "relation",
+      "believing",
+      "foundational"
+    ],
+    "flavor": "믿을 수 있다는 확신. 모든 협력의 토대가 되는 보이지 않는 자본."
+  },
+  {
+    "id": 195,
+    "code": "axiom_proditio",
+    "name_latin": "Proditio",
+    "name_kr": "배신",
+    "name_en": "Betrayal",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Fides": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Foedus": {
+          "effect": "trigger",
+          "result": "break"
+        },
+        "Infamia": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        }
+      },
+      "damage_mod": {},
+      "special": "trust_violation"
+    },
+    "tags": [
+      "relation",
+      "breaking",
+      "devastating"
+    ],
+    "flavor": "믿음을 저버리는 가장 깊은 상처. 뒤에서 꽂히는 칼, 동맹의 적."
+  },
+  {
+    "id": 196,
+    "code": "axiom_fama",
+    "name_latin": "Fama",
+    "name_kr": "명성",
+    "name_en": "Reputation",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Auctoritas": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Infamia": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Fides": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "social_standing"
+    },
+    "tags": [
+      "status",
+      "perceived",
+      "valuable"
+    ],
+    "flavor": "다른 이들의 눈에 비친 자신의 모습. 쌓기는 어렵고 잃기는 쉬운 사회적 얼굴."
+  },
+  {
+    "id": 197,
+    "code": "axiom_infamia",
+    "name_latin": "Infamia",
+    "name_kr": "오명",
+    "name_en": "Infamy",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Fama": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Fides": {
+          "effect": "resist",
+          "ratio": 0.6
+        },
+        "Timor": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {},
+      "special": "negative_reputation"
+    },
+    "tags": [
+      "status",
+      "tarnished",
+      "fearsome"
+    ],
+    "flavor": "나쁜 이름, 어두운 명성. 따라다니며 기회를 막는 과거의 그림자."
+  },
+  {
+    "id": 198,
+    "code": "axiom_creditus",
+    "name_latin": "Creditus",
+    "name_kr": "신용",
+    "name_en": "Credit",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 2,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Commercium": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Debitum": {
+          "effect": "trigger",
+          "result": "enable"
+        },
+        "Fides": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        }
+      },
+      "damage_mod": {},
+      "special": "future_trust"
+    },
+    "tags": [
+      "economic",
+      "trusting",
+      "enabling"
+    ],
+    "flavor": "미래의 상환을 믿는 현재의 대여. 약속으로 흐르는 경제의 윤활유."
+  },
+  {
+    "id": 199,
+    "code": "axiom_pudor",
+    "name_latin": "Pudor",
+    "name_kr": "수치",
+    "name_en": "Shame",
+    "domain": "Social",
+    "resonance": "Social",
+    "tier": 1,
+    "logic": {
+      "passive": [
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Honor": {
+          "effect": "resist",
+          "ratio": 0.7
+        },
+        "Infamia": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        },
+        "Crimen": {
+          "effect": "trigger",
+          "result": "expose"
+        }
+      },
+      "damage_mod": {},
+      "special": "social_pain"
+    },
+    "tags": [
+      "emotion",
+      "social",
+      "correcting"
+    ],
+    "flavor": "타인의 시선이 주는 고통. 사회적 규범을 어긴 대가로 느끼는 굴욕."
+  },
+  {
+    "id": 200,
+    "code": "axiom_tempus",
+    "name_latin": "Tempus",
+    "name_kr": "시간",
+    "name_en": "Time",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Stasis": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Senectus": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Aeternitas": {
+          "effect": "resist",
+          "ratio": 0.5
+        }
+      },
+      "damage_mod": {},
+      "special": "temporal_manipulation"
+    },
+    "tags": [
+      "metaphysical",
+      "fundamental",
+      "inexorable"
+    ],
+    "flavor": "만물을 흐르게 하는 보이지 않는 강. 되돌릴 수 없이 앞으로만 나아가는 우주의 화살."
+  },
+  {
+    "id": 201,
+    "code": "axiom_spatium",
+    "name_latin": "Spatium",
+    "name_kr": "공간",
+    "name_en": "Space",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Distantia": {
+          "effect": "trigger",
+          "result": "manipulate"
+        },
+        "Tempus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Dimensio": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {},
+      "special": "spatial_manipulation"
+    },
+    "tags": [
+      "metaphysical",
+      "fundamental",
+      "containing"
+    ],
+    "flavor": "모든 것이 존재하는 그릇. 위치와 거리를 정의하는 삼차원의 무대."
+  },
+  {
+    "id": 202,
+    "code": "axiom_dimensio",
+    "name_latin": "Dimensio",
+    "name_kr": "차원",
+    "name_en": "Dimension",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Spatium": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        },
+        "Parallelum": {
+          "effect": "trigger",
+          "result": "shift"
+        },
+        "Limen": {
+          "effect": "trigger",
+          "result": "gateway"
+        }
+      },
+      "damage_mod": {},
+      "special": "dimensional_access"
+    },
+    "tags": [
+      "metaphysical",
+      "layered",
+      "transcendent"
+    ],
+    "flavor": "현실의 겹, 존재의 층위. 보이지 않는 곳에 펼쳐진 또 다른 세계들."
+  },
+  {
+    "id": 203,
+    "code": "axiom_parallelum",
+    "name_latin": "Parallelum",
+    "name_kr": "평행",
+    "name_en": "Parallel",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Dimensio": {
+          "effect": "trigger",
+          "result": "mirror"
+        },
+        "Fatum": {
+          "effect": "trigger",
+          "result": "diverge"
+        },
+        "Causa": {
+          "effect": "trigger",
+          "result": "branch"
+        }
+      },
+      "damage_mod": {},
+      "special": "parallel_reality"
+    },
+    "tags": [
+      "metaphysical",
+      "branching",
+      "infinite"
+    ],
+    "flavor": "선택하지 않은 길이 있는 곳. 다른 가능성이 실현된 거울 우주."
+  },
+  {
+    "id": 204,
+    "code": "axiom_anima",
+    "name_latin": "Anima",
+    "name_kr": "영혼",
+    "name_en": "Soul",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Corpus": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Necros": {
+          "effect": "trigger",
+          "result": "separate"
+        },
+        "Vita": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {
+        "vs_undead": 1.5
+      },
+      "special": "essence_of_being"
+    },
+    "tags": [
+      "metaphysical",
+      "immortal",
+      "essential"
+    ],
+    "flavor": "육체를 넘어 존재하는 본질. 죽음 이후에도 남는 불멸의 불꽃."
+  },
+  {
+    "id": 205,
+    "code": "axiom_nihilum",
+    "name_latin": "Nihilum",
+    "name_kr": "허무",
+    "name_en": "Nothingness",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Existentia": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Creatio": {
+          "effect": "resist",
+          "ratio": 0.7
+        },
+        "Vacuum": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        }
+      },
+      "damage_mod": {},
+      "special": "void_essence"
+    },
+    "tags": [
+      "metaphysical",
+      "negating",
+      "absolute"
+    ],
+    "flavor": "아무것도 없음의 본질. 존재의 반대편, 완전한 부재의 심연."
+  },
+  {
+    "id": 206,
+    "code": "axiom_existentia",
+    "name_latin": "Existentia",
+    "name_kr": "존재",
+    "name_en": "Existence",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Nihilum": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Anima": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Conscientia": {
+          "effect": "amplify",
+          "multiplier": 1.4
+        }
+      },
+      "damage_mod": {},
+      "special": "being_affirmation"
+    },
+    "tags": [
+      "metaphysical",
+      "affirming",
+      "fundamental"
+    ],
+    "flavor": "있다는 것의 신비. 왜 무가 아니라 유인가라는 질문의 답."
+  },
+  {
+    "id": 207,
+    "code": "axiom_annihilatio",
+    "name_latin": "Annihilatio",
+    "name_kr": "소멸",
+    "name_en": "Annihilation",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Existentia": {
+          "effect": "neutralize",
+          "ratio": 1.0
+        },
+        "Materia": {
+          "effect": "trigger",
+          "result": "erase"
+        },
+        "Creatio": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        }
+      },
+      "damage_mod": {
+        "vs_magical": 1.4
+      },
+      "special": "complete_erasure"
+    },
+    "tags": [
+      "metaphysical",
+      "ending",
+      "absolute"
+    ],
+    "flavor": "존재를 완전히 지우는 궁극의 끝. 흔적조차 남기지 않는 절대적 소거."
+  },
+  {
+    "id": 208,
+    "code": "axiom_fatum",
+    "name_latin": "Fatum",
+    "name_kr": "운명",
+    "name_en": "Fate",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "conditional_trigger"
+      ],
+      "on_contact": {
+        "Libertas": {
+          "effect": "neutralize",
+          "ratio": 0.5
+        },
+        "Tempus": {
+          "effect": "amplify",
+          "multiplier": 2.0
+        },
+        "Chaos": {
+          "effect": "resist",
+          "ratio": 0.6
+        }
+      },
+      "damage_mod": {},
+      "special": "probability_manipulation"
+    },
+    "tags": [
+      "metaphysical",
+      "inevitable",
+      "binding"
+    ],
+    "flavor": "피할 수 없는 필연의 실. 신조차 거스를 수 없는 우주의 직조."
+  },
+  {
+    "id": 209,
+    "code": "axiom_causalis",
+    "name_latin": "Causalis",
+    "name_kr": "인과",
+    "name_en": "Causality",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Causa": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Effectus": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        },
+        "Chaos": {
+          "effect": "neutralize",
+          "ratio": 0.7
+        }
+      },
+      "damage_mod": {},
+      "special": "cause_effect_chain"
+    },
+    "tags": [
+      "metaphysical",
+      "linking",
+      "fundamental"
+    ],
+    "flavor": "원인과 결과를 잇는 우주의 법칙. 모든 일에는 이유가 있다는 절대 원리."
+  },
+  {
+    "id": 210,
+    "code": "axiom_miraculum",
+    "name_latin": "Miraculum",
+    "name_kr": "기적",
+    "name_en": "Miracle",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "conditional_trigger"
+      ],
+      "on_contact": {
+        "Causalis": {
+          "effect": "ignore"
+        },
+        "Fatum": {
+          "effect": "neutralize",
+          "ratio": 0.6
+        },
+        "Spes": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        }
+      },
+      "damage_mod": {},
+      "special": "impossible_outcome"
+    },
+    "tags": [
+      "metaphysical",
+      "impossible",
+      "divine"
+    ],
+    "flavor": "있을 수 없는 일이 일어나는 순간. 법칙을 초월한 신의 개입."
+  },
+  {
+    "id": 211,
+    "code": "axiom_maledictum",
+    "name_latin": "Maledictum",
+    "name_kr": "저주",
+    "name_en": "Curse",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 2,
+    "logic": {
+      "passive": [
+        "apply_poison_dot",
+        "reduce_defense"
+      ],
+      "on_contact": {
+        "Benedictio": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Fatum": {
+          "effect": "amplify",
+          "multiplier": 1.3
+        },
+        "Necros": {
+          "effect": "amplify",
+          "multiplier": 1.2
+        }
+      },
+      "damage_mod": {
+        "vs_organic": 1.2
+      },
+      "special": "persistent_affliction"
+    },
+    "tags": [
+      "metaphysical",
+      "binding",
+      "malevolent"
+    ],
+    "flavor": "악의를 담아 던지는 언어의 독. 풀리기 전까지 따라다니는 불행의 낙인."
+  },
+  {
+    "id": 212,
+    "code": "axiom_creatio",
+    "name_latin": "Creatio",
+    "name_kr": "창조",
+    "name_en": "Creation",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [],
+      "on_contact": {
+        "Nihilum": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Materia": {
+          "effect": "trigger",
+          "result": "generate"
+        },
+        "Vita": {
+          "effect": "trigger",
+          "result": "birth"
+        }
+      },
+      "damage_mod": {},
+      "special": "ex_nihilo"
+    },
+    "tags": [
+      "metaphysical",
+      "originating",
+      "divine"
+    ],
+    "flavor": "없음에서 있음을 만드는 근원의 힘. 신의 영역에 속한 존재의 탄생."
+  },
+  {
+    "id": 213,
+    "code": "axiom_destructio",
+    "name_latin": "Destructio",
+    "name_kr": "파괴",
+    "name_en": "Destruction",
+    "domain": "Mystery",
+    "resonance": "Esoteric",
+    "tier": 3,
+    "logic": {
+      "passive": [
+        "area_effect"
+      ],
+      "on_contact": {
+        "Creatio": {
+          "effect": "neutralize",
+          "ratio": 0.8
+        },
+        "Ordo": {
+          "effect": "neutralize",
+          "ratio": 0.9
+        },
+        "Chaos": {
+          "effect": "amplify",
+          "multiplier": 1.5
+        }
+      },
+      "damage_mod": {
+        "vs_structure": 1.5,
+        "vs_magical": 1.3
+      },
+      "special": "absolute_destruction"
+    },
+    "tags": [
+      "metaphysical",
+      "ending",
+      "primordial"
+    ],
+    "flavor": "형태를 무너뜨리는 근원의 힘. 창조의 반대편에서 모든 것을 무로 돌리려는 충동."
+  }
+]

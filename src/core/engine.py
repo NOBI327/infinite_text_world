@@ -1,0 +1,682 @@
+"""
+ITW Core Engine - Main Entry Point
+==================================
+Infinite Text World 핵심 엔진 통합 모듈
+
+이 모듈은 모든 하위 시스템을 통합하여
+게임 세션을 관리합니다.
+"""
+
+import json
+import random
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any
+from datetime import datetime
+from pathlib import Path
+
+# 엔진 모듈 임포트
+from src.core.axiom_system import AxiomLoader, AxiomVector, Axiom
+from src.core.world_generator import WorldGenerator, MapNode, NodeTier, Resource, Echo
+from src.core.navigator import Navigator, Direction, LocationView, TravelResult, render_compass
+from src.core.echo_system import EchoManager, EchoCategory
+from src.core.core_rule import CharacterSheet, StatType, ResolutionEngine
+
+
+@dataclass
+class PlayerState:
+    """플레이어 상태"""
+    player_id: str
+    x: int = 0
+    y: int = 0
+    supply: int = 20
+    fame: int = 0
+    discovered_nodes: List[str] = field(default_factory=list)
+    inventory: Dict[str, int] = field(default_factory=dict)
+    active_effects: List[Dict] = field(default_factory=list)
+    investigation_penalty: int = 0
+    last_action_time: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    character: CharacterSheet = None
+    equipped_tags: List[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        if self.character is None:
+            self.character = CharacterSheet(name=self.player_id)
+
+    def to_dict(self) -> Dict:
+        return {
+            "player_id": self.player_id,
+            "position": {"x": self.x, "y": self.y},
+            "supply": self.supply,
+            "fame": self.fame,
+            "discovered_nodes": self.discovered_nodes,
+            "inventory": self.inventory,
+            "active_effects": self.active_effects,
+            "investigation_penalty": self.investigation_penalty,
+            "last_action_time": self.last_action_time
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'PlayerState':
+        return cls(
+            player_id=data["player_id"],
+            x=data["position"]["x"],
+            y=data["position"]["y"],
+            supply=data.get("supply", 20),
+            fame=data.get("fame", 0),
+            discovered_nodes=data.get("discovered_nodes", []),
+            inventory=data.get("inventory", {}),
+            active_effects=data.get("active_effects", []),
+            investigation_penalty=data.get("investigation_penalty", 0),
+            last_action_time=data.get("last_action_time", datetime.utcnow().isoformat())
+        )
+
+
+@dataclass
+class ActionResult:
+    """행동 결과"""
+    success: bool
+    action_type: str
+    message: str
+    data: Optional[Dict] = None
+    location_view: Optional[LocationView] = None
+
+    def to_dict(self) -> Dict:
+        result = {
+            "success": self.success,
+            "action": self.action_type,
+            "message": self.message
+        }
+        if self.data:
+            result["data"] = self.data
+        if self.location_view:
+            result["location"] = self.location_view.to_dict()
+        return result
+
+
+class ITWEngine:
+    """
+    Infinite Text World 메인 엔진
+
+    모든 게임 시스템을 통합하고 게임 세션을 관리합니다.
+    """
+
+    VERSION = "0.1.0-alpha"
+
+    def __init__(
+        self,
+        axiom_data_path: str = "itw_214_divine_axioms.json",
+        world_seed: Optional[int] = None
+    ):
+        """
+        엔진 초기화
+
+        Args:
+            axiom_data_path: Axiom 데이터 JSON 경로
+            world_seed: 월드 생성 시드 (재현성)
+        """
+        print(f"[ITWEngine] Initializing v{self.VERSION}...")
+
+        # 코어 시스템 초기화
+        self.axiom_loader = AxiomLoader(axiom_data_path)
+        self.world = WorldGenerator(self.axiom_loader, seed=world_seed)
+        self.navigator = Navigator(self.world, self.axiom_loader)
+        self.echo_manager = EchoManager(self.axiom_loader)
+        self.resolution_engine = ResolutionEngine()
+
+        # 플레이어 세션
+        self.players: Dict[str, PlayerState] = {}
+
+        # 글로벌 이벤트 로그
+        self.global_hooks: List[Dict] = []
+
+        print(f"[ITWEngine] Ready. {len(self.axiom_loader.get_all())} Axioms loaded.")
+
+    # === 플레이어 관리 ===
+
+    def register_player(self, player_id: str) -> PlayerState:
+        """새 플레이어 등록"""
+        if player_id in self.players:
+            return self.players[player_id]
+
+        player = PlayerState(
+            player_id=player_id,
+            x=0, y=0,
+            supply=20,
+            fame=0
+        )
+        self.players[player_id] = player
+
+        # Safe Haven 발견 마킹
+        haven = self.world.get_node(0, 0)
+        if haven:
+            haven.mark_discovered(player_id)
+            player.discovered_nodes.append("0_0")
+
+        print(f"[ITWEngine] Player registered: {player_id}")
+        return player
+
+    def get_player(self, player_id: str) -> Optional[PlayerState]:
+        """플레이어 상태 조회"""
+        return self.players.get(player_id)
+
+    def save_player(self, player_id: str, filepath: str):
+        """플레이어 상태 저장"""
+        player = self.get_player(player_id)
+        if not player:
+            raise ValueError(f"Player not found: {player_id}")
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(player.to_dict(), f, ensure_ascii=False, indent=2)
+
+    def load_player(self, filepath: str) -> PlayerState:
+        """플레이어 상태 로드"""
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        player = PlayerState.from_dict(data)
+        self.players[player.player_id] = player
+        return player
+
+    # === 핵심 게임 액션 ===
+
+    def look(self, player_id: str) -> ActionResult:
+        """현재 위치 관찰"""
+        player = self.get_player(player_id)
+        if not player:
+            return ActionResult(False, "look", "플레이어를 찾을 수 없습니다.")
+
+        view = self.navigator.get_location_view(player.x, player.y, player_id)
+
+        return ActionResult(
+            success=True,
+            action_type="look",
+            message="주변을 둘러본다...",
+            location_view=view
+        )
+
+    def move(self, player_id: str, direction: str) -> ActionResult:
+        """이동"""
+        player = self.get_player(player_id)
+        if not player:
+            return ActionResult(False, "move", "플레이어를 찾을 수 없습니다.")
+
+        # 방향 파싱
+        direction_map = {
+            "n": Direction.NORTH, "north": Direction.NORTH, "북": Direction.NORTH,
+            "s": Direction.SOUTH, "south": Direction.SOUTH, "남": Direction.SOUTH,
+            "e": Direction.EAST, "east": Direction.EAST, "동": Direction.EAST,
+            "w": Direction.WEST, "west": Direction.WEST, "서": Direction.WEST
+        }
+
+        dir_enum = direction_map.get(direction.lower())
+        if not dir_enum:
+            return ActionResult(False, "move", f"알 수 없는 방향: {direction}")
+
+        # 이동 실행
+        result = self.navigator.travel(
+            player.x, player.y,
+            dir_enum,
+            player_id,
+            player.supply,
+            player_inventory=player.equipped_tags
+        )
+
+        if result.success:
+            # 플레이어 상태 업데이트
+            player.x += dir_enum.dx
+            player.y += dir_enum.dy
+            player.supply -= result.supply_consumed
+
+            # 발견 노드 기록
+            coord = f"{player.x}_{player.y}"
+            if coord not in player.discovered_nodes:
+                player.discovered_nodes.append(coord)
+
+            player.last_action_time = datetime.utcnow().isoformat()
+
+            # 탐험 Echo 생성
+            current_node = self.world.get_node(player.x, player.y)
+            if current_node:
+                self.echo_manager.create_echo(
+                    EchoCategory.EXPLORATION,
+                    current_node,
+                    player_id
+                )
+
+            data = {
+                "supply_consumed": result.supply_consumed,
+                "remaining_supply": player.supply
+            }
+            if result.encounter:
+                data["encounter"] = result.encounter
+
+            return ActionResult(
+                success=True,
+                action_type="move",
+                message=result.message,
+                data=data,
+                location_view=result.new_location
+            )
+        else:
+            return ActionResult(
+                success=False,
+                action_type="move",
+                message=result.message
+            )
+
+    def investigate(self, player_id: str, echo_index: int = 0) -> ActionResult:
+        """Echo 조사"""
+        player = self.get_player(player_id)
+        if not player:
+            return ActionResult(False, "investigate", "플레이어를 찾을 수 없습니다.")
+
+        node = self.world.get_node(player.x, player.y)
+        if not node:
+            return ActionResult(False, "investigate", "현재 위치를 찾을 수 없습니다.")
+
+        # 숨겨진 Echo 목록
+        hidden_echoes = self.echo_manager.get_hidden_echoes(node)
+        if not hidden_echoes:
+            return ActionResult(
+                success=False,
+                action_type="investigate",
+                message="조사할 숨겨진 흔적이 없습니다."
+            )
+
+        if echo_index >= len(hidden_echoes):
+            return ActionResult(
+                success=False,
+                action_type="investigate",
+                message=f"유효하지 않은 흔적 번호: {echo_index}"
+            )
+
+        echo = hidden_echoes[echo_index]
+
+        # 1d20 + 조사 보너스 (간략화)
+        roll = random.randint(1, 20) + (player.fame // 20)
+
+        # 페널티 적용
+        roll -= player.investigation_penalty
+
+        result = self.echo_manager.investigate(
+            echo,
+            roll=roll,
+            investigator_fame=player.fame,
+            bonus_modifiers=0
+        )
+
+        # 페널티 처리
+        if result.get("penalty"):
+            player.investigation_penalty = 2
+        else:
+            player.investigation_penalty = max(0, player.investigation_penalty - 1)
+
+        player.last_action_time = datetime.utcnow().isoformat()
+
+        return ActionResult(
+            success=result["success"],
+            action_type="investigate",
+            message="흔적을 조사한다..." if result["success"] else "조사에 실패했다...",
+            data=result
+        )
+
+    def harvest(self, player_id: str, resource_id: str, amount: int = 1) -> ActionResult:
+        """자원 채취"""
+        player = self.get_player(player_id)
+        if not player:
+            return ActionResult(False, "harvest", "플레이어를 찾을 수 없습니다.")
+
+        node = self.world.get_node(player.x, player.y)
+        if not node:
+            return ActionResult(False, "harvest", "현재 위치를 찾을 수 없습니다.")
+
+        # 자원 찾기
+        resource = None
+        for res in node.resources:
+            if res.id == resource_id:
+                resource = res
+                break
+
+        if not resource:
+            return ActionResult(
+                success=False,
+                action_type="harvest",
+                message=f"해당 자원을 찾을 수 없습니다: {resource_id}"
+            )
+
+        if resource.current_amount <= 0:
+            return ActionResult(
+                success=False,
+                action_type="harvest",
+                message="자원이 고갈되었습니다."
+            )
+
+        # 채취
+        harvested = resource.harvest(amount)
+
+        # 인벤토리에 추가
+        player.inventory[resource_id] = player.inventory.get(resource_id, 0) + harvested
+
+        # 채취 Echo 생성
+        self.echo_manager.create_echo(
+            EchoCategory.CRAFTING,
+            node,
+            player_id
+        )
+
+        player.last_action_time = datetime.utcnow().isoformat()
+
+        return ActionResult(
+            success=True,
+            action_type="harvest",
+            message=f"{resource_id} {harvested}개를 채취했습니다.",
+            data={
+                "resource": resource_id,
+                "harvested": harvested,
+                "remaining": resource.current_amount,
+                "inventory": player.inventory.get(resource_id, 0)
+            }
+        )
+
+    def rest(self, player_id: str) -> ActionResult:
+        """휴식 (Supply 회복)"""
+        player = self.get_player(player_id)
+        if not player:
+            return ActionResult(False, "rest", "플레이어를 찾을 수 없습니다.")
+
+        node = self.world.get_node(player.x, player.y)
+        if not node:
+            return ActionResult(False, "rest", "현재 위치를 찾을 수 없습니다.")
+
+        old_supply = player.supply
+
+        # Safe Haven에서만 완전 회복
+        if node.is_safe_haven:
+            player.supply = 20
+            recovery = player.supply - old_supply
+            message = f"안전 지대에서 완전히 회복했습니다. (+{recovery} Supply)"
+        else:
+            # 일반 지역에서는 부분 회복
+            player.supply = min(player.supply + 5, 20)
+            recovery = player.supply - old_supply
+            message = f"휴식을 취했습니다. (+{recovery} Supply)"
+
+        # 페널티 해제
+        player.investigation_penalty = 0
+        player.last_action_time = datetime.utcnow().isoformat()
+
+        return ActionResult(
+            success=True,
+            action_type="rest",
+            message=message,
+            data={
+                "recovery": recovery,
+                "current_supply": player.supply
+            }
+        )
+
+    def get_compass(self, player_id: str) -> str:
+        """ASCII 나침반 반환"""
+        player = self.get_player(player_id)
+        if not player:
+            return "플레이어를 찾을 수 없습니다."
+
+        view = self.navigator.get_location_view(player.x, player.y, player_id)
+        return render_compass(view)
+
+    # === 글로벌 이벤트 ===
+
+    def trigger_global_event(
+        self,
+        player_id: str,
+        event_type: str,
+        description: str
+    ):
+        """글로벌 이벤트 트리거"""
+        player = self.get_player(player_id)
+        if not player:
+            return
+
+        node = self.world.get_node(player.x, player.y)
+        location_hint = node.sensory_data.atmosphere if node else "알 수 없는 장소"
+
+        hook = self.echo_manager.create_global_hook(
+            event_type=event_type,
+            location_hint=location_hint,
+            description=description
+        )
+
+        self.global_hooks.append(hook)
+
+        # 보스 처치 시 특수 Echo 생성
+        if event_type == "boss_kill" and node:
+            self.echo_manager.create_echo(
+                EchoCategory.BOSS,
+                node,
+                player_id,
+                custom_flavor=description
+            )
+
+            # Fame 증가
+            player.fame += 100
+
+        print(f"[ITWEngine] Global Event: {event_type} - {description}")
+
+    def get_active_hooks(self) -> List[Dict]:
+        """활성 글로벌 훅 목록"""
+        now = datetime.utcnow()
+        active = []
+
+        for hook in self.global_hooks:
+            created = datetime.fromisoformat(hook["timestamp"])
+            hours_passed = (now - created).total_seconds() / 3600
+
+            if hours_passed < hook.get("expires_in_hours", 24):
+                active.append(hook)
+
+        return active
+
+    # === 월드 관리 ===
+
+    def daily_tick(self):
+        """일일 월드 업데이트"""
+        print("[ITWEngine] Daily tick processing...")
+
+        # 모든 노드의 자원 갱신 및 Echo 정리
+        for coord, node in self.world.nodes.items():
+            # 자원 일일 변동
+            for resource in node.resources:
+                resource.daily_decay()
+                resource.regenerate(rate=0.05)
+
+            # Echo 시간 경과 처리
+            removed = self.echo_manager.decay_echoes(node)
+            if removed > 0:
+                print(f"  [{coord}] {removed} echoes decayed")
+
+        print("[ITWEngine] Daily tick complete")
+
+    def get_world_stats(self) -> Dict[str, Any]:
+        """월드 통계"""
+        world_stats = self.world.get_stats()
+        axiom_stats = self.axiom_loader.get_stats()
+
+        return {
+            "engine_version": self.VERSION,
+            "world": world_stats,
+            "axioms": axiom_stats,
+            "active_players": len(self.players),
+            "global_hooks": len(self.get_active_hooks())
+        }
+
+    # === 디버그 / 개발용 ===
+
+    def debug_teleport(self, player_id: str, x: int, y: int) -> ActionResult:
+        """[DEBUG] 텔레포트"""
+        player = self.get_player(player_id)
+        if not player:
+            return ActionResult(False, "debug_teleport", "플레이어를 찾을 수 없습니다.")
+
+        # 목적지 노드 생성
+        self.world.get_or_generate(x, y)
+
+        player.x = x
+        player.y = y
+
+        view = self.navigator.get_location_view(x, y, player_id)
+
+        return ActionResult(
+            success=True,
+            action_type="debug_teleport",
+            message=f"[DEBUG] 텔레포트 완료: ({x}, {y})",
+            location_view=view
+        )
+
+    def debug_generate_area(self, center_x: int, center_y: int, radius: int = 3):
+        """[DEBUG] 영역 생성"""
+        nodes = self.world.generate_area(center_x, center_y, radius)
+        print(f"[DEBUG] Generated {len(nodes)} nodes around ({center_x}, {center_y})")
+        return nodes
+
+
+# === CLI 인터페이스 ===
+
+def run_cli():
+    """간단한 CLI 게임 루프"""
+    print("\n" + "=" * 50)
+    print("  INFINITE TEXT WORLD - CLI Demo")
+    print("=" * 50)
+
+    # 엔진 초기화
+    engine = ITWEngine(
+        axiom_data_path="itw_214_divine_axioms.json",
+        world_seed=42
+    )
+
+    # 테스트 플레이어 등록
+    player_id = "demo_player"
+    engine.register_player(player_id)
+
+    # 초기 영역 생성
+    engine.debug_generate_area(0, 0, radius=5)
+
+    print("\n명령어: look, move <방향>, investigate, harvest <자원>, rest, compass, stats, quit")
+    print("방향: n/s/e/w 또는 north/south/east/west 또는 북/남/동/서\n")
+
+    # 초기 위치 표시
+    result = engine.look(player_id)
+    if result.location_view:
+        print(f"\n{result.location_view.visual_description}")
+        print(f"분위기: {result.location_view.atmosphere}")
+
+    while True:
+        try:
+            player = engine.get_player(player_id)
+            prompt = f"\n[Supply: {player.supply} | Fame: {player.fame}] > "
+            cmd = input(prompt).strip().lower()
+
+            if not cmd:
+                continue
+
+            parts = cmd.split()
+            action = parts[0]
+
+            if action == "quit" or action == "q":
+                print("게임을 종료합니다...")
+                break
+
+            elif action == "look" or action == "l":
+                result = engine.look(player_id)
+                if result.location_view:
+                    view = result.location_view
+                    print(f"\n{view.visual_description}")
+                    print(f"분위기: {view.atmosphere}")
+                    print(f"소리: {view.sound}")
+                    print(f"냄새: {view.smell}")
+                    if view.special_features:
+                        print(f"특징: {', '.join(view.special_features)}")
+                    if view.available_resources:
+                        print(f"자원: {view.available_resources}")
+
+            elif action == "move" or action == "m":
+                if len(parts) < 2:
+                    print("방향을 지정하세요. (예: move n)")
+                    continue
+                direction = parts[1]
+                result = engine.move(player_id, direction)
+                print(f"\n{result.message}")
+                if result.success and result.location_view:
+                    print(f"\n{result.location_view.visual_description}")
+                if result.data and result.data.get("encounter"):
+                    print(f"\n⚠️ {result.data['encounter']['hint']}")
+
+            elif action == "compass" or action == "c":
+                print(engine.get_compass(player_id))
+
+            elif action == "investigate" or action == "i":
+                result = engine.investigate(player_id)
+                print(f"\n{result.message}")
+                if result.data:
+                    if result.success and result.data.get("discovered_info"):
+                        info = result.data["discovered_info"]
+                        print(f"  → {info['flavor']}")
+                        print(f"  시간: {info['age']}")
+                    elif not result.success:
+                        print(f"  (DC: {result.data.get('dc', '?')})")
+
+            elif action == "harvest" or action == "h":
+                if len(parts) < 2:
+                    print("자원 ID를 지정하세요. (예: harvest res_ore)")
+                    continue
+                resource_id = parts[1]
+                amount = int(parts[2]) if len(parts) > 2 else 1
+                result = engine.harvest(player_id, resource_id, amount)
+                print(f"\n{result.message}")
+
+            elif action == "rest" or action == "r":
+                result = engine.rest(player_id)
+                print(f"\n{result.message}")
+
+            elif action == "stats":
+                stats = engine.get_world_stats()
+                print(f"\n=== 월드 통계 ===")
+                print(f"엔진 버전: {stats['engine_version']}")
+                print(f"총 노드: {stats['world']['total_nodes']}")
+                print(f"티어 분포: {stats['world']['tier_distribution']}")
+                print(f"클러스터 수: {stats['world']['unique_clusters']}")
+
+            elif action == "inventory" or action == "inv":
+                player = engine.get_player(player_id)
+                if player.inventory:
+                    print("\n=== 인벤토리 ===")
+                    for item, count in player.inventory.items():
+                        print(f"  {item}: {count}")
+                else:
+                    print("\n인벤토리가 비어있습니다.")
+
+            elif action == "help":
+                print("\n명령어:")
+                print("  look (l)        - 현재 위치 관찰")
+                print("  move <방향> (m) - 이동 (n/s/e/w)")
+                print("  compass (c)     - 나침반 표시")
+                print("  investigate (i) - 흔적 조사")
+                print("  harvest <id>    - 자원 채취")
+                print("  rest (r)        - 휴식")
+                print("  inventory (inv) - 인벤토리")
+                print("  stats           - 월드 통계")
+                print("  quit (q)        - 종료")
+
+            else:
+                print(f"알 수 없는 명령: {action} (help로 도움말 확인)")
+
+        except KeyboardInterrupt:
+            print("\n\n게임을 종료합니다...")
+            break
+        except Exception as e:
+            print(f"\n오류 발생: {e}")
+
+
+# === 메인 실행 ===
+
+if __name__ == "__main__":
+    run_cli()
