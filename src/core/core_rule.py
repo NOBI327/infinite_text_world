@@ -15,59 +15,80 @@ Protocol T.A.G. v2.0 Resonance 판정 엔진
 
 import random
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Union
 from enum import Enum
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
+from src.core.logging import get_logger
 
 # axiom_system의 Axiom 클래스 타입 힌팅용 (순환 참조 방지)
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from src.core.axiom_system import Axiom
 
+logger = get_logger(__name__)
+
+
 class StatType(Enum):
     """4대 프로세스 변수 (Process Variables)"""
+
     WRITE = "WRITE"  # 물리/출력 (Force, Material) - 힘, 전투, 파괴
-    READ = "READ"    # 감각/입력 (Mystery, Mind) - 감지, 조사, 통찰
-    EXEC = "EXEC"    # 기술/기능 (Logic, Organic) - 제작, 조작, 민첩
-    SUDO = "SUDO"    # 사회/권한 (Social) - 대화, 지휘, 권능
+    READ = "READ"  # 감각/입력 (Mystery, Mind) - 감지, 조사, 통찰
+    EXEC = "EXEC"  # 기술/기능 (Logic, Organic) - 제작, 조작, 민첩
+    SUDO = "SUDO"  # 사회/권한 (Social) - 대화, 지휘, 권능
+
 
 class CheckResultTier(Enum):
     """판정 결과 티어"""
-    CRITICAL_FAILURE = "Critical Failure" # 대실패 (성공 0개 & 1이 존재)
-    FAILURE = "Failure"                   # 실패 (성공 < 난이도)
-    PARTIAL_SUCCESS = "Partial Success"   # 부분 성공 (성공 == 난이도 - 1, 선택적 룰)
-    SUCCESS = "Success"                   # 성공 (성공 >= 난이도)
-    CRITICAL_SUCCESS = "Critical Success" # 대성공 (성공 >= 난이도 + 2)
+
+    CRITICAL_FAILURE = "Critical Failure"  # 대실패 (성공 0개 & 1이 존재)
+    FAILURE = "Failure"  # 실패 (성공 < 난이도)
+    PARTIAL_SUCCESS = "Partial Success"  # 부분 성공 (성공 == 난이도 - 1, 선택적 룰)
+    SUCCESS = "Success"  # 성공 (성공 >= 난이도)
+    CRITICAL_SUCCESS = "Critical Success"  # 대성공 (성공 >= 난이도 + 2)
+
 
 @dataclass
 class CheckResult:
     """판정 결과 데이터"""
+
     success: bool
     tier: CheckResultTier
-    hits: int            # 성공수 (5, 6의 개수)
-    required_hits: int   # 목표 난이도
-    rolls: List[int]     # 굴린 주사위 값 목록
+    hits: int  # 성공수 (5, 6의 개수)
+    required_hits: int  # 목표 난이도
+    rolls: List[int]  # 굴린 주사위 값 목록
     narrative_hint: str  # AI 서술 가이드
+
 
 @dataclass
 class CharacterSheet:
     """캐릭터/NPC 데이터 구조"""
+
     name: str
     level: int = 1
 
     # 4대 스탯 (기본값 1)
-    stats: Dict[StatType, int] = field(default_factory=lambda: {
-        StatType.WRITE: 1,
-        StatType.READ: 1,
-        StatType.EXEC: 1,
-        StatType.SUDO: 1
-    })
+    stats: Dict[StatType, int] = field(
+        default_factory=lambda: {
+            StatType.WRITE: 1,
+            StatType.READ: 1,
+            StatType.EXEC: 1,
+            StatType.SUDO: 1,
+        }
+    )
 
     # 8대 속성 내구도 (Resonance Shield)
     # None = Null (면역), 0 = Broken (붕괴)
-    resonance_shield: Dict[str, Optional[int]] = field(default_factory=lambda: {
-        "Kinetic": 10, "Thermal": 10, "Structural": 10, "Bio": 10,
-        "Psyche": 10, "Data": 10, "Social": 10, "Esoteric": 10
-    })
+    resonance_shield: Dict[str, Optional[int]] = field(
+        default_factory=lambda: {
+            "Kinetic": 10,
+            "Thermal": 10,
+            "Structural": 10,
+            "Bio": 10,
+            "Psyche": 10,
+            "Data": 10,
+            "Social": 10,
+            "Esoteric": 10,
+        }
+    )
 
     # 현재 활성화된 상태 태그 (예: 'Burning', 'Hasted')
     status_tags: List[str] = field(default_factory=list)
@@ -95,8 +116,9 @@ class CharacterSheet:
         self.resonance_shield[resonance_type] = new_val
 
         if new_val == 0:
-            return "BROKEN" # 붕괴
+            return "BROKEN"  # 붕괴
         return "DAMAGED"
+
 
 class ResolutionEngine:
     """
@@ -113,7 +135,7 @@ class ResolutionEngine:
         difficulty: int = 1,
         bonus_dice: int = 0,
         risk_penalty: int = 0,
-        relevant_tags: int = 0  # Axiom/아이템 등에서 오는 보너스 개수
+        relevant_tags: int = 0,  # Axiom/아이템 등에서 오는 보너스 개수
     ) -> CheckResult:
         """
         핵심 판정 로직 실행
@@ -172,14 +194,14 @@ class ResolutionEngine:
             hits=hits,
             required_hits=difficulty,
             rolls=rolls,
-            narrative_hint=hint
+            narrative_hint=hint,
         )
 
     def calculate_resonance_interaction(
         self,
         check_result: CheckResult,
-        input_axioms: List['Axiom'],
-        target_shield: Dict[str, Optional[int]]
+        input_axioms: List["Axiom"],
+        target_shield: Dict[str, Optional[int]],
     ) -> Dict[str, Any]:
         """
         전투/상호작용 결과 연산 (Resonance System)
@@ -199,7 +221,9 @@ class ResolutionEngine:
         total_damage = 0
 
         # 크리티컬 보정 (1.5배)
-        multiplier = 1.5 if check_result.tier == CheckResultTier.CRITICAL_SUCCESS else 1.0
+        multiplier = (
+            1.5 if check_result.tier == CheckResultTier.CRITICAL_SUCCESS else 1.0
+        )
 
         for axiom in input_axioms:
             # 1. 공리의 속성 확인 (예: Ignis -> Thermal)
@@ -225,22 +249,35 @@ class ResolutionEngine:
         return {
             "total_damage": total_damage,
             "log": damage_log,
-            "is_critical": check_result.tier == CheckResultTier.CRITICAL_SUCCESS
+            "is_critical": check_result.tier == CheckResultTier.CRITICAL_SUCCESS,
         }
 
 
 if __name__ == "__main__":
-    print("=== Core Rule System Test ===\n")
+    from src.core.logging import setup_logging
+
+    setup_logging("DEBUG")
+
+    logger.info("=== Core Rule System Test ===")
 
     char = CharacterSheet(name="Test Hero", level=1)
     char.set_stat(StatType.WRITE, 3)
-    print(f"CharacterSheet: {char.name}, WRITE={char.get_stat(StatType.WRITE)}")
+    logger.info(
+        "CharacterSheet: %s, WRITE=%d", char.name, char.get_stat(StatType.WRITE)
+    )
 
     engine = ResolutionEngine()
     result = engine.resolve_check(char, StatType.WRITE, difficulty=1)
-    print(f"Check: Rolls={result.rolls}, Hits={result.hits}, Result={result.tier.value}")
+    logger.info(
+        "Check: Rolls=%s, Hits=%d, Result=%s",
+        result.rolls,
+        result.hits,
+        result.tier.value,
+    )
 
     status = char.damage_resonance("Thermal", 5)
-    print(f"Damage Thermal -5: {status}, Remaining={char.resonance_shield['Thermal']}")
+    logger.info(
+        "Damage Thermal -5: %s, Remaining=%d", status, char.resonance_shield["Thermal"]
+    )
 
-    print("\n=== Test Complete ===")
+    logger.info("=== Test Complete ===")

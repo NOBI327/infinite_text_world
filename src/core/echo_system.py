@@ -9,41 +9,48 @@ ITW Core Engine - Module 4: Echo System (Memory & Investigation)
 
 import random
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from src.core.axiom_system import AxiomLoader
-from src.core.world_generator import MapNode, Echo
+from src.core.logging import get_logger
+from src.core.world_generator import Echo, MapNode
+
+logger = get_logger(__name__)
 
 
 class EchoType(Enum):
     """Echo 유형"""
-    SHORT = "Short"   # 임시 - 시간이 지나면 사라짐
-    LONG = "Long"     # 영구 - 로어/중요 이벤트
+
+    SHORT = "Short"  # 임시 - 시간이 지나면 사라짐
+    LONG = "Long"  # 영구 - 로어/중요 이벤트
 
 
 class EchoVisibility(Enum):
     """Echo 가시성"""
-    PUBLIC = "Public"   # 모든 플레이어에게 보임
-    HIDDEN = "Hidden"   # 조사해야 보임
+
+    PUBLIC = "Public"  # 모든 플레이어에게 보임
+    HIDDEN = "Hidden"  # 조사해야 보임
 
 
 class EchoCategory(Enum):
     """Echo 카테고리"""
-    COMBAT = "combat"           # 전투 흔적
-    EXPLORATION = "exploration" # 탐험 흔적
-    CRAFTING = "crafting"       # 제작 흔적
-    SOCIAL = "social"           # 사회적 상호작용
-    DEATH = "death"             # 죽음/패배
-    DISCOVERY = "discovery"     # 발견
-    BOSS = "boss"               # 보스 처치
-    MYSTERY = "mystery"         # 미스터리 이벤트
+
+    COMBAT = "combat"  # 전투 흔적
+    EXPLORATION = "exploration"  # 탐험 흔적
+    CRAFTING = "crafting"  # 제작 흔적
+    SOCIAL = "social"  # 사회적 상호작용
+    DEATH = "death"  # 죽음/패배
+    DISCOVERY = "discovery"  # 발견
+    BOSS = "boss"  # 보스 처치
+    MYSTERY = "mystery"  # 미스터리 이벤트
 
 
 @dataclass
 class EchoTemplate:
     """Echo 생성 템플릿"""
+
     category: EchoCategory
     echo_type: EchoType
     base_dc: int
@@ -70,9 +77,9 @@ class EchoManager:
                 "피가 튄 흔적이 남아있다...",
                 "무기가 부딪힌 자국이 선명하다...",
                 "격렬한 싸움의 기운이 서려있다...",
-                "누군가 이곳에서 싸웠다..."
+                "누군가 이곳에서 싸웠다...",
             ],
-            decay_days=7
+            decay_days=7,
         ),
         EchoCategory.DEATH: EchoTemplate(
             category=EchoCategory.DEATH,
@@ -83,9 +90,9 @@ class EchoManager:
                 "죽음의 기운이 서려있다...",
                 "비극의 흔적이 느껴진다...",
                 "누군가 이곳에서 쓰러졌다...",
-                "서늘한 공기가 감돈다..."
+                "서늘한 공기가 감돈다...",
             ],
-            decay_days=14
+            decay_days=14,
         ),
         EchoCategory.EXPLORATION: EchoTemplate(
             category=EchoCategory.EXPLORATION,
@@ -96,9 +103,9 @@ class EchoManager:
                 "발자국이 희미하게 남아있다...",
                 "누군가 이곳을 지나간 흔적이 있다...",
                 "최근에 탐험된 흔적이 보인다...",
-                "표식이 새겨져 있다..."
+                "표식이 새겨져 있다...",
             ],
-            decay_days=3
+            decay_days=3,
         ),
         EchoCategory.CRAFTING: EchoTemplate(
             category=EchoCategory.CRAFTING,
@@ -109,9 +116,9 @@ class EchoManager:
                 "제작 도구의 흔적이 남아있다...",
                 "가공된 재료의 부스러기가 보인다...",
                 "장인의 손길이 느껴진다...",
-                "작업 흔적이 선명하다..."
+                "작업 흔적이 선명하다...",
             ],
-            decay_days=5
+            decay_days=5,
         ),
         EchoCategory.BOSS: EchoTemplate(
             category=EchoCategory.BOSS,
@@ -122,9 +129,9 @@ class EchoManager:
                 "위대한 승리의 기운이 서려있다!",
                 "강대한 존재가 쓰러진 자리다...",
                 "영웅적인 전투의 흔적이 남아있다!",
-                "전설이 태어난 장소..."
+                "전설이 태어난 장소...",
             ],
-            decay_days=None  # 영구
+            decay_days=None,  # 영구
         ),
         EchoCategory.DISCOVERY: EchoTemplate(
             category=EchoCategory.DISCOVERY,
@@ -135,9 +142,9 @@ class EchoManager:
                 "무언가 중요한 것이 발견된 장소...",
                 "비밀이 밝혀진 흔적이 있다...",
                 "지식의 기운이 서려있다...",
-                "발견의 순간이 새겨져 있다..."
+                "발견의 순간이 새겨져 있다...",
             ],
-            decay_days=None
+            decay_days=None,
         ),
         EchoCategory.SOCIAL: EchoTemplate(
             category=EchoCategory.SOCIAL,
@@ -148,9 +155,9 @@ class EchoManager:
                 "대화의 여운이 남아있다...",
                 "거래가 이루어진 흔적이 있다...",
                 "만남의 기운이 느껴진다...",
-                "누군가 이곳에서 약속을 나눴다..."
+                "누군가 이곳에서 약속을 나눴다...",
             ],
-            decay_days=2
+            decay_days=2,
         ),
         EchoCategory.MYSTERY: EchoTemplate(
             category=EchoCategory.MYSTERY,
@@ -161,10 +168,10 @@ class EchoManager:
                 "설명할 수 없는 현상의 흔적...",
                 "초자연적인 기운이 맴돈다...",
                 "이해할 수 없는 문양이 새겨져 있다...",
-                "시공간이 뒤틀린 느낌이 든다..."
+                "시공간이 뒤틀린 느낌이 든다...",
             ],
-            decay_days=None
-        )
+            decay_days=None,
+        ),
     }
 
     # 시간 경과에 따른 DC 증가 (일당)
@@ -182,7 +189,7 @@ class EchoManager:
         EchoCategory.BOSS: 100,
         EchoCategory.DISCOVERY: 10,
         EchoCategory.SOCIAL: 3,
-        EchoCategory.MYSTERY: 15
+        EchoCategory.MYSTERY: 15,
     }
 
     def __init__(self, axiom_loader: AxiomLoader):
@@ -198,7 +205,7 @@ class EchoManager:
         node: MapNode,
         source_player_id: Optional[str] = None,
         custom_flavor: Optional[str] = None,
-        dc_modifier: int = 0
+        dc_modifier: int = 0,
     ) -> Echo:
         """
         새 Echo 생성
@@ -213,7 +220,9 @@ class EchoManager:
         Returns:
             생성된 Echo
         """
-        template = self.TEMPLATES.get(category, self.TEMPLATES[EchoCategory.EXPLORATION])
+        template = self.TEMPLATES.get(
+            category, self.TEMPLATES[EchoCategory.EXPLORATION]
+        )
 
         # 플레이버 텍스트
         if custom_flavor:
@@ -237,7 +246,7 @@ class EchoManager:
             base_dc=base_dc,
             timestamp=datetime.utcnow().isoformat(),
             flavor_text=flavor,
-            source_player_id=source_player_id
+            source_player_id=source_player_id,
         )
 
         # 노드에 추가
@@ -246,10 +255,7 @@ class EchoManager:
         return echo
 
     def calculate_investigation_dc(
-        self,
-        echo: Echo,
-        investigator_fame: int = 0,
-        bonus_modifiers: int = 0
+        self, echo: Echo, investigator_fame: int = 0, bonus_modifiers: int = 0
     ) -> Dict[str, Any]:
         """
         조사 DC 계산
@@ -271,7 +277,9 @@ class EchoManager:
             }
         """
         # 시간 경과 계산
-        created = datetime.fromisoformat(echo.timestamp.replace('Z', '+00:00').replace('+00:00', ''))
+        created = datetime.fromisoformat(
+            echo.timestamp.replace("Z", "+00:00").replace("+00:00", "")
+        )
         now = datetime.utcnow()
         days_passed = (now - created).days
 
@@ -290,7 +298,7 @@ class EchoManager:
             "days_passed": days_passed,
             "fame_bonus": fame_bonus,
             "modifiers": bonus_modifiers,
-            "final_dc": final_dc
+            "final_dc": final_dc,
         }
 
     def investigate(
@@ -298,7 +306,7 @@ class EchoManager:
         echo: Echo,
         roll: int,
         investigator_fame: int = 0,
-        bonus_modifiers: int = 0
+        bonus_modifiers: int = 0,
     ) -> Dict[str, Any]:
         """
         Echo 조사 시도
@@ -312,7 +320,9 @@ class EchoManager:
         Returns:
             조사 결과 (성공/실패, 발견 정보 등)
         """
-        dc_info = self.calculate_investigation_dc(echo, investigator_fame, bonus_modifiers)
+        dc_info = self.calculate_investigation_dc(
+            echo, investigator_fame, bonus_modifiers
+        )
         final_dc = dc_info["final_dc"]
 
         success = roll >= final_dc
@@ -323,7 +333,7 @@ class EchoManager:
             "roll": roll,
             "dc": final_dc,
             "dc_breakdown": dc_info,
-            "margin": margin
+            "margin": margin,
         }
 
         if success:
@@ -332,7 +342,7 @@ class EchoManager:
                 "flavor": echo.flavor_text,
                 "type": echo.echo_type,
                 "age": f"{dc_info['days_passed']}일 전",
-                "source_hint": self._get_source_hint(echo, margin)
+                "source_hint": self._get_source_hint(echo, margin),
             }
 
             # 대성공 (margin >= 5) 시 추가 정보
@@ -346,7 +356,9 @@ class EchoManager:
 
             # 대실패 (margin <= -5) 시 페널티
             if margin <= -5:
-                result["penalty"] = "잘못된 해석으로 혼란에 빠졌다. 다음 조사에 -2 페널티."
+                result["penalty"] = (
+                    "잘못된 해석으로 혼란에 빠졌다. 다음 조사에 -2 페널티."
+                )
 
         return result
 
@@ -385,7 +397,9 @@ class EchoManager:
                     break
 
             if template and template.decay_days:
-                created = datetime.fromisoformat(echo.timestamp.replace('Z', '+00:00').replace('+00:00', ''))
+                created = datetime.fromisoformat(
+                    echo.timestamp.replace("Z", "+00:00").replace("+00:00", "")
+                )
                 age = (now - created).days
 
                 if age > template.decay_days:
@@ -406,10 +420,7 @@ class EchoManager:
         return [e for e in node.echoes if e.visibility == EchoVisibility.HIDDEN.value]
 
     def create_global_hook(
-        self,
-        event_type: str,
-        location_hint: str,
-        description: str
+        self, event_type: str, location_hint: str, description: str
     ) -> Dict[str, Any]:
         """
         글로벌 훅 생성 (보스 킬, 대발견 등)
@@ -422,13 +433,14 @@ class EchoManager:
             "location_hint": location_hint,
             "description": description,
             "timestamp": datetime.utcnow().isoformat(),
-            "expires_in_hours": 24
+            "expires_in_hours": 24,
         }
 
 
 @dataclass
 class InvestigationResult:
     """조사 결과 상세"""
+
     success: bool
     echo: Echo
     roll: int
@@ -460,7 +472,10 @@ class InvestigationResult:
 # === 테스트 코드 ===
 
 if __name__ == "__main__":
+    from src.core.logging import setup_logging
     from src.core.world_generator import WorldGenerator
+
+    setup_logging("DEBUG")
 
     # 초기화
     loader = AxiomLoader("itw_214_divine_axioms.json")
@@ -471,76 +486,74 @@ if __name__ == "__main__":
     test_node = world.generate_node(1, 1)
 
     # Echo 생성 테스트
-    print("=== Creating Echoes ===")
+    logger.info("=== Creating Echoes ===")
 
     combat_echo = echo_manager.create_echo(
-        EchoCategory.COMBAT,
-        test_node,
-        source_player_id="player_001"
+        EchoCategory.COMBAT, test_node, source_player_id="player_001"
     )
-    print(f"Combat Echo: {combat_echo.flavor_text}")
+    logger.info("Combat Echo: %s", combat_echo.flavor_text)
 
     boss_echo = echo_manager.create_echo(
         EchoCategory.BOSS,
         test_node,
-        custom_flavor="위대한 용이 쓰러진 자리. 영웅 '용살자'의 전설이 시작된 곳."
+        custom_flavor="위대한 용이 쓰러진 자리. 영웅 '용살자'의 전설이 시작된 곳.",
     )
-    print(f"Boss Echo: {boss_echo.flavor_text}")
+    logger.info("Boss Echo: %s", boss_echo.flavor_text)
 
     mystery_echo = echo_manager.create_echo(
         EchoCategory.MYSTERY,
         test_node,
-        dc_modifier=5  # 더 어렵게
+        dc_modifier=5,  # 더 어렵게
     )
-    print(f"Mystery Echo: {mystery_echo.flavor_text}")
+    logger.info("Mystery Echo: %s", mystery_echo.flavor_text)
 
     # DC 계산 테스트
-    print("\n=== Investigation DC Calculation ===")
+    logger.info("=== Investigation DC Calculation ===")
     dc_info = echo_manager.calculate_investigation_dc(
-        mystery_echo,
-        investigator_fame=50,
-        bonus_modifiers=2
+        mystery_echo, investigator_fame=50, bonus_modifiers=2
     )
-    print(f"Base DC: {dc_info['base_dc']}")
-    print(f"Time Decay: +{dc_info['time_decay']} ({dc_info['days_passed']} days)")
-    print(f"Fame Bonus: -{dc_info['fame_bonus']}")
-    print(f"Modifiers: -{dc_info['modifiers']}")
-    print(f"Final DC: {dc_info['final_dc']}")
+    logger.info("Base DC: %d", dc_info["base_dc"])
+    logger.info(
+        "Time Decay: +%d (%d days)", dc_info["time_decay"], dc_info["days_passed"]
+    )
+    logger.info("Fame Bonus: -%d", dc_info["fame_bonus"])
+    logger.info("Modifiers: -%d", dc_info["modifiers"])
+    logger.info("Final DC: %d", dc_info["final_dc"])
 
     # 조사 테스트
-    print("\n=== Investigation Attempts ===")
+    logger.info("=== Investigation Attempts ===")
 
     # 성공 케이스
     result = echo_manager.investigate(mystery_echo, roll=25, investigator_fame=50)
-    print(f"\nRoll 25 - Success: {result['success']}")
-    if result['success']:
-        print(f"  Discovered: {result['discovered_info']['flavor'][:50]}...")
+    logger.info("Roll 25 - Success: %s", result["success"])
+    if result["success"]:
+        logger.info("  Discovered: %s...", result["discovered_info"]["flavor"][:50])
 
     # 실패 케이스
     result = echo_manager.investigate(mystery_echo, roll=8, investigator_fame=0)
-    print(f"\nRoll 8 - Success: {result['success']}")
-    print(f"  Message: {result.get('message', 'N/A')}")
-    if result.get('penalty'):
-        print(f"  Penalty: {result['penalty']}")
+    logger.info("Roll 8 - Success: %s", result["success"])
+    logger.info("  Message: %s", result.get("message", "N/A"))
+    if result.get("penalty"):
+        logger.info("  Penalty: %s", result["penalty"])
 
     # Echo 목록
-    print("\n=== Node Echoes ===")
-    print(f"Total: {len(test_node.echoes)}")
-    print(f"Public: {len(echo_manager.get_visible_echoes(test_node))}")
-    print(f"Hidden: {len(echo_manager.get_hidden_echoes(test_node))}")
+    logger.info("=== Node Echoes ===")
+    logger.info("Total: %d", len(test_node.echoes))
+    logger.info("Public: %d", len(echo_manager.get_visible_echoes(test_node)))
+    logger.info("Hidden: %d", len(echo_manager.get_hidden_echoes(test_node)))
 
     # Fame 보상 테스트
-    print("\n=== Fame Rewards ===")
-    print(f"COMBAT: {echo_manager.get_fame_reward(EchoCategory.COMBAT)}")
-    print(f"BOSS: {echo_manager.get_fame_reward(EchoCategory.BOSS)}")
-    print(f"MYSTERY: {echo_manager.get_fame_reward(EchoCategory.MYSTERY)}")
+    logger.info("=== Fame Rewards ===")
+    logger.info("COMBAT: %d", echo_manager.get_fame_reward(EchoCategory.COMBAT))
+    logger.info("BOSS: %d", echo_manager.get_fame_reward(EchoCategory.BOSS))
+    logger.info("MYSTERY: %d", echo_manager.get_fame_reward(EchoCategory.MYSTERY))
 
     # 글로벌 훅 테스트
-    print("\n=== Global Hook ===")
+    logger.info("=== Global Hook ===")
     hook = echo_manager.create_global_hook(
         event_type="boss_kill",
         location_hint="화염에 휩싸인 북쪽 산맥 어딘가",
-        description="누군가 고대의 화염룡 '이그니스'를 처치했다!"
+        description="누군가 고대의 화염룡 '이그니스'를 처치했다!",
     )
-    print(f"Event: {hook['event']}")
-    print(f"Description: {hook['description']}")
+    logger.info("Event: %s", hook["event"])
+    logger.info("Description: %s", hook["description"])

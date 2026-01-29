@@ -9,47 +9,55 @@ Protocol T.A.G. (214 Divine Axioms) 로더 및 관리 시스템
 
 import json
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
-from pathlib import Path
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from src.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class ResonanceType(Enum):
     """8대 공명 속성"""
-    THERMAL = "Thermal"      # Primordial (원소/에너지)
-    STRUCTURAL = "Structural" # Material (물질/재질)
-    KINETIC = "Kinetic"      # Force (물리/운동)
-    BIO = "Bio"              # Organic (유기/생체)
-    PSYCHE = "Psyche"        # Mind (정신/감정)
-    DATA = "Data"            # Logic (논리/장치)
-    SOCIAL = "Social"        # Social (사회/규율)
-    ESOTERIC = "Esoteric"    # Mystery (신비/초월)
+
+    THERMAL = "Thermal"  # Primordial (원소/에너지)
+    STRUCTURAL = "Structural"  # Material (물질/재질)
+    KINETIC = "Kinetic"  # Force (물리/운동)
+    BIO = "Bio"  # Organic (유기/생체)
+    PSYCHE = "Psyche"  # Mind (정신/감정)
+    DATA = "Data"  # Logic (논리/장치)
+    SOCIAL = "Social"  # Social (사회/규율)
+    ESOTERIC = "Esoteric"  # Mystery (신비/초월)
 
 
 class DomainType(Enum):
     """8대 영역"""
+
     PRIMORDIAL = "Primordial"  # 000-029
-    MATERIAL = "Material"      # 030-059
-    FORCE = "Force"            # 060-089
-    ORGANIC = "Organic"        # 090-119
-    MIND = "Mind"              # 120-149
-    LOGIC = "Logic"            # 150-179
-    SOCIAL = "Social"          # 180-199
-    MYSTERY = "Mystery"        # 200-213
+    MATERIAL = "Material"  # 030-059
+    FORCE = "Force"  # 060-089
+    ORGANIC = "Organic"  # 090-119
+    MIND = "Mind"  # 120-149
+    LOGIC = "Logic"  # 150-179
+    SOCIAL = "Social"  # 180-199
+    MYSTERY = "Mystery"  # 200-213
 
 
 @dataclass
 class AxiomInteraction:
     """Axiom 간 상호작용 정의"""
-    effect: str          # neutralize, amplify, transform, resist, ignore, trigger
-    ratio: Optional[float] = None       # neutralize, resist용
+
+    effect: str  # neutralize, amplify, transform, resist, ignore, trigger
+    ratio: Optional[float] = None  # neutralize, resist용
     multiplier: Optional[float] = None  # amplify용
-    result: Optional[str] = None        # transform, trigger용
+    result: Optional[str] = None  # transform, trigger용
 
 
 @dataclass
 class AxiomLogic:
     """Axiom의 로직 정의"""
+
     passive: List[str] = field(default_factory=list)
     on_contact: Dict[str, AxiomInteraction] = field(default_factory=dict)
     damage_mod: Dict[str, float] = field(default_factory=dict)
@@ -64,14 +72,15 @@ class Axiom:
     세계의 모든 사물과 현상은 이 214개 공리의 조합으로 정의됩니다.
     예: Fireball = Ignis(Fire) + Vis(Force) + Sphaera(Sphere)
     """
+
     id: int
-    code: str              # axiom_ignis
-    name_latin: str        # Ignis
-    name_kr: str           # 화염
-    name_en: str           # Fire
+    code: str  # axiom_ignis
+    name_latin: str  # Ignis
+    name_kr: str  # 화염
+    name_en: str  # Fire
     domain: DomainType
     resonance: ResonanceType
-    tier: int              # 1=기본, 2=중급, 3=고급
+    tier: int  # 1=기본, 2=중급, 3=고급
     logic: AxiomLogic
     tags: List[str]
     flavor: str
@@ -105,8 +114,12 @@ class AxiomLoader:
         self._axioms: Dict[int, Axiom] = {}
         self._axioms_by_code: Dict[str, Axiom] = {}
         self._axioms_by_latin: Dict[str, Axiom] = {}
-        self._axioms_by_domain: Dict[DomainType, List[Axiom]] = {d: [] for d in DomainType}
-        self._axioms_by_resonance: Dict[ResonanceType, List[Axiom]] = {r: [] for r in ResonanceType}
+        self._axioms_by_domain: Dict[DomainType, List[Axiom]] = {
+            d: [] for d in DomainType
+        }
+        self._axioms_by_resonance: Dict[ResonanceType, List[Axiom]] = {
+            r: [] for r in ResonanceType
+        }
         self._axioms_by_tier: Dict[int, List[Axiom]] = {1: [], 2: [], 3: []}
 
         self._load(json_path)
@@ -119,14 +132,14 @@ class AxiomLoader:
                 effect=interaction.get("effect", ""),
                 ratio=interaction.get("ratio"),
                 multiplier=interaction.get("multiplier"),
-                result=interaction.get("result")
+                result=interaction.get("result"),
             )
 
         return AxiomLogic(
             passive=logic_data.get("passive", []),
             on_contact=on_contact,
             damage_mod=logic_data.get("damage_mod", {}),
-            special=logic_data.get("special")
+            special=logic_data.get("special"),
         )
 
     def _load(self, json_path: str):
@@ -135,7 +148,7 @@ class AxiomLoader:
         if not path.exists():
             raise FileNotFoundError(f"Axiom data file not found: {json_path}")
 
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         for item in data:
@@ -154,7 +167,7 @@ class AxiomLoader:
                 tier=item["tier"],
                 logic=self._parse_logic(item["logic"]),
                 tags=item["tags"],
-                flavor=item["flavor"]
+                flavor=item["flavor"],
             )
 
             # 다중 인덱싱
@@ -165,7 +178,7 @@ class AxiomLoader:
             self._axioms_by_resonance[resonance].append(axiom)
             self._axioms_by_tier[axiom.tier].append(axiom)
 
-        print(f"[AxiomLoader] Loaded {len(self._axioms)} Divine Axioms")
+        logger.info("Loaded %d Divine Axioms", len(self._axioms))
 
     # === 조회 메서드 ===
 
@@ -207,7 +220,9 @@ class AxiomLoader:
 
     # === 상호작용 계산 ===
 
-    def calculate_interaction(self, source: Axiom, target: Axiom) -> Optional[Dict[str, Any]]:
+    def calculate_interaction(
+        self, source: Axiom, target: Axiom
+    ) -> Optional[Dict[str, Any]]:
         """
         두 Axiom 간의 상호작용 계산
 
@@ -228,7 +243,7 @@ class AxiomLoader:
             else:
                 return {"effect": "neutral", "value": 1.0}
 
-        result = {"effect": interaction.effect}
+        result: Dict[str, Any] = {"effect": interaction.effect}
 
         if interaction.effect == "neutralize":
             result["value"] = interaction.ratio or 1.0
@@ -253,11 +268,14 @@ class AxiomLoader:
             "total": len(self._axioms),
             "by_tier": {t: len(a) for t, a in self._axioms_by_tier.items()},
             "by_domain": {d.value: len(a) for d, a in self._axioms_by_domain.items()},
-            "by_resonance": {r.value: len(a) for r, a in self._axioms_by_resonance.items()}
+            "by_resonance": {
+                r.value: len(a) for r, a in self._axioms_by_resonance.items()
+            },
         }
 
 
 # === Axiom Vector (태그 조합) ===
+
 
 @dataclass
 class AxiomVector:
@@ -267,6 +285,7 @@ class AxiomVector:
     게임 내 모든 엔티티는 이 벡터로 정의됩니다.
     예: 늪지대 = {Lutum: 0.6, Aqua: 0.4, Putredo: 0.3}
     """
+
     weights: Dict[str, float] = field(default_factory=dict)
 
     def add(self, axiom_code: str, weight: float):
@@ -283,14 +302,14 @@ class AxiomVector:
         """가장 높은 가중치의 Axiom 반환"""
         if not self.weights:
             return None
-        return max(self.weights, key=self.weights.get)
+        return max(self.weights, key=lambda k: self.weights[k])
 
     def get_top_n(self, n: int = 3) -> List[tuple]:
         """상위 n개 Axiom 반환 [(code, weight), ...]"""
         sorted_items = sorted(self.weights.items(), key=lambda x: x[1], reverse=True)
         return sorted_items[:n]
 
-    def merge_with(self, other: 'AxiomVector', ratio: float = 0.5) -> 'AxiomVector':
+    def merge_with(self, other: "AxiomVector", ratio: float = 0.5) -> "AxiomVector":
         """
         다른 벡터와 병합 (클러스터 상속용)
 
@@ -313,7 +332,7 @@ class AxiomVector:
         return self.weights.copy()
 
     @classmethod
-    def from_dict(cls, data: Dict[str, float]) -> 'AxiomVector':
+    def from_dict(cls, data: Dict[str, float]) -> "AxiomVector":
         """딕셔너리에서 생성"""
         vector = cls()
         vector.weights = data.copy()
@@ -322,43 +341,49 @@ class AxiomVector:
     def __repr__(self):
         top = self.get_top_n(3)
         parts = [f"{code}:{weight:.2f}" for code, weight in top]
-        return f"AxiomVector({', '.join(parts)}{'...' if len(self.weights) > 3 else ''})"
+        return (
+            f"AxiomVector({', '.join(parts)}{'...' if len(self.weights) > 3 else ''})"
+        )
 
 
 # === 테스트 코드 ===
 
 if __name__ == "__main__":
+    from src.core.logging import setup_logging
+
+    setup_logging("DEBUG")
+
     # 테스트: Axiom 로더
     loader = AxiomLoader("itw_214_divine_axioms.json")
 
     # 통계 출력
     stats = loader.get_stats()
-    print("\n=== Axiom Statistics ===")
-    print(f"Total: {stats['total']}")
-    print(f"By Tier: {stats['by_tier']}")
-    print(f"By Domain: {stats['by_domain']}")
+    logger.info("=== Axiom Statistics ===")
+    logger.info("Total: %d", stats["total"])
+    logger.info("By Tier: %s", stats["by_tier"])
+    logger.info("By Domain: %s", stats["by_domain"])
 
     # 샘플 조회
     ignis = loader.get_by_latin("Ignis")
     if ignis:
-        print(f"\n=== Sample Axiom: {ignis.get_display_name()} ===")
-        print(f"Domain: {ignis.domain.value}")
-        print(f"Tier: {ignis.tier}")
-        print(f"Passive: {ignis.logic.passive}")
-        print(f"Flavor: {ignis.flavor}")
+        logger.info("=== Sample Axiom: %s ===", ignis.get_display_name())
+        logger.info("Domain: %s", ignis.domain.value)
+        logger.info("Tier: %d", ignis.tier)
+        logger.info("Passive: %s", ignis.logic.passive)
+        logger.info("Flavor: %s", ignis.flavor)
 
     # 상호작용 테스트
     aqua = loader.get_by_latin("Aqua")
     if ignis and aqua:
         interaction = loader.calculate_interaction(ignis, aqua)
-        print("\n=== Interaction: Ignis → Aqua ===")
-        print(f"Result: {interaction}")
+        logger.info("=== Interaction: Ignis → Aqua ===")
+        logger.info("Result: %s", interaction)
 
     # 벡터 테스트
     swamp_vector = AxiomVector()
     swamp_vector.add("axiom_lutum", 0.6)
     swamp_vector.add("axiom_aqua", 0.4)
     swamp_vector.add("axiom_putredo", 0.3)
-    print("\n=== Swamp Vector ===")
-    print(f"Vector: {swamp_vector}")
-    print(f"Dominant: {swamp_vector.get_dominant()}")
+    logger.info("=== Swamp Vector ===")
+    logger.info("Vector: %s", swamp_vector)
+    logger.info("Dominant: %s", swamp_vector.get_dominant())

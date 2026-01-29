@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     GEMINI_API_KEY: str = ""
     SYNC_TIMEZONE: str = "Asia/Tokyo"
+    LOG_LEVEL: str = "INFO"
 
 
 settings = Settings()

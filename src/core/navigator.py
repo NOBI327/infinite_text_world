@@ -8,15 +8,19 @@ ITW Core Engine - Module 3: Navigation & Fog of War
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 from enum import Enum
+from typing import Dict, List, Optional
 
 from src.core.axiom_system import AxiomLoader
-from src.core.world_generator import WorldGenerator, MapNode, NodeTier
+from src.core.logging import get_logger
+from src.core.world_generator import MapNode, NodeTier, WorldGenerator
+
+logger = get_logger(__name__)
 
 
 class Direction(Enum):
     """이동 방향"""
+
     NORTH = ("N", 0, 1)
     SOUTH = ("S", 0, -1)
     EAST = ("E", 1, 0)
@@ -31,12 +35,13 @@ class Direction(Enum):
 @dataclass
 class DirectionHint:
     """방향별 감각 힌트"""
+
     direction: Direction
-    visual_hint: str       # 원거리 시각 힌트
-    atmosphere_hint: str   # 분위기 힌트
-    danger_level: str      # 위험도 추정 (Safe/Caution/Danger/Unknown)
-    distance_hint: str     # 거리감 힌트
-    discovered: bool       # 이미 발견한 노드인지
+    visual_hint: str  # 원거리 시각 힌트
+    atmosphere_hint: str  # 분위기 힌트
+    danger_level: str  # 위험도 추정 (Safe/Caution/Danger/Unknown)
+    distance_hint: str  # 거리감 힌트
+    discovered: bool  # 이미 발견한 노드인지
 
     def to_dict(self) -> Dict:
         return {
@@ -45,7 +50,7 @@ class DirectionHint:
             "atmosphere": self.atmosphere_hint,
             "danger": self.danger_level,
             "distance": self.distance_hint,
-            "discovered": self.discovered
+            "discovered": self.discovered,
         }
 
 
@@ -56,7 +61,8 @@ class LocationView:
 
     플레이어가 보는 현재 위치의 완전한 정보
     """
-    coordinate_hash: str   # 노출용 해시 (실제 좌표 아님)
+
+    coordinate_hash: str  # 노출용 해시 (실제 좌표 아님)
     visual_description: str
     atmosphere: str
     sound: str
@@ -73,18 +79,19 @@ class LocationView:
                 "visual": self.visual_description,
                 "atmosphere": self.atmosphere,
                 "sound": self.sound,
-                "smell": self.smell
+                "smell": self.smell,
             },
             "directions": [h.to_dict() for h in self.direction_hints],
             "resources": self.available_resources,
             "echoes": self.echoes_visible,
-            "special": self.special_features
+            "special": self.special_features,
         }
 
 
 @dataclass
 class TravelResult:
     """이동 결과"""
+
     success: bool
     new_location: Optional[LocationView]
     supply_consumed: int
@@ -105,11 +112,7 @@ class Navigator:
     BASE_SUPPLY_COST = 1
 
     # 티어별 추가 Supply 소모
-    TIER_SUPPLY_MODIFIER = {
-        NodeTier.COMMON: 0,
-        NodeTier.UNCOMMON: 1,
-        NodeTier.RARE: 2
-    }
+    TIER_SUPPLY_MODIFIER = {NodeTier.COMMON: 0, NodeTier.UNCOMMON: 1, NodeTier.RARE: 2}
 
     # 휴식 시 Supply 회복량
     REST_SUPPLY_RECOVERY = 5
@@ -119,12 +122,12 @@ class Navigator:
 
     # 위험도 판정 Axiom
     DANGER_AXIOMS = [
-        "axiom_toxicum",     # 독
-        "axiom_necros",      # 사기
-        "axiom_morbus",      # 질병
-        "axiom_insania",     # 광기
+        "axiom_toxicum",  # 독
+        "axiom_necros",  # 사기
+        "axiom_morbus",  # 질병
+        "axiom_insania",  # 광기
         "axiom_hostilitas",  # 적대
-        "axiom_chaos",       # 혼돈
+        "axiom_chaos",  # 혼돈
         "axiom_maledictum",  # 저주
     ]
 
@@ -139,6 +142,7 @@ class Navigator:
         플레이어에게 실제 좌표를 숨기기 위함
         """
         import hashlib
+
         raw = f"{x}_{y}_itw_salt"
         return hashlib.md5(raw.encode()).hexdigest()[:8]
 
@@ -148,7 +152,7 @@ class Navigator:
             return "Safe"
 
         # 위험 Axiom 가중치 합산
-        danger_score = 0
+        danger_score: float = 0.0
         for axiom_code in self.DANGER_AXIOMS:
             danger_score += node.axiom_vector.get(axiom_code)
 
@@ -178,10 +182,7 @@ class Navigator:
         return "인근에서"
 
     def _generate_direction_hint(
-        self,
-        direction: Direction,
-        current_node: MapNode,
-        player_id: str
+        self, direction: Direction, current_node: MapNode, player_id: str
     ) -> DirectionHint:
         """방향별 힌트 생성"""
         target_x = current_node.x + direction.dx
@@ -218,7 +219,7 @@ class Navigator:
             atmosphere_hint=atmosphere,
             danger_level=danger,
             distance_hint=distance,
-            discovered=discovered
+            discovered=discovered,
         )
 
     def get_location_view(self, x: int, y: int, player_id: str) -> LocationView:
@@ -247,20 +248,26 @@ class Navigator:
         resources = []
         for res in node.resources:
             if res.current_amount > 0:
-                abundance = "풍부" if res.current_amount > res.max_amount * 0.7 else \
-                           "보통" if res.current_amount > res.max_amount * 0.3 else "희소"
-                resources.append({
-                    "type": res.id,
-                    "abundance": abundance
-                })
+                abundance = (
+                    "풍부"
+                    if res.current_amount > res.max_amount * 0.7
+                    else "보통"
+                    if res.current_amount > res.max_amount * 0.3
+                    else "희소"
+                )
+                resources.append({"type": res.id, "abundance": abundance})
 
         # 공개 Echo
         echoes = []
         for echo in node.get_public_echoes():
-            echoes.append({
-                "hint": echo.flavor_text[:50] + "..." if len(echo.flavor_text) > 50 else echo.flavor_text,
-                "age": "recent" if "T" in echo.timestamp else "old"  # 간략 판정
-            })
+            echoes.append(
+                {
+                    "hint": echo.flavor_text[:50] + "..."
+                    if len(echo.flavor_text) > 50
+                    else echo.flavor_text,
+                    "age": "recent" if "T" in echo.timestamp else "old",  # 간략 판정
+                }
+            )
 
         # 특수 특징
         special = []
@@ -281,7 +288,7 @@ class Navigator:
             direction_hints=direction_hints,
             available_resources=resources,
             echoes_visible=echoes,
-            special_features=special
+            special_features=special,
         )
 
     def calculate_travel_cost(self, from_node: MapNode, to_node: MapNode) -> int:
@@ -301,7 +308,7 @@ class Navigator:
         direction: Direction,
         player_id: str,
         current_supply: int,
-        player_inventory: List[str] = None
+        player_inventory: Optional[List[str]] = None,
     ) -> TravelResult:
         """
         특정 방향으로 이동
@@ -322,7 +329,7 @@ class Navigator:
                 success=False,
                 new_location=None,
                 supply_consumed=0,
-                message="현재 위치를 찾을 수 없습니다."
+                message="현재 위치를 찾을 수 없습니다.",
             )
 
         # 목적지 계산
@@ -336,13 +343,15 @@ class Navigator:
         if player_inventory is None:
             player_inventory = []
         if target_node.required_tags:
-            missing = [t for t in target_node.required_tags if t not in player_inventory]
+            missing = [
+                t for t in target_node.required_tags if t not in player_inventory
+            ]
             if missing:
                 return TravelResult(
                     success=False,
                     new_location=None,
                     supply_consumed=0,
-                    message=f"필요한 장비가 없습니다: {', '.join(missing)}"
+                    message=f"필요한 장비가 없습니다: {', '.join(missing)}",
                 )
 
         # 비용 계산
@@ -354,7 +363,7 @@ class Navigator:
                 success=False,
                 new_location=None,
                 supply_consumed=0,
-                message=f"Supply가 부족합니다. 필요: {cost}, 보유: {current_supply}"
+                message=f"Supply가 부족합니다. 필요: {cost}, 보유: {current_supply}",
             )
 
         # 이동 성공
@@ -365,18 +374,19 @@ class Navigator:
         danger = self._estimate_danger(target_node)
         if danger in ["Danger", "Caution"]:
             import random
+
             if random.random() < 0.2:  # 20% 확률
                 encounter = {
                     "type": "random_encounter",
                     "danger_level": danger,
-                    "hint": "무언가의 기척이 느껴진다..."
+                    "hint": "무언가의 기척이 느껴진다...",
                 }
 
         direction_name = {
             Direction.NORTH: "북쪽",
             Direction.SOUTH: "남쪽",
             Direction.EAST: "동쪽",
-            Direction.WEST: "서쪽"
+            Direction.WEST: "서쪽",
         }
 
         return TravelResult(
@@ -384,10 +394,12 @@ class Navigator:
             new_location=new_view,
             supply_consumed=cost,
             message=f"{direction_name[direction]}으로 이동했습니다. Supply -{cost}",
-            encounter=encounter
+            encounter=encounter,
         )
 
-    def get_nearby_discovered(self, x: int, y: int, player_id: str, radius: int = 2) -> List[Dict]:
+    def get_nearby_discovered(
+        self, x: int, y: int, player_id: str, radius: int = 2
+    ) -> List[Dict]:
         """
         주변 발견된 노드 목록
 
@@ -401,17 +413,20 @@ class Navigator:
 
                 node = self.world.get_node(x + dx, y + dy)
                 if node and player_id in node.discovered_by:
-                    discovered.append({
-                        "relative_position": f"({dx:+d}, {dy:+d})",
-                        "atmosphere": node.sensory_data.atmosphere,
-                        "danger": self._estimate_danger(node),
-                        "has_resources": len(node.resources) > 0
-                    })
+                    discovered.append(
+                        {
+                            "relative_position": f"({dx:+d}, {dy:+d})",
+                            "atmosphere": node.sensory_data.atmosphere,
+                            "danger": self._estimate_danger(node),
+                            "has_resources": len(node.resources) > 0,
+                        }
+                    )
 
         return discovered
 
 
 # === Compass 표시 유틸리티 ===
+
 
 def render_compass(location_view: LocationView) -> str:
     """
@@ -421,12 +436,7 @@ def render_compass(location_view: LocationView) -> str:
     """
     hints = {h.direction.symbol: h for h in location_view.direction_hints}
 
-    danger_icons = {
-        "Safe": "○",
-        "Mild": "△",
-        "Caution": "◇",
-        "Danger": "☠"
-    }
+    danger_icons = {"Safe": "○", "Mild": "△", "Caution": "◇", "Danger": "☠"}
 
     n = hints.get("N")
     s = hints.get("S")
@@ -457,6 +467,9 @@ def render_compass(location_view: LocationView) -> str:
 # === 테스트 코드 ===
 
 if __name__ == "__main__":
+    from src.core.logging import setup_logging
+
+    setup_logging("DEBUG")
 
     # 초기화
     loader = AxiomLoader("itw_214_divine_axioms.json")
@@ -469,29 +482,31 @@ if __name__ == "__main__":
     player_id = "test_player_001"
 
     # Safe Haven에서 시작
-    print("\n=== Starting at Safe Haven ===")
+    logger.info("=== Starting at Safe Haven ===")
     view = navigator.get_location_view(0, 0, player_id)
-    print(f"Location: {view.coordinate_hash}")
-    print(f"Description: {view.visual_description}")
-    print(f"Special: {view.special_features}")
+    logger.info("Location: %s", view.coordinate_hash)
+    logger.info("Description: %s", view.visual_description)
+    logger.info("Special: %s", view.special_features)
 
     # 나침반 표시
-    print("\n=== Compass ===")
-    print(render_compass(view))
+    logger.info("=== Compass ===")
+    logger.info(render_compass(view))
 
     # 북쪽으로 이동
-    print("\n=== Travel North ===")
+    logger.info("=== Travel North ===")
     result = navigator.travel(0, 0, Direction.NORTH, player_id, current_supply=10)
-    print(f"Success: {result.success}")
-    print(f"Message: {result.message}")
+    logger.info("Success: %s", result.success)
+    logger.info("Message: %s", result.message)
     if result.new_location:
-        print(f"New Location: {result.new_location.visual_description}")
-        print(f"Atmosphere: {result.new_location.atmosphere}")
+        logger.info("New Location: %s", result.new_location.visual_description)
+        logger.info("Atmosphere: %s", result.new_location.atmosphere)
     if result.encounter:
-        print(f"Encounter: {result.encounter}")
+        logger.info("Encounter: %s", result.encounter)
 
     # 주변 발견 노드
-    print("\n=== Nearby Discovered Nodes ===")
+    logger.info("=== Nearby Discovered Nodes ===")
     nearby = navigator.get_nearby_discovered(0, 1, player_id)
     for n in nearby[:3]:
-        print(f"  {n['relative_position']}: {n['atmosphere']} [{n['danger']}]")
+        logger.info(
+            "  %s: %s [%s]", n["relative_position"], n["atmosphere"], n["danger"]
+        )

@@ -10,38 +10,192 @@ Infinite Text World 핵심 엔진 통합 모듈
 import json
 import random
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
 from datetime import datetime
+from typing import Any, Optional
+
+from sqlalchemy.orm import Session
 
 # 엔진 모듈 임포트
-from src.core.axiom_system import AxiomLoader
-from src.core.world_generator import WorldGenerator
-from src.core.navigator import Navigator, Direction, LocationView, render_compass
-from src.core.echo_system import EchoManager, EchoCategory
-from src.core.core_rule import CharacterSheet, ResolutionEngine
+from src.core.axiom_system import AxiomLoader, AxiomVector
+from src.core.core_rule import CharacterSheet, ResolutionEngine, StatType
+from src.core.echo_system import EchoCategory, EchoManager
+from src.core.logging import get_logger
+from src.core.navigator import Direction, LocationView, Navigator, render_compass
+from src.core.world_generator import (
+    Echo,
+    MapNode,
+    NodeTier,
+    Resource,
+    SensoryData,
+    WorldGenerator,
+)
+from src.db.models import EchoModel, MapNodeModel, PlayerModel, ResourceModel
+
+logger = get_logger(__name__)
+
+
+def _node_to_model(node: MapNode) -> MapNodeModel:
+    """MapNode를 MapNodeModel로 변환"""
+    return MapNodeModel(
+        coordinate=node.coordinate,
+        x=node.x,
+        y=node.y,
+        tier=node.tier.value,
+        axiom_vector=node.axiom_vector.to_dict(),
+        sensory_data=node.sensory_data.to_dict(),
+        required_tags=node.required_tags,
+        cluster_id=node.cluster_id,
+        development_level=node.development_level,
+        discovered_by=node.discovered_by,
+        created_at=datetime.fromisoformat(node.created_at)
+        if isinstance(node.created_at, str)
+        else node.created_at,
+    )
+
+
+def _model_to_node(model: MapNodeModel) -> MapNode:
+    """MapNodeModel을 MapNode로 변환"""
+    # Resources 변환
+    resources = [
+        Resource(
+            id=res.resource_type,
+            max_amount=res.max_amount,
+            current_amount=res.current_amount,
+            npc_competition=res.npc_competition,
+        )
+        for res in model.resources
+    ]
+
+    # Echoes 변환
+    echoes = [
+        Echo(
+            echo_type=echo.echo_type,
+            visibility=echo.visibility,
+            base_dc=echo.base_dc,
+            timestamp=echo.timestamp,
+            flavor_text=echo.flavor_text,
+            source_player_id=echo.source_player_id,
+        )
+        for echo in model.echoes
+    ]
+
+    # SensoryData 변환
+    sensory_data = SensoryData.from_dict(model.sensory_data)
+
+    # AxiomVector 변환
+    axiom_vector = AxiomVector.from_dict(model.axiom_vector)
+
+    return MapNode(
+        x=model.x,
+        y=model.y,
+        tier=NodeTier(model.tier),
+        axiom_vector=axiom_vector,
+        sensory_data=sensory_data,
+        resources=resources,
+        echoes=echoes,
+        cluster_id=model.cluster_id,
+        development_level=model.development_level,
+        required_tags=model.required_tags or [],
+        discovered_by=model.discovered_by or [],
+        created_at=model.created_at.isoformat()
+        if model.created_at
+        else datetime.utcnow().isoformat(),
+    )
+
+
+def _character_to_dict(character: CharacterSheet) -> dict:
+    """CharacterSheet를 dict로 직렬화"""
+    return {
+        "name": character.name,
+        "level": character.level,
+        "stats": {stat.value: val for stat, val in character.stats.items()},
+        "resonance_shield": character.resonance_shield,
+        "status_tags": character.status_tags,
+    }
+
+
+def _dict_to_character(data: dict) -> CharacterSheet:
+    """dict에서 CharacterSheet 복원"""
+    character = CharacterSheet(name=data["name"])
+    character.level = data.get("level", 1)
+    character.stats = {StatType(k): v for k, v in data.get("stats", {}).items()}
+    character.resonance_shield = data.get(
+        "resonance_shield",
+        {
+            "Kinetic": 10,
+            "Thermal": 10,
+            "Structural": 10,
+            "Bio": 10,
+            "Psyche": 10,
+            "Data": 10,
+            "Social": 10,
+            "Esoteric": 10,
+        },
+    )
+    character.status_tags = data.get("status_tags", [])
+    return character
+
+
+def _player_to_model(player: "PlayerState") -> PlayerModel:
+    """PlayerState를 PlayerModel로 변환"""
+    character = player.character or CharacterSheet(name=player.player_id)
+    return PlayerModel(
+        player_id=player.player_id,
+        x=player.x,
+        y=player.y,
+        supply=player.supply,
+        fame=player.fame,
+        character_data=_character_to_dict(character),
+        discovered_nodes=player.discovered_nodes,
+        inventory=player.inventory,
+        equipped_tags=player.equipped_tags,
+        active_effects=player.active_effects,
+        investigation_penalty=player.investigation_penalty,
+        last_action_time=player.last_action_time,
+    )
+
+
+def _model_to_player(model: PlayerModel) -> "PlayerState":
+    """PlayerModel을 PlayerState로 변환"""
+    character = _dict_to_character(model.character_data)
+    return PlayerState(
+        player_id=model.player_id,
+        x=model.x,
+        y=model.y,
+        supply=model.supply,
+        fame=model.fame,
+        discovered_nodes=model.discovered_nodes or [],
+        inventory=model.inventory or {},
+        active_effects=model.active_effects or [],
+        investigation_penalty=model.investigation_penalty,
+        last_action_time=model.last_action_time or datetime.utcnow().isoformat(),
+        character=character,
+        equipped_tags=model.equipped_tags or [],
+    )
 
 
 @dataclass
 class PlayerState:
     """플레이어 상태"""
+
     player_id: str
     x: int = 0
     y: int = 0
     supply: int = 20
     fame: int = 0
-    discovered_nodes: List[str] = field(default_factory=list)
-    inventory: Dict[str, int] = field(default_factory=dict)
-    active_effects: List[Dict] = field(default_factory=list)
+    discovered_nodes: list[str] = field(default_factory=list)
+    inventory: dict[str, int] = field(default_factory=dict)
+    active_effects: list[dict] = field(default_factory=list)
     investigation_penalty: int = 0
     last_action_time: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    character: CharacterSheet = None
-    equipped_tags: List[str] = field(default_factory=list)
+    character: Optional[CharacterSheet] = None
+    equipped_tags: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         if self.character is None:
             self.character = CharacterSheet(name=self.player_id)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "player_id": self.player_id,
             "position": {"x": self.x, "y": self.y},
@@ -51,11 +205,11 @@ class PlayerState:
             "inventory": self.inventory,
             "active_effects": self.active_effects,
             "investigation_penalty": self.investigation_penalty,
-            "last_action_time": self.last_action_time
+            "last_action_time": self.last_action_time,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'PlayerState':
+    def from_dict(cls, data: dict) -> "PlayerState":
         return cls(
             player_id=data["player_id"],
             x=data["position"]["x"],
@@ -66,24 +220,27 @@ class PlayerState:
             inventory=data.get("inventory", {}),
             active_effects=data.get("active_effects", []),
             investigation_penalty=data.get("investigation_penalty", 0),
-            last_action_time=data.get("last_action_time", datetime.utcnow().isoformat())
+            last_action_time=data.get(
+                "last_action_time", datetime.utcnow().isoformat()
+            ),
         )
 
 
 @dataclass
 class ActionResult:
     """행동 결과"""
+
     success: bool
     action_type: str
     message: str
-    data: Optional[Dict] = None
+    data: Optional[dict] = None
     location_view: Optional[LocationView] = None
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         result = {
             "success": self.success,
             "action": self.action_type,
-            "message": self.message
+            "message": self.message,
         }
         if self.data:
             result["data"] = self.data
@@ -104,7 +261,7 @@ class ITWEngine:
     def __init__(
         self,
         axiom_data_path: str = "itw_214_divine_axioms.json",
-        world_seed: Optional[int] = None
+        world_seed: Optional[int] = None,
     ):
         """
         엔진 초기화
@@ -113,7 +270,7 @@ class ITWEngine:
             axiom_data_path: Axiom 데이터 JSON 경로
             world_seed: 월드 생성 시드 (재현성)
         """
-        print(f"[ITWEngine] Initializing v{self.VERSION}...")
+        logger.info("Initializing v%s...", self.VERSION)
 
         # 코어 시스템 초기화
         self.axiom_loader = AxiomLoader(axiom_data_path)
@@ -123,12 +280,12 @@ class ITWEngine:
         self.resolution_engine = ResolutionEngine()
 
         # 플레이어 세션
-        self.players: Dict[str, PlayerState] = {}
+        self.players: dict[str, PlayerState] = {}
 
         # 글로벌 이벤트 로그
-        self.global_hooks: List[Dict] = []
+        self.global_hooks: list[dict] = []
 
-        print(f"[ITWEngine] Ready. {len(self.axiom_loader.get_all())} Axioms loaded.")
+        logger.info("Ready. %d Axioms loaded.", len(self.axiom_loader.get_all()))
 
     # === 플레이어 관리 ===
 
@@ -137,12 +294,7 @@ class ITWEngine:
         if player_id in self.players:
             return self.players[player_id]
 
-        player = PlayerState(
-            player_id=player_id,
-            x=0, y=0,
-            supply=20,
-            fame=0
-        )
+        player = PlayerState(player_id=player_id, x=0, y=0, supply=20, fame=0)
         self.players[player_id] = player
 
         # Safe Haven 발견 마킹
@@ -151,7 +303,7 @@ class ITWEngine:
             haven.mark_discovered(player_id)
             player.discovered_nodes.append("0_0")
 
-        print(f"[ITWEngine] Player registered: {player_id}")
+        logger.info("Player registered: %s", player_id)
         return player
 
     def get_player(self, player_id: str) -> Optional[PlayerState]:
@@ -164,12 +316,12 @@ class ITWEngine:
         if not player:
             raise ValueError(f"Player not found: {player_id}")
 
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(player.to_dict(), f, ensure_ascii=False, indent=2)
 
     def load_player(self, filepath: str) -> PlayerState:
         """플레이어 상태 로드"""
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         player = PlayerState.from_dict(data)
@@ -190,7 +342,7 @@ class ITWEngine:
             success=True,
             action_type="look",
             message="주변을 둘러본다...",
-            location_view=view
+            location_view=view,
         )
 
     def move(self, player_id: str, direction: str) -> ActionResult:
@@ -201,10 +353,18 @@ class ITWEngine:
 
         # 방향 파싱
         direction_map = {
-            "n": Direction.NORTH, "north": Direction.NORTH, "북": Direction.NORTH,
-            "s": Direction.SOUTH, "south": Direction.SOUTH, "남": Direction.SOUTH,
-            "e": Direction.EAST, "east": Direction.EAST, "동": Direction.EAST,
-            "w": Direction.WEST, "west": Direction.WEST, "서": Direction.WEST
+            "n": Direction.NORTH,
+            "north": Direction.NORTH,
+            "북": Direction.NORTH,
+            "s": Direction.SOUTH,
+            "south": Direction.SOUTH,
+            "남": Direction.SOUTH,
+            "e": Direction.EAST,
+            "east": Direction.EAST,
+            "동": Direction.EAST,
+            "w": Direction.WEST,
+            "west": Direction.WEST,
+            "서": Direction.WEST,
         }
 
         dir_enum = direction_map.get(direction.lower())
@@ -213,11 +373,12 @@ class ITWEngine:
 
         # 이동 실행
         result = self.navigator.travel(
-            player.x, player.y,
+            player.x,
+            player.y,
             dir_enum,
             player_id,
             player.supply,
-            player_inventory=player.equipped_tags
+            player_inventory=player.equipped_tags,
         )
 
         if result.success:
@@ -237,14 +398,12 @@ class ITWEngine:
             current_node = self.world.get_node(player.x, player.y)
             if current_node:
                 self.echo_manager.create_echo(
-                    EchoCategory.EXPLORATION,
-                    current_node,
-                    player_id
+                    EchoCategory.EXPLORATION, current_node, player_id
                 )
 
-            data = {
+            data: dict[str, Any] = {
                 "supply_consumed": result.supply_consumed,
-                "remaining_supply": player.supply
+                "remaining_supply": player.supply,
             }
             if result.encounter:
                 data["encounter"] = result.encounter
@@ -254,13 +413,11 @@ class ITWEngine:
                 action_type="move",
                 message=result.message,
                 data=data,
-                location_view=result.new_location
+                location_view=result.new_location,
             )
         else:
             return ActionResult(
-                success=False,
-                action_type="move",
-                message=result.message
+                success=False, action_type="move", message=result.message
             )
 
     def investigate(self, player_id: str, echo_index: int = 0) -> ActionResult:
@@ -279,14 +436,14 @@ class ITWEngine:
             return ActionResult(
                 success=False,
                 action_type="investigate",
-                message="조사할 숨겨진 흔적이 없습니다."
+                message="조사할 숨겨진 흔적이 없습니다.",
             )
 
         if echo_index >= len(hidden_echoes):
             return ActionResult(
                 success=False,
                 action_type="investigate",
-                message=f"유효하지 않은 흔적 번호: {echo_index}"
+                message=f"유효하지 않은 흔적 번호: {echo_index}",
             )
 
         echo = hidden_echoes[echo_index]
@@ -298,10 +455,7 @@ class ITWEngine:
         roll -= player.investigation_penalty
 
         result = self.echo_manager.investigate(
-            echo,
-            roll=roll,
-            investigator_fame=player.fame,
-            bonus_modifiers=0
+            echo, roll=roll, investigator_fame=player.fame, bonus_modifiers=0
         )
 
         # 페널티 처리
@@ -316,10 +470,12 @@ class ITWEngine:
             success=result["success"],
             action_type="investigate",
             message="흔적을 조사한다..." if result["success"] else "조사에 실패했다...",
-            data=result
+            data=result,
         )
 
-    def harvest(self, player_id: str, resource_id: str, amount: int = 1) -> ActionResult:
+    def harvest(
+        self, player_id: str, resource_id: str, amount: int = 1
+    ) -> ActionResult:
         """자원 채취"""
         player = self.get_player(player_id)
         if not player:
@@ -340,14 +496,12 @@ class ITWEngine:
             return ActionResult(
                 success=False,
                 action_type="harvest",
-                message=f"해당 자원을 찾을 수 없습니다: {resource_id}"
+                message=f"해당 자원을 찾을 수 없습니다: {resource_id}",
             )
 
         if resource.current_amount <= 0:
             return ActionResult(
-                success=False,
-                action_type="harvest",
-                message="자원이 고갈되었습니다."
+                success=False, action_type="harvest", message="자원이 고갈되었습니다."
             )
 
         # 채취
@@ -357,11 +511,7 @@ class ITWEngine:
         player.inventory[resource_id] = player.inventory.get(resource_id, 0) + harvested
 
         # 채취 Echo 생성
-        self.echo_manager.create_echo(
-            EchoCategory.CRAFTING,
-            node,
-            player_id
-        )
+        self.echo_manager.create_echo(EchoCategory.CRAFTING, node, player_id)
 
         player.last_action_time = datetime.utcnow().isoformat()
 
@@ -373,8 +523,8 @@ class ITWEngine:
                 "resource": resource_id,
                 "harvested": harvested,
                 "remaining": resource.current_amount,
-                "inventory": player.inventory.get(resource_id, 0)
-            }
+                "inventory": player.inventory.get(resource_id, 0),
+            },
         )
 
     def rest(self, player_id: str) -> ActionResult:
@@ -408,10 +558,7 @@ class ITWEngine:
             success=True,
             action_type="rest",
             message=message,
-            data={
-                "recovery": recovery,
-                "current_supply": player.supply
-            }
+            data={"recovery": recovery, "current_supply": player.supply},
         )
 
     def get_compass(self, player_id: str) -> str:
@@ -425,12 +572,7 @@ class ITWEngine:
 
     # === 글로벌 이벤트 ===
 
-    def trigger_global_event(
-        self,
-        player_id: str,
-        event_type: str,
-        description: str
-    ):
+    def trigger_global_event(self, player_id: str, event_type: str, description: str):
         """글로벌 이벤트 트리거"""
         player = self.get_player(player_id)
         if not player:
@@ -440,9 +582,7 @@ class ITWEngine:
         location_hint = node.sensory_data.atmosphere if node else "알 수 없는 장소"
 
         hook = self.echo_manager.create_global_hook(
-            event_type=event_type,
-            location_hint=location_hint,
-            description=description
+            event_type=event_type, location_hint=location_hint, description=description
         )
 
         self.global_hooks.append(hook)
@@ -450,18 +590,15 @@ class ITWEngine:
         # 보스 처치 시 특수 Echo 생성
         if event_type == "boss_kill" and node:
             self.echo_manager.create_echo(
-                EchoCategory.BOSS,
-                node,
-                player_id,
-                custom_flavor=description
+                EchoCategory.BOSS, node, player_id, custom_flavor=description
             )
 
             # Fame 증가
             player.fame += 100
 
-        print(f"[ITWEngine] Global Event: {event_type} - {description}")
+        logger.info("Global Event: %s - %s", event_type, description)
 
-    def get_active_hooks(self) -> List[Dict]:
+    def get_active_hooks(self) -> list[dict]:
         """활성 글로벌 훅 목록"""
         now = datetime.utcnow()
         active = []
@@ -477,9 +614,176 @@ class ITWEngine:
 
     # === 월드 관리 ===
 
+    def save_world_to_db(self, session: Session) -> int:
+        """
+        월드 노드를 DB에 저장 (upsert)
+
+        Args:
+            session: SQLAlchemy 세션
+
+        Returns:
+            저장된 노드 수
+        """
+        saved_count = 0
+        for coord, node in self.world.nodes.items():
+            model = _node_to_model(node)
+
+            # Upsert: 기존 노드 확인
+            existing = session.get(MapNodeModel, coord)
+            if existing:
+                # 업데이트
+                existing.x = model.x
+                existing.y = model.y
+                existing.tier = model.tier
+                existing.axiom_vector = model.axiom_vector
+                existing.sensory_data = model.sensory_data
+                existing.required_tags = model.required_tags
+                existing.cluster_id = model.cluster_id
+                existing.development_level = model.development_level
+                existing.discovered_by = model.discovered_by
+                existing.created_at = model.created_at
+
+                # 기존 resources/echoes 삭제 후 재생성
+                for old_res in existing.resources:
+                    session.delete(old_res)
+                for old_echo in existing.echoes:
+                    session.delete(old_echo)
+                session.flush()
+
+                # 새 resources/echoes 추가
+                for res in node.resources:
+                    new_res_model = ResourceModel(
+                        node_coordinate=coord,
+                        resource_type=res.id,
+                        max_amount=res.max_amount,
+                        current_amount=res.current_amount,
+                        npc_competition=res.npc_competition,
+                    )
+                    session.add(new_res_model)
+
+                for echo in node.echoes:
+                    new_echo_model = EchoModel(
+                        node_coordinate=coord,
+                        echo_type=echo.echo_type,
+                        visibility=echo.visibility,
+                        base_dc=echo.base_dc,
+                        timestamp=echo.timestamp,
+                        flavor_text=echo.flavor_text,
+                        source_player_id=echo.source_player_id,
+                    )
+                    session.add(new_echo_model)
+            else:
+                # 새로 삽입
+                session.add(model)
+
+                for res in node.resources:
+                    new_res = ResourceModel(
+                        node_coordinate=coord,
+                        resource_type=res.id,
+                        max_amount=res.max_amount,
+                        current_amount=res.current_amount,
+                        npc_competition=res.npc_competition,
+                    )
+                    session.add(new_res)
+
+                for echo in node.echoes:
+                    new_echo = EchoModel(
+                        node_coordinate=coord,
+                        echo_type=echo.echo_type,
+                        visibility=echo.visibility,
+                        base_dc=echo.base_dc,
+                        timestamp=echo.timestamp,
+                        flavor_text=echo.flavor_text,
+                        source_player_id=echo.source_player_id,
+                    )
+                    session.add(new_echo)
+
+            saved_count += 1
+
+        session.commit()
+        return saved_count
+
+    def load_world_from_db(self, session: Session) -> int:
+        """
+        DB에서 월드 노드 로드
+
+        Args:
+            session: SQLAlchemy 세션
+
+        Returns:
+            로드된 노드 수
+        """
+        models = session.query(MapNodeModel).all()
+        loaded_count = 0
+
+        for model in models:
+            node = _model_to_node(model)
+            self.world.nodes[node.coordinate] = node
+            loaded_count += 1
+
+        return loaded_count
+
+    def save_players_to_db(self, session: Session) -> int:
+        """
+        플레이어를 DB에 저장 (upsert)
+
+        Args:
+            session: SQLAlchemy 세션
+
+        Returns:
+            저장된 플레이어 수
+        """
+        saved_count = 0
+        for player_id, player in self.players.items():
+            model = _player_to_model(player)
+
+            # Upsert: 기존 플레이어 확인
+            existing = session.get(PlayerModel, player_id)
+            if existing:
+                # 업데이트
+                existing.x = model.x
+                existing.y = model.y
+                existing.supply = model.supply
+                existing.fame = model.fame
+                existing.character_data = model.character_data
+                existing.discovered_nodes = model.discovered_nodes
+                existing.inventory = model.inventory
+                existing.equipped_tags = model.equipped_tags
+                existing.active_effects = model.active_effects
+                existing.investigation_penalty = model.investigation_penalty
+                existing.last_action_time = model.last_action_time
+            else:
+                # 새로 삽입
+                session.add(model)
+
+            saved_count += 1
+
+        session.commit()
+        return saved_count
+
+    def load_players_from_db(self, session: Session) -> int:
+        """
+        DB에서 플레이어 로드
+
+        Args:
+            session: SQLAlchemy 세션
+
+        Returns:
+            로드된 플레이어 수
+        """
+        models = session.query(PlayerModel).all()
+        loaded_count = 0
+
+        for model in models:
+            player = _model_to_player(model)
+            self.players[player.player_id] = player
+            loaded_count += 1
+
+        return loaded_count
+
     def daily_tick(self):
         """일일 월드 업데이트"""
-        print("[ITWEngine] Daily tick processing...")
+        logger.info("Daily tick processing...")
 
         # 모든 노드의 자원 갱신 및 Echo 정리
         for coord, node in self.world.nodes.items():
@@ -491,11 +795,11 @@ class ITWEngine:
             # Echo 시간 경과 처리
             removed = self.echo_manager.decay_echoes(node)
             if removed > 0:
-                print(f"  [{coord}] {removed} echoes decayed")
+                logger.debug("[%s] %d echoes decayed", coord, removed)
 
-        print("[ITWEngine] Daily tick complete")
+        logger.info("Daily tick complete")
 
-    def get_world_stats(self) -> Dict[str, Any]:
+    def get_world_stats(self) -> dict[str, Any]:
         """월드 통계"""
         world_stats = self.world.get_stats()
         axiom_stats = self.axiom_loader.get_stats()
@@ -505,7 +809,7 @@ class ITWEngine:
             "world": world_stats,
             "axioms": axiom_stats,
             "active_players": len(self.players),
-            "global_hooks": len(self.get_active_hooks())
+            "global_hooks": len(self.get_active_hooks()),
         }
 
     # === 디버그 / 개발용 ===
@@ -528,17 +832,20 @@ class ITWEngine:
             success=True,
             action_type="debug_teleport",
             message=f"[DEBUG] 텔레포트 완료: ({x}, {y})",
-            location_view=view
+            location_view=view,
         )
 
     def debug_generate_area(self, center_x: int, center_y: int, radius: int = 3):
         """[DEBUG] 영역 생성"""
         nodes = self.world.generate_area(center_x, center_y, radius)
-        print(f"[DEBUG] Generated {len(nodes)} nodes around ({center_x}, {center_y})")
+        logger.debug(
+            "Generated %d nodes around (%d, %d)", len(nodes), center_x, center_y
+        )
         return nodes
 
 
 # === CLI 인터페이스 ===
+
 
 def run_cli():
     """간단한 CLI 게임 루프"""
@@ -547,10 +854,7 @@ def run_cli():
     print("=" * 50)
 
     # 엔진 초기화
-    engine = ITWEngine(
-        axiom_data_path="itw_214_divine_axioms.json",
-        world_seed=42
-    )
+    engine = ITWEngine(axiom_data_path="itw_214_divine_axioms.json", world_seed=42)
 
     # 테스트 플레이어 등록
     player_id = "demo_player"
@@ -559,7 +863,9 @@ def run_cli():
     # 초기 영역 생성
     engine.debug_generate_area(0, 0, radius=5)
 
-    print("\n명령어: look, move <방향>, investigate, harvest <자원>, rest, compass, stats, quit")
+    print(
+        "\n명령어: look, move <방향>, investigate, harvest <자원>, rest, compass, stats, quit"
+    )
     print("방향: n/s/e/w 또는 north/south/east/west 또는 북/남/동/서\n")
 
     # 초기 위치 표시
