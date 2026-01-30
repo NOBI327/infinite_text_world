@@ -1,5 +1,7 @@
 """Application configuration loaded from environment variables and .env file."""
 
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,9 +19,14 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite:///./dev.db"
     DEBUG: bool = True
-    GEMINI_API_KEY: str = ""
     SYNC_TIMEZONE: str = "Asia/Tokyo"
     LOG_LEVEL: str = "INFO"
+
+    # AI Provider settings
+    AI_PROVIDER: str = "mock"
+    AI_API_KEY: Optional[str] = None
+    AI_MODEL: Optional[str] = None
+    AI_BASE_URL: Optional[str] = None
 
 
 settings = Settings()
