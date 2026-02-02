@@ -6,6 +6,8 @@ from fastapi.testclient import TestClient
 from src.api.game import get_engine
 from src.core.engine import ITWEngine
 from src.main import app
+from src.services.ai.mock import MockProvider
+from src.services.narrative_service import NarrativeService
 
 
 @pytest.fixture()
@@ -21,6 +23,8 @@ def engine() -> ITWEngine:
 def client(engine: ITWEngine) -> TestClient:
     """Create a TestClient with engine dependency override."""
     app.dependency_overrides[get_engine] = lambda: engine
+    # NarrativeService 설정
+    app.state.narrative_service = NarrativeService(MockProvider())
     yield TestClient(app)
     app.dependency_overrides.clear()
 
@@ -249,3 +253,42 @@ class TestActionEndpoint:
 
         assert response.status_code == 400
         assert "resource_id" in response.json()["detail"].lower()
+
+    def test_look_returns_narrative(self, client: TestClient):
+        """Test look action returns narrative field."""
+        response = client.post(
+            "/game/action",
+            json={
+                "player_id": "action_player",
+                "action": "look",
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        assert "narrative" in data
+        assert data["narrative"] is not None
+        assert isinstance(data["narrative"], str)
+        assert len(data["narrative"]) > 0
+
+    def test_move_returns_narrative(self, client: TestClient):
+        """Test move action returns narrative field on success."""
+        response = client.post(
+            "/game/action",
+            json={
+                "player_id": "action_player",
+                "action": "move",
+                "params": {"direction": "n"},
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        assert "narrative" in data
+        assert data["narrative"] is not None
+        assert isinstance(data["narrative"], str)
+        assert len(data["narrative"]) > 0

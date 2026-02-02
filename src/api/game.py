@@ -1,6 +1,6 @@
 """Game API endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from src.api.schemas import (
     ActionRequest,
@@ -14,6 +14,7 @@ from src.api.schemas import (
 )
 from src.core.engine import ITWEngine
 from src.core.logging import get_logger
+from src.services.narrative_service import NarrativeService
 
 logger = get_logger(__name__)
 
@@ -25,6 +26,12 @@ def get_engine() -> ITWEngine:
     from src.main import get_game_engine
 
     return get_game_engine()
+
+
+def get_narrative_service(request: Request) -> NarrativeService:
+    """NarrativeService 인스턴스 반환 (의존성 주입)"""
+    service: NarrativeService = request.app.state.narrative_service
+    return service
 
 
 def _build_location_info(location_view) -> LocationInfo:
@@ -150,6 +157,7 @@ def get_game_state(
 )
 def execute_action(
     request: ActionRequest,
+    http_request: Request,
     engine: ITWEngine = Depends(get_engine),
 ) -> ActionResponse:
     """
@@ -171,18 +179,39 @@ def execute_action(
 
     action = request.action.lower()
     params = request.params
+    narrative = None
 
     try:
         # 액션 실행
         if action == "look":
             result = engine.look(request.player_id)
+            # Narrative 생성
+            narrative_service = get_narrative_service(http_request)
+            node_data = {"x": player.x, "y": player.y, "tier": 1}
+            player_state = {
+                "player_id": player.player_id,
+                "supply": player.supply,
+                "fame": player.fame,
+            }
+            narrative = narrative_service.generate_look(node_data, player_state)
         elif action == "move":
             direction = params.get("direction", "")
             if not direction:
                 raise HTTPException(
                     status_code=400, detail="Missing 'direction' parameter"
                 )
+            # 이동 전 노드 정보 저장
+            from_node = {"x": player.x, "y": player.y}
             result = engine.move(request.player_id, direction)
+            # 이동 성공 시 Narrative 생성
+            if result.success:
+                updated_player = engine.get_player(request.player_id)
+                assert updated_player is not None
+                to_node = {"x": updated_player.x, "y": updated_player.y}
+                narrative_service = get_narrative_service(http_request)
+                narrative = narrative_service.generate_move(
+                    from_node, to_node, direction
+                )
         elif action == "rest":
             result = engine.rest(request.player_id)
         elif action == "investigate":
@@ -216,6 +245,7 @@ def execute_action(
             message=result.message,
             data=result.data,
             location=location,
+            narrative=narrative,
         )
     except HTTPException:
         raise

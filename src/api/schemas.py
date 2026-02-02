@@ -79,6 +79,7 @@ class ActionResponse(BaseModel):
     message: str
     data: Optional[dict[str, Any]] = None
     location: Optional[LocationInfo] = None
+    narrative: Optional[str] = None
 
 
 class ErrorResponse(BaseModel):

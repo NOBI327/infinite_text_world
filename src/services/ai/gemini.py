@@ -54,9 +54,11 @@ class GeminiProvider(AIProvider):
         if not self.is_available():
             raise RuntimeError("GeminiProvider is not available. Check API key.")
 
+        assert self._model is not None
         try:
             response = self._model.generate_content(prompt)
-            return response.text.strip()
+            result: str = response.text.strip()
+            return result
         except Exception as e:
             logger.error("Gemini API error: %s", e)
             raise RuntimeError(f"Gemini API error: {e}") from e
