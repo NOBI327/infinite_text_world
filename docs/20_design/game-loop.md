@@ -9,7 +9,11 @@
 
 ## 명령어
 - look: 현재 위치 관찰
-- move <방향>: 이동
+- move <방향>: 이동 (n, s, e, w)
 - investigate: 흔적 조사
 - harvest: 자원 채취
 - rest: 휴식
+- enter: 서브 그리드 진입
+- exit: 서브 그리드 탈출
+- up: 위로 이동 (서브 그리드 내)
+- down: 아래로 이동 (서브 그리드 내)

@@ -1,7 +1,7 @@
 # ITW Development Guide
 
 ## Project
-Text-based procedural MMO TRPG engine (Python/FastAPI/SQLite)
+Text-based procedural single-player TRPG engine (Python/FastAPI/SQLite)
 
 ## Commands Before Commit
 1. ruff check src/ tests/ - must pass

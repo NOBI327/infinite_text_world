@@ -1,6 +1,18 @@
-# infinite_text_world
+# Infinite Text World (ITW)
 
-TODO: 프로젝트 설명 추가
+1인용 텍스트 기반 절차적 생성 TRPG 엔진
+
+## 특징
+- 절차적 월드 생성
+- 서브 그리드 맵 시스템 (던전, 숲, 탑 등)
+- AI 기반 서술 생성
+- Protocol T.A.G. 판정 시스템
+
+## 기술 스택
+- Python 3.11
+- FastAPI
+- SQLite + SQLAlchemy
+- Gemini API (또는 다른 LLM)
 
 ## 개발 환경 설정
 
