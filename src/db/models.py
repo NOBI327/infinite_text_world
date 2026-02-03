@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -27,6 +27,12 @@ class MapNodeModel(Base):
     development_level: Mapped[int] = mapped_column(Integer, default=0)
     discovered_by: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    # L3 - Depth (심연층)
+    depth_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    depth_tier: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    depth_entry_condition: Mapped[str | None] = mapped_column(String, nullable=True)
+    depth_discovered: Mapped[bool] = mapped_column(Boolean, default=False)
 
     resources: Mapped[list["ResourceModel"]] = relationship(
         "ResourceModel",
@@ -95,3 +101,36 @@ class PlayerModel(Base):
     active_effects: Mapped[list] = mapped_column(JSON, default=list)
     investigation_penalty: Mapped[int] = mapped_column(Integer, default=0)
     last_action_time: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class SubGridNodeModel(Base):
+    """ORM model for sub-grid nodes."""
+
+    __tablename__ = "sub_grid_nodes"
+
+    # 복합 기본키: parent + sx + sy + sz
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True
+    )  # "parent_x_y_sx_sy_sz" 형식
+    parent_coordinate: Mapped[str] = mapped_column(
+        String, ForeignKey("map_nodes.coordinate"), nullable=False
+    )
+    sx: Mapped[int] = mapped_column(Integer, nullable=False)
+    sy: Mapped[int] = mapped_column(Integer, nullable=False)
+    sz: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    # MapNode와 유사한 필드
+    tier: Mapped[str] = mapped_column(String, nullable=False)
+    axiom_vector: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    sensory_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    required_tags: Mapped[list] = mapped_column(JSON, default=list)
+
+    # 서브 그리드 전용
+    is_entrance: Mapped[bool] = mapped_column(
+        Boolean, default=False
+    )  # sz=0이고 입구인지
+    is_exit: Mapped[bool] = mapped_column(
+        Boolean, default=False
+    )  # 다른 출구로 연결되는지
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

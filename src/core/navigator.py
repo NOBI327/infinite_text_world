@@ -13,6 +13,7 @@ from typing import Dict, List, Optional
 
 from src.core.axiom_system import AxiomLoader
 from src.core.logging import get_logger
+from src.core.sub_grid import SubGridGenerator, SubGridNode
 from src.core.world_generator import MapNode, NodeTier, WorldGenerator
 
 logger = get_logger(__name__)
@@ -21,15 +22,18 @@ logger = get_logger(__name__)
 class Direction(Enum):
     """이동 방향"""
 
-    NORTH = ("N", 0, 1)
-    SOUTH = ("S", 0, -1)
-    EAST = ("E", 1, 0)
-    WEST = ("W", -1, 0)
+    NORTH = ("N", 0, 1, 0)
+    SOUTH = ("S", 0, -1, 0)
+    EAST = ("E", 1, 0, 0)
+    WEST = ("W", -1, 0, 0)
+    UP = ("UP", 0, 0, 1)
+    DOWN = ("DOWN", 0, 0, -1)
 
-    def __init__(self, symbol: str, dx: int, dy: int):
+    def __init__(self, symbol: str, dx: int, dy: int, dz: int = 0):
         self.symbol = symbol
         self.dx = dx
         self.dy = dy
+        self.dz = dz
 
 
 @dataclass
@@ -131,9 +135,15 @@ class Navigator:
         "axiom_maledictum",  # 저주
     ]
 
-    def __init__(self, world: WorldGenerator, axiom_loader: AxiomLoader):
+    def __init__(
+        self,
+        world: WorldGenerator,
+        axiom_loader: AxiomLoader,
+        sub_grid_generator: Optional[SubGridGenerator] = None,
+    ):
         self.world = world
         self.axiom_loader = axiom_loader
+        self.sub_grid_generator = sub_grid_generator
 
     def _hash_coordinate(self, x: int, y: int) -> str:
         """
@@ -423,6 +433,163 @@ class Navigator:
                     )
 
         return discovered
+
+    def travel_sub_grid(
+        self,
+        parent_x: int,
+        parent_y: int,
+        sx: int,
+        sy: int,
+        sz: int,
+        direction: Direction,
+        depth_tier: int,
+        current_supply: int,
+        player_inventory: Optional[List[str]] = None,
+    ) -> TravelResult:
+        """
+        서브 그리드 내 이동
+
+        Args:
+            parent_x, parent_y: 부모 메인 노드 좌표
+            sx, sy, sz: 현재 서브 그리드 내 좌표
+            direction: 이동 방향 (N/S/E/W/UP/DOWN)
+            depth_tier: 서브 그리드 기본 난이도
+            current_supply: 현재 보유 Supply
+            player_inventory: 플레이어 인벤토리 태그 목록
+
+        Returns:
+            TravelResult: 이동 결과
+        """
+        if self.sub_grid_generator is None:
+            return TravelResult(
+                success=False,
+                new_location=None,
+                supply_consumed=0,
+                message="서브 그리드 생성기가 초기화되지 않았습니다.",
+            )
+
+        # 현재 노드 조회
+        current_node = self.sub_grid_generator.get_node(parent_x, parent_y, sx, sy, sz)
+        if not current_node:
+            current_node = self.sub_grid_generator.generate_node(
+                parent_x, parent_y, sx, sy, sz, depth_tier
+            )
+
+        # 목적지 좌표 계산
+        new_sx = sx + direction.dx
+        new_sy = sy + direction.dy
+        new_sz = sz + direction.dz
+
+        # 입구에서 exit 시도 체크 (sz=0에서 up)
+        if sz == 0 and direction == Direction.UP:
+            return TravelResult(
+                success=False,
+                new_location=None,
+                supply_consumed=0,
+                message="입구입니다. 'exit' 명령으로 메인 그리드로 복귀하세요.",
+            )
+
+        # 수평 이동 시 범위 체크 (서브 그리드 크기 제한)
+        SUB_GRID_SIZE = 5  # -2 ~ +2
+        if abs(new_sx) > SUB_GRID_SIZE or abs(new_sy) > SUB_GRID_SIZE:
+            return TravelResult(
+                success=False,
+                new_location=None,
+                supply_consumed=0,
+                message="더 이상 갈 수 없습니다. 벽에 막혀 있습니다.",
+            )
+
+        # 목적지 노드 생성
+        target_node = self.sub_grid_generator.get_or_generate(
+            parent_x, parent_y, new_sx, new_sy, new_sz, depth_tier
+        )
+
+        # 필수 장비 체크
+        if player_inventory is None:
+            player_inventory = []
+        if target_node.required_tags:
+            missing = [
+                t for t in target_node.required_tags if t not in player_inventory
+            ]
+            if missing:
+                return TravelResult(
+                    success=False,
+                    new_location=None,
+                    supply_consumed=0,
+                    message=f"필요한 장비가 없습니다: {', '.join(missing)}",
+                )
+
+        # 이동 비용 계산 (서브 그리드는 기본 비용)
+        cost = self.BASE_SUPPLY_COST
+
+        # Supply 체크
+        if current_supply < cost:
+            return TravelResult(
+                success=False,
+                new_location=None,
+                supply_consumed=0,
+                message=f"Supply가 부족합니다. 필요: {cost}, 보유: {current_supply}",
+            )
+
+        # 이동 성공 - 간략한 LocationView 생성
+        sensory = target_node.sensory_data
+        location_view = LocationView(
+            coordinate_hash=f"sub_{target_node.id[:8]}",
+            visual_description=sensory.get("visual_near", "어두운 통로"),
+            atmosphere=sensory.get("atmosphere", "알 수 없음"),
+            sound=sensory.get("sound_hint", "적막"),
+            smell=sensory.get("smell_hint", "습한 냄새"),
+            direction_hints=[],  # 서브 그리드는 힌트 생략
+            available_resources=[],
+            echoes_visible=[],
+            special_features=self._get_sub_grid_features(target_node),
+        )
+
+        # 방향 이름
+        direction_names = {
+            Direction.NORTH: "북쪽",
+            Direction.SOUTH: "남쪽",
+            Direction.EAST: "동쪽",
+            Direction.WEST: "서쪽",
+            Direction.UP: "위",
+            Direction.DOWN: "아래",
+        }
+
+        return TravelResult(
+            success=True,
+            new_location=location_view,
+            supply_consumed=cost,
+            message=f"{direction_names[direction]}로 이동했습니다. Supply -{cost}",
+        )
+
+    def _get_sub_grid_features(self, node: SubGridNode) -> List[str]:
+        """서브 그리드 노드의 특수 특징"""
+        features = []
+
+        if node.is_entrance:
+            features.append("🚪 입구")
+        if node.is_exit:
+            features.append("🚪 출구")
+
+        if node.sz < 0:
+            features.append(f"⬇️ 지하 {abs(node.sz)}층")
+        elif node.sz > 0:
+            features.append(f"⬆️ 상층 {node.sz}층")
+        else:
+            features.append("🏠 지상층")
+
+        tier_icons = {
+            "Common": "",
+            "Uncommon": "🔹",
+            "Rare": "✨",
+            "Epic": "💎",
+            "Legendary": "🌟",
+        }
+        icon = tier_icons.get(node.tier, "")
+        if icon:
+            features.append(f"{icon} {node.tier}")
+
+        return features
 
 
 # === Compass 표시 유틸리티 ===

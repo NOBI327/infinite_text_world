@@ -43,8 +43,8 @@ class TestNavigator:
         assert view.sound is not None
         assert view.smell is not None
 
-        # Should have direction hints for all 4 directions
-        assert len(view.direction_hints) == 4
+        # Should have direction hints for all 6 directions (N, S, E, W, UP, DOWN)
+        assert len(view.direction_hints) == 6
 
         # Safe Haven should have special features
         assert len(view.special_features) > 0
@@ -90,10 +90,18 @@ class TestNavigator:
         assert "이동했습니다" in result.message
 
     def test_travel_all_directions(self, navigator: Navigator):
-        """Test travel in all four directions."""
+        """Test travel in all four horizontal directions (UP/DOWN not valid in main grid)."""
         player_id = "test_player"
 
-        for direction in Direction:
+        # Only test N, S, E, W for main grid travel
+        horizontal_directions = [
+            Direction.NORTH,
+            Direction.SOUTH,
+            Direction.EAST,
+            Direction.WEST,
+        ]
+
+        for direction in horizontal_directions:
             result = navigator.travel(
                 current_x=0,
                 current_y=0,
@@ -175,8 +183,8 @@ class TestNavigator:
 
         view = navigator.get_location_view(0, 0, player_id)
 
-        # Should have 4 direction hints
-        assert len(view.direction_hints) == 4
+        # Should have 6 direction hints (N, S, E, W, UP, DOWN)
+        assert len(view.direction_hints) == 6
 
         # Check each direction hint
         directions_found = set()
@@ -188,11 +196,13 @@ class TestNavigator:
             assert hint.distance_hint is not None
             assert isinstance(hint.discovered, bool)
 
-        # All four directions should be present
+        # All six directions should be present
         assert Direction.NORTH in directions_found
         assert Direction.SOUTH in directions_found
         assert Direction.EAST in directions_found
         assert Direction.WEST in directions_found
+        assert Direction.UP in directions_found
+        assert Direction.DOWN in directions_found
 
     def test_direction_hints_discovered_vs_undiscovered(
         self, navigator: Navigator, world: WorldGenerator

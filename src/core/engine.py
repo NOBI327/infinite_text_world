@@ -21,6 +21,7 @@ from src.core.core_rule import CharacterSheet, ResolutionEngine, StatType
 from src.core.echo_system import EchoCategory, EchoManager
 from src.core.logging import get_logger
 from src.core.navigator import Direction, LocationView, Navigator, render_compass
+from src.core.sub_grid import SubGridGenerator
 from src.core.world_generator import (
     Echo,
     MapNode,
@@ -191,6 +192,13 @@ class PlayerState:
     character: Optional[CharacterSheet] = None
     equipped_tags: list[str] = field(default_factory=list)
 
+    # 서브 그리드 상태
+    in_sub_grid: bool = False
+    sub_grid_parent: Optional[str] = None  # "x_y" 형식
+    sub_x: int = 0
+    sub_y: int = 0
+    sub_z: int = 0
+
     def __post_init__(self):
         if self.character is None:
             self.character = CharacterSheet(name=self.player_id)
@@ -206,10 +214,14 @@ class PlayerState:
             "active_effects": self.active_effects,
             "investigation_penalty": self.investigation_penalty,
             "last_action_time": self.last_action_time,
+            "in_sub_grid": self.in_sub_grid,
+            "sub_grid_parent": self.sub_grid_parent,
+            "sub_position": {"sx": self.sub_x, "sy": self.sub_y, "sz": self.sub_z},
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "PlayerState":
+        sub_pos = data.get("sub_position", {})
         return cls(
             player_id=data["player_id"],
             x=data["position"]["x"],
@@ -223,6 +235,11 @@ class PlayerState:
             last_action_time=data.get(
                 "last_action_time", datetime.utcnow().isoformat()
             ),
+            in_sub_grid=data.get("in_sub_grid", False),
+            sub_grid_parent=data.get("sub_grid_parent"),
+            sub_x=sub_pos.get("sx", 0),
+            sub_y=sub_pos.get("sy", 0),
+            sub_z=sub_pos.get("sz", 0),
         )
 
 
@@ -275,7 +292,12 @@ class ITWEngine:
         # 코어 시스템 초기화
         self.axiom_loader = AxiomLoader(axiom_data_path)
         self.world = WorldGenerator(self.axiom_loader, seed=world_seed)
-        self.navigator = Navigator(self.world, self.axiom_loader)
+        self.sub_grid_generator = SubGridGenerator(
+            self.axiom_loader, seed=world_seed or 0
+        )
+        self.navigator = Navigator(
+            self.world, self.axiom_loader, self.sub_grid_generator
+        )
         self.echo_manager = EchoManager(self.axiom_loader)
         self.resolution_engine = ResolutionEngine()
 
@@ -351,7 +373,16 @@ class ITWEngine:
         if not player:
             return ActionResult(False, "move", "플레이어를 찾을 수 없습니다.")
 
-        # 방향 파싱
+        if player.in_sub_grid:
+            # 서브 그리드 내 이동 (up/down 포함)
+            return self._move_in_sub_grid(player, direction)
+        else:
+            # 메인 그리드 이동
+            return self._move_in_main_grid(player, direction)
+
+    def _move_in_main_grid(self, player: PlayerState, direction: str) -> ActionResult:
+        """메인 그리드 내 이동"""
+        # 방향 파싱 (메인 그리드는 N/S/E/W만)
         direction_map = {
             "n": Direction.NORTH,
             "north": Direction.NORTH,
@@ -376,7 +407,7 @@ class ITWEngine:
             player.x,
             player.y,
             dir_enum,
-            player_id,
+            player.player_id,
             player.supply,
             player_inventory=player.equipped_tags,
         )
@@ -398,7 +429,7 @@ class ITWEngine:
             current_node = self.world.get_node(player.x, player.y)
             if current_node:
                 self.echo_manager.create_echo(
-                    EchoCategory.EXPLORATION, current_node, player_id
+                    EchoCategory.EXPLORATION, current_node, player.player_id
                 )
 
             data: dict[str, Any] = {
@@ -407,6 +438,88 @@ class ITWEngine:
             }
             if result.encounter:
                 data["encounter"] = result.encounter
+
+            return ActionResult(
+                success=True,
+                action_type="move",
+                message=result.message,
+                data=data,
+                location_view=result.new_location,
+            )
+        else:
+            return ActionResult(
+                success=False, action_type="move", message=result.message
+            )
+
+    def _move_in_sub_grid(self, player: PlayerState, direction: str) -> ActionResult:
+        """서브 그리드 내 이동 (up/down 포함)"""
+        # 방향 파싱 (서브 그리드는 N/S/E/W + UP/DOWN)
+        direction_map = {
+            "n": Direction.NORTH,
+            "north": Direction.NORTH,
+            "북": Direction.NORTH,
+            "s": Direction.SOUTH,
+            "south": Direction.SOUTH,
+            "남": Direction.SOUTH,
+            "e": Direction.EAST,
+            "east": Direction.EAST,
+            "동": Direction.EAST,
+            "w": Direction.WEST,
+            "west": Direction.WEST,
+            "서": Direction.WEST,
+            "up": Direction.UP,
+            "u": Direction.UP,
+            "위": Direction.UP,
+            "down": Direction.DOWN,
+            "d": Direction.DOWN,
+            "아래": Direction.DOWN,
+        }
+
+        dir_enum = direction_map.get(direction.lower())
+        if not dir_enum:
+            return ActionResult(False, "move", f"알 수 없는 방향: {direction}")
+
+        # 부모 좌표 파싱
+        parent_coords = (
+            player.sub_grid_parent.split("_") if player.sub_grid_parent else ["0", "0"]
+        )
+        parent_x = int(parent_coords[0])
+        parent_y = int(parent_coords[1])
+
+        # 부모 노드에서 depth_tier 가져오기
+        parent_node = self.world.get_node(parent_x, parent_y)
+        depth_tier = parent_node.tier.value if parent_node else 1
+
+        # 서브 그리드 이동 실행
+        result = self.navigator.travel_sub_grid(
+            parent_x=parent_x,
+            parent_y=parent_y,
+            sx=player.sub_x,
+            sy=player.sub_y,
+            sz=player.sub_z,
+            direction=dir_enum,
+            depth_tier=depth_tier,
+            current_supply=player.supply,
+            player_inventory=player.equipped_tags,
+        )
+
+        if result.success:
+            # 플레이어 상태 업데이트
+            player.sub_x += dir_enum.dx
+            player.sub_y += dir_enum.dy
+            player.sub_z += dir_enum.dz
+            player.supply -= result.supply_consumed
+            player.last_action_time = datetime.utcnow().isoformat()
+
+            data: dict[str, Any] = {
+                "supply_consumed": result.supply_consumed,
+                "remaining_supply": player.supply,
+                "sub_position": {
+                    "sx": player.sub_x,
+                    "sy": player.sub_y,
+                    "sz": player.sub_z,
+                },
+            }
 
             return ActionResult(
                 success=True,
@@ -569,6 +682,116 @@ class ITWEngine:
 
         view = self.navigator.get_location_view(player.x, player.y, player_id)
         return render_compass(view)
+
+    # === 서브 그리드 진입/탈출 ===
+
+    def enter_depth(self, player_id: str) -> ActionResult:
+        """서브 그리드(Depth)로 진입"""
+        player = self.get_player(player_id)
+        if not player:
+            return ActionResult(False, "enter", "플레이어를 찾을 수 없습니다.")
+
+        if player.in_sub_grid:
+            return ActionResult(False, "enter", "이미 서브 그리드 안에 있습니다.")
+
+        # 현재 노드 확인
+        node = self.world.get_node(player.x, player.y)
+        if not node:
+            return ActionResult(False, "enter", "현재 위치를 찾을 수 없습니다.")
+
+        # Depth 존재 여부 확인 (MapNodeModel의 L3 필드)
+        # 현재는 간단히 노드의 tier가 Rare 이상이면 depth가 있다고 가정
+        # TODO: 실제 depth_name 필드 확인으로 교체
+        has_depth = node.tier in [NodeTier.UNCOMMON, NodeTier.RARE]
+
+        if not has_depth:
+            return ActionResult(
+                success=False,
+                action_type="enter",
+                message="이 지역에는 진입할 수 있는 깊은 곳이 없습니다.",
+            )
+
+        # 서브 그리드 입구 생성
+        depth_tier = node.tier.value  # 기본 난이도 = 노드 티어
+        entrance = self.sub_grid_generator.generate_entrance(
+            player.x, player.y, depth_tier
+        )
+
+        # 플레이어 상태 업데이트
+        player.in_sub_grid = True
+        player.sub_grid_parent = f"{player.x}_{player.y}"
+        player.sub_x = 0
+        player.sub_y = 0
+        player.sub_z = 0
+        player.last_action_time = datetime.utcnow().isoformat()
+
+        # 위치 뷰 생성
+        sensory = entrance.sensory_data
+        location_view = LocationView(
+            coordinate_hash=f"sub_{entrance.id[:8]}",
+            visual_description=sensory.get("visual_near", "어두운 입구"),
+            atmosphere=sensory.get("atmosphere", "알 수 없음"),
+            sound=sensory.get("sound_hint", "적막"),
+            smell=sensory.get("smell_hint", "습한 냄새"),
+            direction_hints=[],
+            available_resources=[],
+            echoes_visible=[],
+            special_features=["🚪 입구", "⬇️ 아래로 내려갈 수 있다"],
+        )
+
+        return ActionResult(
+            success=True,
+            action_type="enter",
+            message="깊은 곳으로 진입합니다...",
+            data={
+                "depth_tier": depth_tier,
+                "position": {"sx": 0, "sy": 0, "sz": 0},
+            },
+            location_view=location_view,
+        )
+
+    def exit_depth(self, player_id: str) -> ActionResult:
+        """서브 그리드에서 메인 그리드로 복귀"""
+        player = self.get_player(player_id)
+        if not player:
+            return ActionResult(False, "exit", "플레이어를 찾을 수 없습니다.")
+
+        if not player.in_sub_grid:
+            return ActionResult(False, "exit", "서브 그리드 안에 있지 않습니다.")
+
+        # 입구(sz=0)에서만 탈출 가능
+        if player.sub_z != 0:
+            return ActionResult(
+                success=False,
+                action_type="exit",
+                message=f"입구까지 올라가야 합니다. (현재: 층 {player.sub_z})",
+            )
+
+        # 입구 위치(sx=0, sy=0)에서만 탈출 가능
+        if player.sub_x != 0 or player.sub_y != 0:
+            return ActionResult(
+                success=False,
+                action_type="exit",
+                message="입구 위치로 이동해야 합니다. (현재 위치에서 벗어남)",
+            )
+
+        # 플레이어 상태 업데이트
+        player.in_sub_grid = False
+        player.sub_grid_parent = None
+        player.sub_x = 0
+        player.sub_y = 0
+        player.sub_z = 0
+        player.last_action_time = datetime.utcnow().isoformat()
+
+        # 메인 그리드 위치 뷰
+        view = self.navigator.get_location_view(player.x, player.y, player_id)
+
+        return ActionResult(
+            success=True,
+            action_type="exit",
+            message="밖으로 나왔습니다. 햇빛이 눈부시다.",
+            location_view=view,
+        )
 
     # === 글로벌 이벤트 ===
 

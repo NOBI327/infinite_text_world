@@ -50,7 +50,7 @@ class TestRegisterPlayer:
         assert data["player"]["fame"] == 0
         assert data["location"] is not None
         assert data["location"]["location_id"] is not None
-        assert len(data["directions"]) == 4
+        assert len(data["directions"]) == 6  # N, S, E, W, UP, DOWN
 
     def test_register_duplicate(self, client: TestClient):
         """Test duplicate player registration returns existing player."""
@@ -292,3 +292,168 @@ class TestActionEndpoint:
         assert data["narrative"] is not None
         assert isinstance(data["narrative"], str)
         assert len(data["narrative"]) > 0
+
+    def test_action_enter(self, client: TestClient, engine: ITWEngine):
+        """Test enter action for sub-grid."""
+        # Safe Haven (0,0) has no depth, should fail
+        response = client.post(
+            "/game/action",
+            json={
+                "player_id": "action_player",
+                "action": "enter",
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        # Safe Haven is Common tier, no depth
+        assert data["success"] is False
+        assert data["action"] == "enter"
+        assert "깊은 곳이 없습니다" in data["message"]
+
+    def test_action_enter_with_depth(self, client: TestClient, engine: ITWEngine):
+        """Test enter action when depth exists."""
+        from src.core.world_generator import NodeTier
+
+        # Generate area and find a node with depth
+        engine.debug_generate_area(0, 0, radius=5)
+
+        # Find an Uncommon/Rare node
+        suitable_coord = None
+        for coord, node in engine.world.nodes.items():
+            if node.tier in [NodeTier.UNCOMMON, NodeTier.RARE]:
+                suitable_coord = coord
+                break
+
+        if suitable_coord:
+            # Teleport player there
+            coords = suitable_coord.split("_")
+            player = engine.get_player("action_player")
+            player.x = int(coords[0])
+            player.y = int(coords[1])
+
+            response = client.post(
+                "/game/action",
+                json={
+                    "player_id": "action_player",
+                    "action": "enter",
+                },
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+
+            assert data["success"] is True
+            assert data["action"] == "enter"
+            assert player.in_sub_grid is True
+
+    def test_action_exit(self, client: TestClient, engine: ITWEngine):
+        """Test exit action from sub-grid."""
+        # Manually put player in sub-grid
+        player = engine.get_player("action_player")
+        player.in_sub_grid = True
+        player.sub_grid_parent = "0_0"
+        player.sub_x = 0
+        player.sub_y = 0
+        player.sub_z = 0
+
+        response = client.post(
+            "/game/action",
+            json={
+                "player_id": "action_player",
+                "action": "exit",
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        assert data["action"] == "exit"
+        assert player.in_sub_grid is False
+
+    def test_action_exit_not_in_sub_grid(self, client: TestClient):
+        """Test exit action when not in sub-grid."""
+        response = client.post(
+            "/game/action",
+            json={
+                "player_id": "action_player",
+                "action": "exit",
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is False
+        assert "서브 그리드 안에 있지 않습니다" in data["message"]
+
+    def test_action_move_up(self, client: TestClient, engine: ITWEngine):
+        """Test move up in sub-grid."""
+        # Put player in sub-grid (not at entrance to allow up movement)
+        player = engine.get_player("action_player")
+        player.in_sub_grid = True
+        player.sub_grid_parent = "0_0"
+        player.sub_x = 0
+        player.sub_y = 0
+        player.sub_z = -1  # Below entrance
+
+        response = client.post(
+            "/game/action",
+            json={
+                "player_id": "action_player",
+                "action": "move",
+                "params": {"direction": "up"},
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        assert data["action"] == "move"
+        assert player.sub_z == 0  # Moved up
+
+    def test_action_move_down(self, client: TestClient, engine: ITWEngine):
+        """Test move down in sub-grid."""
+        # Put player in sub-grid at entrance
+        player = engine.get_player("action_player")
+        player.in_sub_grid = True
+        player.sub_grid_parent = "0_0"
+        player.sub_x = 0
+        player.sub_y = 0
+        player.sub_z = 0
+
+        response = client.post(
+            "/game/action",
+            json={
+                "player_id": "action_player",
+                "action": "move",
+                "params": {"direction": "down"},
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is True
+        assert data["action"] == "move"
+        assert player.sub_z == -1  # Moved down
+
+    def test_action_move_up_in_main_grid_fails(self, client: TestClient):
+        """Test move up fails in main grid."""
+        response = client.post(
+            "/game/action",
+            json={
+                "player_id": "action_player",
+                "action": "move",
+                "params": {"direction": "up"},
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["success"] is False
+        assert "알 수 없는 방향" in data["message"]

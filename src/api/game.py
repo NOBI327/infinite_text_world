@@ -165,10 +165,12 @@ def execute_action(
 
     지원 액션:
     - look: 현재 위치 관찰
-    - move: 이동 (params: {direction: "n"|"s"|"e"|"w"})
+    - move: 이동 (params: {direction: "n"|"s"|"e"|"w"|"up"|"down"})
     - rest: 휴식
     - investigate: Echo 조사 (params: {echo_index: 0})
     - harvest: 자원 채취 (params: {resource_id: "...", amount: 1})
+    - enter: 서브 그리드(Depth) 진입
+    - exit: 서브 그리드에서 메인 그리드로 복귀
     """
     player = engine.get_player(request.player_id)
 
@@ -225,11 +227,15 @@ def execute_action(
                 )
             amount = params.get("amount", 1)
             result = engine.harvest(request.player_id, resource_id, amount)
+        elif action == "enter":
+            result = engine.enter_depth(request.player_id)
+        elif action == "exit":
+            result = engine.exit_depth(request.player_id)
         else:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unknown action: {action}. "
-                "Valid actions: look, move, rest, investigate, harvest",
+                "Valid actions: look, move, rest, investigate, harvest, enter, exit",
             )
 
         # 응답 생성
