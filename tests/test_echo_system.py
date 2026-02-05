@@ -1,4 +1,4 @@
-"""Tests for echo_system module."""
+"""Tests for echo_system module (d6 Dice Pool system)."""
 
 from datetime import datetime, timedelta
 
@@ -55,7 +55,7 @@ class TestEchoManager:
         assert echo is not None
         assert echo.echo_type == EchoType.SHORT.value
         assert echo.visibility == EchoVisibility.PUBLIC.value
-        assert echo.base_dc == 10  # Combat base DC
+        assert echo.base_difficulty == 2  # Combat base_difficulty
         assert echo.source_player_id == "player_001"
         assert echo.flavor_text is not None
         assert echo.timestamp is not None
@@ -78,155 +78,172 @@ class TestEchoManager:
 
         assert custom_text in echo.flavor_text
 
-    def test_create_echo_with_dc_modifier(
+    def test_create_echo_with_difficulty_modifier(
         self, echo_manager: EchoManager, test_node: MapNode
     ):
-        """Test Echo creation with DC modifier."""
-        # Mystery has base DC 20
+        """Test Echo creation with difficulty modifier."""
+        # Mystery has base_difficulty 4
         echo = echo_manager.create_echo(
             category=EchoCategory.MYSTERY,
             node=test_node,
-            dc_modifier=5,
+            difficulty_modifier=1,
         )
 
-        assert echo.base_dc == 25  # 20 + 5
+        assert echo.base_difficulty == 5  # 4 + 1
 
-    def test_calculate_investigation_dc(
+    def test_investigation_difficulty_calculation(
         self, echo_manager: EchoManager, test_node: MapNode
     ):
-        """Test DC calculation with time decay and fame bonus."""
+        """Test difficulty calculation for d6 Dice Pool system."""
         echo = echo_manager.create_echo(
             category=EchoCategory.EXPLORATION,
             node=test_node,
         )
 
-        # Test with fame bonus
-        dc_info = echo_manager.calculate_investigation_dc(
-            echo=echo,
-            investigator_fame=50,  # -5 DC bonus (50 // 10)
-            bonus_modifiers=2,
-        )
+        diff_info = echo_manager.calculate_investigation_difficulty(echo)
 
-        assert "base_dc" in dc_info
-        assert "time_decay" in dc_info
-        assert "fame_bonus" in dc_info
-        assert "modifiers" in dc_info
-        assert "final_dc" in dc_info
+        assert "base_difficulty" in diff_info
+        assert "time_modifier" in diff_info
+        assert "final_difficulty" in diff_info
+        assert "days_passed" in diff_info
 
-        # Fame bonus should be 5 (50 // 10)
-        assert dc_info["fame_bonus"] == 5
+        # Base difficulty for exploration is 2
+        assert diff_info["base_difficulty"] == 2
 
-        # Final DC should be reduced by fame and modifiers
-        expected_dc = echo.base_dc + dc_info["time_decay"] - 5 - 2
-        expected_dc = max(5, expected_dc)  # Minimum DC is 5
-        assert dc_info["final_dc"] == expected_dc
+        # Fresh echo has no time modifier
+        assert diff_info["time_modifier"] == 0
+        assert diff_info["final_difficulty"] == 2
 
-    def test_calculate_investigation_dc_time_decay(
+    def test_investigation_time_modifier(
         self, echo_manager: EchoManager, test_node: MapNode
     ):
-        """Test that time decay increases DC."""
-        # Create echo with old timestamp
-        old_timestamp = (datetime.utcnow() - timedelta(days=5)).isoformat()
+        """Test that time increases difficulty (7 days = +1, max +2)."""
+        # Create echo with 14 days old timestamp
+        old_timestamp = (datetime.utcnow() - timedelta(days=14)).isoformat()
         echo = Echo(
             echo_type=EchoType.SHORT.value,
             visibility=EchoVisibility.HIDDEN.value,
-            base_dc=10,
+            base_difficulty=2,
             timestamp=old_timestamp,
             flavor_text="Old echo",
             source_player_id=None,
         )
 
-        dc_info = echo_manager.calculate_investigation_dc(echo)
+        diff_info = echo_manager.calculate_investigation_difficulty(echo)
 
-        # 5 days passed = +5 time decay
-        assert dc_info["days_passed"] == 5
-        assert dc_info["time_decay"] == 5
+        # 14 days = +2 time modifier (7 days per +1, max +2)
+        assert diff_info["days_passed"] == 14
+        assert diff_info["time_modifier"] == 2
+        assert diff_info["final_difficulty"] == 4  # 2 + 2
 
-    def test_investigate_success(self, echo_manager: EchoManager, test_node: MapNode):
-        """Test successful investigation."""
+    def test_investigation_time_modifier_max_cap(
+        self, echo_manager: EchoManager, test_node: MapNode
+    ):
+        """Test that time modifier is capped at +2."""
+        # Create echo with 30 days old timestamp
+        old_timestamp = (datetime.utcnow() - timedelta(days=30)).isoformat()
+        echo = Echo(
+            echo_type=EchoType.SHORT.value,
+            visibility=EchoVisibility.HIDDEN.value,
+            base_difficulty=2,
+            timestamp=old_timestamp,
+            flavor_text="Very old echo",
+            source_player_id=None,
+        )
+
+        diff_info = echo_manager.calculate_investigation_difficulty(echo)
+
+        # Time modifier capped at +2
+        assert diff_info["time_modifier"] == 2
+        assert diff_info["final_difficulty"] == 4  # 2 + 2 (capped)
+
+    def test_investigation_with_dice_pool_success(
+        self, echo_manager: EchoManager, test_node: MapNode
+    ):
+        """Test successful investigation with d6 Dice Pool (hits >= difficulty)."""
         echo = echo_manager.create_echo(
-            category=EchoCategory.COMBAT,
+            category=EchoCategory.COMBAT,  # base_difficulty=2
             node=test_node,
             source_player_id="player_xyz",
         )
 
-        # High roll should succeed (base DC 10 for combat)
-        result = echo_manager.investigate(
-            echo=echo,
-            roll=20,
-            investigator_fame=0,
-            bonus_modifiers=0,
-        )
+        # hits=3 >= difficulty=2 should succeed
+        result = echo_manager.investigate(echo=echo, hits=3)
 
         assert result["success"] is True
         assert "discovered_info" in result
         assert result["discovered_info"]["flavor"] == echo.flavor_text
-        assert result["margin"] >= 0
+        assert result["hits"] == 3
+        assert result["difficulty"] == 2
+        assert result["margin"] == 1
 
-    def test_investigate_failure(self, echo_manager: EchoManager, test_node: MapNode):
-        """Test failed investigation."""
+    def test_investigation_with_dice_pool_failure(
+        self, echo_manager: EchoManager, test_node: MapNode
+    ):
+        """Test failed investigation with d6 Dice Pool (hits < difficulty)."""
         echo = echo_manager.create_echo(
-            category=EchoCategory.MYSTERY,  # High DC (20)
+            category=EchoCategory.MYSTERY,  # base_difficulty=4
             node=test_node,
         )
 
-        # Low roll should fail
-        result = echo_manager.investigate(
-            echo=echo,
-            roll=5,
-            investigator_fame=0,
-            bonus_modifiers=0,
-        )
+        # hits=2 < difficulty=4 should fail
+        result = echo_manager.investigate(echo=echo, hits=2)
 
         assert result["success"] is False
         assert "message" in result
         assert "discovered_info" not in result
+        assert result["hits"] == 2
+        assert result["difficulty"] == 4
+        assert result["margin"] == -2
 
     def test_investigate_critical_failure(
         self, echo_manager: EchoManager, test_node: MapNode
     ):
-        """Test critical failure with penalty (margin <= -5)."""
+        """Test critical failure with penalty (hits=0)."""
         echo = echo_manager.create_echo(
-            category=EchoCategory.MYSTERY,  # High DC (20)
+            category=EchoCategory.MYSTERY,
             node=test_node,
         )
 
-        # Very low roll = critical failure
-        result = echo_manager.investigate(
-            echo=echo,
-            roll=5,  # DC is at least 20, so margin is -15 or worse
-            investigator_fame=0,
-            bonus_modifiers=0,
-        )
+        # hits=0 should trigger penalty
+        result = echo_manager.investigate(echo=echo, hits=0)
 
         assert result["success"] is False
-        assert result["margin"] <= -5
         assert "penalty" in result
-        assert "페널티" in result["penalty"]
 
     def test_investigate_critical_success(
         self, echo_manager: EchoManager, test_node: MapNode
     ):
-        """Test critical success with bonus info (margin >= 5)."""
+        """Test critical success with bonus info (hits >= difficulty + 2)."""
         echo = echo_manager.create_echo(
-            category=EchoCategory.COMBAT,  # DC 10
+            category=EchoCategory.COMBAT,  # base_difficulty=2
             node=test_node,
             source_player_id="player_abc",
         )
 
-        # High roll = critical success
-        result = echo_manager.investigate(
-            echo=echo,
-            roll=20,  # margin = 20 - 10 = 10
-            investigator_fame=0,
-            bonus_modifiers=0,
-        )
+        # hits=4 >= difficulty=2 + 2 -> critical success
+        result = echo_manager.investigate(echo=echo, hits=4)
 
         assert result["success"] is True
-        assert result["margin"] >= 5
+        assert result["margin"] >= 2
         assert "bonus_info" in result
         # Should reveal partial player ID
         assert "source_player_hint" in result
+
+    def test_investigate_exact_difficulty(
+        self, echo_manager: EchoManager, test_node: MapNode
+    ):
+        """Test success when hits exactly equals difficulty."""
+        echo = echo_manager.create_echo(
+            category=EchoCategory.EXPLORATION,  # base_difficulty=2
+            node=test_node,
+        )
+
+        # hits=2 == difficulty=2 should succeed
+        result = echo_manager.investigate(echo=echo, hits=2)
+
+        assert result["success"] is True
+        assert result["margin"] == 0
 
     def test_decay_echoes(self, echo_manager: EchoManager, test_node: MapNode):
         """Test Short Echo decay over time."""
@@ -235,7 +252,7 @@ class TestEchoManager:
         short_echo = Echo(
             echo_type=EchoType.SHORT.value,
             visibility=EchoVisibility.PUBLIC.value,
-            base_dc=10,
+            base_difficulty=2,
             timestamp=old_timestamp,
             flavor_text="Old short echo",
             source_player_id=None,
@@ -246,7 +263,7 @@ class TestEchoManager:
         long_echo = Echo(
             echo_type=EchoType.LONG.value,
             visibility=EchoVisibility.PUBLIC.value,
-            base_dc=5,
+            base_difficulty=1,
             timestamp=old_timestamp,
             flavor_text="Old long echo",
             source_player_id=None,
@@ -356,3 +373,16 @@ class TestEchoManager:
             )
             assert echo is not None
             assert echo.flavor_text is not None
+
+    def test_template_base_difficulties(self, echo_manager: EchoManager):
+        """Test that templates have correct base_difficulty values."""
+        templates = echo_manager.TEMPLATES
+
+        assert templates[EchoCategory.COMBAT].base_difficulty == 2
+        assert templates[EchoCategory.DEATH].base_difficulty == 2
+        assert templates[EchoCategory.EXPLORATION].base_difficulty == 2
+        assert templates[EchoCategory.CRAFTING].base_difficulty == 3
+        assert templates[EchoCategory.BOSS].base_difficulty == 1
+        assert templates[EchoCategory.DISCOVERY].base_difficulty == 3
+        assert templates[EchoCategory.SOCIAL].base_difficulty == 2
+        assert templates[EchoCategory.MYSTERY].base_difficulty == 4

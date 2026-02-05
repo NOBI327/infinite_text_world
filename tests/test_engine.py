@@ -443,8 +443,9 @@ class TestInvestigateAction:
         assert result.action_type == "investigate"
         # Result depends on dice roll, so we just check structure
         assert "success" in result.data
-        assert "roll" in result.data
-        assert "dc" in result.data
+        assert "check" in result.data
+        assert "hits" in result.data["check"]
+        assert "difficulty" in result.data["check"]
 
     def test_investigate_invalid_index(
         self, engine_with_player: tuple[ITWEngine, PlayerState]

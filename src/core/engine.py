@@ -8,7 +8,6 @@ Infinite Text World 핵심 엔진 통합 모듈
 """
 
 import json
-import random
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Optional
@@ -72,7 +71,7 @@ def _model_to_node(model: MapNodeModel) -> MapNode:
         Echo(
             echo_type=echo.echo_type,
             visibility=echo.visibility,
-            base_dc=echo.base_dc,
+            base_difficulty=echo.base_difficulty,
             timestamp=echo.timestamp,
             flavor_text=echo.flavor_text,
             source_player_id=echo.source_player_id,
@@ -139,14 +138,13 @@ def _dict_to_character(data: dict) -> CharacterSheet:
 
 def _player_to_model(player: "PlayerState") -> PlayerModel:
     """PlayerState를 PlayerModel로 변환"""
-    character = player.character or CharacterSheet(name=player.player_id)
     return PlayerModel(
         player_id=player.player_id,
         x=player.x,
         y=player.y,
         supply=player.supply,
         fame=player.fame,
-        character_data=_character_to_dict(character),
+        character_data=_character_to_dict(player.character),
         discovered_nodes=player.discovered_nodes,
         inventory=player.inventory,
         equipped_tags=player.equipped_tags,
@@ -189,7 +187,9 @@ class PlayerState:
     active_effects: list[dict] = field(default_factory=list)
     investigation_penalty: int = 0
     last_action_time: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    character: Optional[CharacterSheet] = None
+    character: CharacterSheet = field(
+        default_factory=lambda: CharacterSheet(name="Unnamed")
+    )
     equipped_tags: list[str] = field(default_factory=list)
 
     # 서브 그리드 상태
@@ -198,10 +198,6 @@ class PlayerState:
     sub_x: int = 0
     sub_y: int = 0
     sub_z: int = 0
-
-    def __post_init__(self):
-        if self.character is None:
-            self.character = CharacterSheet(name=self.player_id)
 
     def to_dict(self) -> dict:
         return {
@@ -217,11 +213,31 @@ class PlayerState:
             "in_sub_grid": self.in_sub_grid,
             "sub_grid_parent": self.sub_grid_parent,
             "sub_position": {"sx": self.sub_x, "sy": self.sub_y, "sz": self.sub_z},
+            "character": {
+                "name": self.character.name,
+                "level": self.character.level,
+                "stats": {k.value: v for k, v in self.character.stats.items()},
+                "resonance_shield": self.character.resonance_shield,
+                "status_tags": self.character.status_tags,
+            },
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "PlayerState":
         sub_pos = data.get("sub_position", {})
+
+        # character 역직렬화
+        char_data = data.get("character", {})
+        character = CharacterSheet(name=char_data.get("name", "Unnamed"))
+        character.level = char_data.get("level", 1)
+        character.stats = {
+            StatType(k): v for k, v in char_data.get("stats", {}).items()
+        }
+        if char_data.get("resonance_shield"):
+            character.resonance_shield = char_data["resonance_shield"]
+        if char_data.get("status_tags"):
+            character.status_tags = char_data["status_tags"]
+
         return cls(
             player_id=data["player_id"],
             x=data["position"]["x"],
@@ -240,6 +256,7 @@ class PlayerState:
             sub_x=sub_pos.get("sx", 0),
             sub_y=sub_pos.get("sy", 0),
             sub_z=sub_pos.get("sz", 0),
+            character=character,
         )
 
 
@@ -534,7 +551,7 @@ class ITWEngine:
             )
 
     def investigate(self, player_id: str, echo_index: int = 0) -> ActionResult:
-        """Echo 조사"""
+        """Echo 조사 (d6 Dice Pool 시스템)"""
         player = self.get_player(player_id)
         if not player:
             return ActionResult(False, "investigate", "플레이어를 찾을 수 없습니다.")
@@ -559,31 +576,53 @@ class ITWEngine:
                 message=f"유효하지 않은 흔적 번호: {echo_index}",
             )
 
-        echo = hidden_echoes[echo_index]
+        target_echo = hidden_echoes[echo_index]
 
-        # 1d20 + 조사 보너스 (간략화)
-        roll = random.randint(1, 20) + (player.fame // 20)
+        # 난이도 계산
+        difficulty_info = self.echo_manager.calculate_investigation_difficulty(
+            target_echo
+        )
+        final_difficulty = difficulty_info["final_difficulty"]
 
-        # 페널티 적용
-        roll -= player.investigation_penalty
+        # d6 Dice Pool 판정 (READ 스탯 사용)
+        check_result = self.resolution_engine.resolve_check(
+            character=player.character,
+            stat_type=StatType.READ,
+            difficulty=final_difficulty,
+            bonus_dice=0,
+            risk_penalty=player.investigation_penalty,
+        )
 
-        result = self.echo_manager.investigate(
-            echo, roll=roll, investigator_fame=player.fame, bonus_modifiers=0
+        # echo_manager.investigate() 호출
+        investigation = self.echo_manager.investigate(
+            echo=target_echo,
+            hits=check_result.hits,
         )
 
         # 페널티 처리
-        if result.get("penalty"):
+        if investigation.get("penalty"):
             player.investigation_penalty = 2
         else:
             player.investigation_penalty = max(0, player.investigation_penalty - 1)
 
         player.last_action_time = datetime.utcnow().isoformat()
 
+        # 결과 데이터에 판정 정보 추가
+        result_data = {
+            **investigation,
+            "check": {
+                "rolls": check_result.rolls,
+                "hits": check_result.hits,
+                "difficulty": final_difficulty,
+                "tier": check_result.tier.value,
+            },
+        }
+
         return ActionResult(
-            success=result["success"],
+            success=investigation["success"],
             action_type="investigate",
-            message="흔적을 조사한다..." if result["success"] else "조사에 실패했다...",
-            data=result,
+            message=check_result.narrative_hint,
+            data=result_data,
         )
 
     def harvest(
@@ -889,7 +928,7 @@ class ITWEngine:
                         node_coordinate=coord,
                         echo_type=echo.echo_type,
                         visibility=echo.visibility,
-                        base_dc=echo.base_dc,
+                        base_difficulty=echo.base_difficulty,
                         timestamp=echo.timestamp,
                         flavor_text=echo.flavor_text,
                         source_player_id=echo.source_player_id,
@@ -914,7 +953,7 @@ class ITWEngine:
                         node_coordinate=coord,
                         echo_type=echo.echo_type,
                         visibility=echo.visibility,
-                        base_dc=echo.base_dc,
+                        base_difficulty=echo.base_difficulty,
                         timestamp=echo.timestamp,
                         flavor_text=echo.flavor_text,
                         source_player_id=echo.source_player_id,

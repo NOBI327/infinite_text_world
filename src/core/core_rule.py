@@ -119,6 +119,37 @@ class CharacterSheet:
             return "BROKEN"  # 붕괴
         return "DAMAGED"
 
+    def to_dict(self) -> Dict:
+        """CharacterSheet를 dict로 직렬화"""
+        return {
+            "name": self.name,
+            "level": self.level,
+            "stats": {k.value: v for k, v in self.stats.items()},
+            "resonance_shield": self.resonance_shield,
+            "status_tags": self.status_tags,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "CharacterSheet":
+        """dict에서 CharacterSheet 복원"""
+        sheet = cls(name=data["name"], level=data.get("level", 1))
+        sheet.stats = {StatType(k): v for k, v in data.get("stats", {}).items()}
+        sheet.resonance_shield = data.get(
+            "resonance_shield",
+            {
+                "Kinetic": 10,
+                "Thermal": 10,
+                "Structural": 10,
+                "Bio": 10,
+                "Psyche": 10,
+                "Data": 10,
+                "Social": 10,
+                "Esoteric": 10,
+            },
+        )
+        sheet.status_tags = data.get("status_tags", [])
+        return sheet
+
 
 class ResolutionEngine:
     """

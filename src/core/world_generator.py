@@ -118,7 +118,7 @@ class Echo:
 
     echo_type: str  # "Short" | "Long"
     visibility: str  # "Public" | "Hidden"
-    base_dc: int  # 조사 난이도
+    base_difficulty: int  # d6 Dice Pool 기본 난이도 (1-5)
     timestamp: str  # ISO 날짜
     flavor_text: str
     source_player_id: Optional[str] = None
@@ -127,7 +127,7 @@ class Echo:
         return {
             "type": self.echo_type,
             "visibility": self.visibility,
-            "base_dc": self.base_dc,
+            "base_difficulty": self.base_difficulty,
             "timestamp": self.timestamp,
             "flavor_text": self.flavor_text,
             "source_player_id": self.source_player_id,
@@ -138,7 +138,7 @@ class Echo:
         return cls(
             echo_type=data["type"],
             visibility=data["visibility"],
-            base_dc=data["base_dc"],
+            base_difficulty=data["base_difficulty"],
             timestamp=data["timestamp"],
             flavor_text=data["flavor_text"],
             source_player_id=data.get("source_player_id"),

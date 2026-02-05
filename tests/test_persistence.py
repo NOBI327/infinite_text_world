@@ -169,7 +169,7 @@ class TestNodePersistence:
             Echo(
                 echo_type="Short",
                 visibility="Public",
-                base_dc=10,
+                base_difficulty=2,
                 timestamp="2024-01-01T12:00:00",
                 flavor_text="누군가 이곳을 지나갔다",
                 source_player_id="player_abc",
@@ -177,7 +177,7 @@ class TestNodePersistence:
             Echo(
                 echo_type="Long",
                 visibility="Hidden",
-                base_dc=15,
+                base_difficulty=3,
                 timestamp="2024-01-02T08:00:00",
                 flavor_text="오래된 전투의 흔적",
                 source_player_id=None,
@@ -195,7 +195,7 @@ class TestNodePersistence:
                 node_coordinate=sample_node.coordinate,
                 echo_type=echo.echo_type,
                 visibility=echo.visibility,
-                base_dc=echo.base_dc,
+                base_difficulty=echo.base_difficulty,
                 timestamp=echo.timestamp,
                 flavor_text=echo.flavor_text,
                 source_player_id=echo.source_player_id,
@@ -214,7 +214,7 @@ class TestNodePersistence:
         )
         assert public_echo is not None
         assert public_echo.echo_type == "Short"
-        assert public_echo.base_dc == 10
+        assert public_echo.base_difficulty == 2
         assert public_echo.source_player_id == "player_abc"
 
         hidden_echo = next(

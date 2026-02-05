@@ -53,7 +53,7 @@ class EchoTemplate:
 
     category: EchoCategory
     echo_type: EchoType
-    base_dc: int
+    base_difficulty: int  # d6 Dice Pool 기본 난이도 (1-5)
     visibility: EchoVisibility
     flavor_templates: List[str]
     decay_days: Optional[int] = None  # Short Echo의 수명 (일)
@@ -66,12 +66,13 @@ class EchoManager:
     Echo 생성, 조사, 소멸을 관리합니다.
     """
 
-    # 기본 Echo 템플릿
+    # 기본 Echo 템플릿 (d6 Dice Pool 난이도)
+    # DC 변환: 5-9→1, 10-14→2, 15-19→3, 20+→4
     TEMPLATES = {
         EchoCategory.COMBAT: EchoTemplate(
             category=EchoCategory.COMBAT,
             echo_type=EchoType.SHORT,
-            base_dc=10,
+            base_difficulty=2,  # 기존 DC 10
             visibility=EchoVisibility.PUBLIC,
             flavor_templates=[
                 "피가 튄 흔적이 남아있다...",
@@ -84,7 +85,7 @@ class EchoManager:
         EchoCategory.DEATH: EchoTemplate(
             category=EchoCategory.DEATH,
             echo_type=EchoType.SHORT,
-            base_dc=8,
+            base_difficulty=2,  # 기존 DC 8
             visibility=EchoVisibility.PUBLIC,
             flavor_templates=[
                 "죽음의 기운이 서려있다...",
@@ -97,7 +98,7 @@ class EchoManager:
         EchoCategory.EXPLORATION: EchoTemplate(
             category=EchoCategory.EXPLORATION,
             echo_type=EchoType.SHORT,
-            base_dc=12,
+            base_difficulty=2,  # 기존 DC 12
             visibility=EchoVisibility.HIDDEN,
             flavor_templates=[
                 "발자국이 희미하게 남아있다...",
@@ -110,7 +111,7 @@ class EchoManager:
         EchoCategory.CRAFTING: EchoTemplate(
             category=EchoCategory.CRAFTING,
             echo_type=EchoType.SHORT,
-            base_dc=14,
+            base_difficulty=3,  # 기존 DC 14
             visibility=EchoVisibility.HIDDEN,
             flavor_templates=[
                 "제작 도구의 흔적이 남아있다...",
@@ -123,7 +124,7 @@ class EchoManager:
         EchoCategory.BOSS: EchoTemplate(
             category=EchoCategory.BOSS,
             echo_type=EchoType.LONG,
-            base_dc=5,
+            base_difficulty=1,  # 기존 DC 5
             visibility=EchoVisibility.PUBLIC,
             flavor_templates=[
                 "위대한 승리의 기운이 서려있다!",
@@ -136,7 +137,7 @@ class EchoManager:
         EchoCategory.DISCOVERY: EchoTemplate(
             category=EchoCategory.DISCOVERY,
             echo_type=EchoType.LONG,
-            base_dc=15,
+            base_difficulty=3,  # 기존 DC 15
             visibility=EchoVisibility.HIDDEN,
             flavor_templates=[
                 "무언가 중요한 것이 발견된 장소...",
@@ -149,7 +150,7 @@ class EchoManager:
         EchoCategory.SOCIAL: EchoTemplate(
             category=EchoCategory.SOCIAL,
             echo_type=EchoType.SHORT,
-            base_dc=10,
+            base_difficulty=2,  # 기존 DC 10
             visibility=EchoVisibility.PUBLIC,
             flavor_templates=[
                 "대화의 여운이 남아있다...",
@@ -162,7 +163,7 @@ class EchoManager:
         EchoCategory.MYSTERY: EchoTemplate(
             category=EchoCategory.MYSTERY,
             echo_type=EchoType.LONG,
-            base_dc=20,
+            base_difficulty=4,  # 기존 DC 20
             visibility=EchoVisibility.HIDDEN,
             flavor_templates=[
                 "설명할 수 없는 현상의 흔적...",
@@ -174,11 +175,11 @@ class EchoManager:
         ),
     }
 
-    # 시간 경과에 따른 DC 증가 (일당)
-    TIME_DECAY_PER_DAY = 1
+    # 시간 경과에 따른 난이도 증가 (7일마다 +1)
+    TIME_MODIFIER_DAYS = 7
 
-    # 최대 시간 감쇠
-    MAX_TIME_DECAY = 10
+    # 최대 시간 수정치
+    MAX_TIME_MODIFIER = 2
 
     # 카테고리별 Fame 보상
     FAME_REWARDS = {
@@ -205,7 +206,7 @@ class EchoManager:
         node: MapNode,
         source_player_id: Optional[str] = None,
         custom_flavor: Optional[str] = None,
-        dc_modifier: int = 0,
+        difficulty_modifier: int = 0,
     ) -> Echo:
         """
         새 Echo 생성
@@ -215,7 +216,7 @@ class EchoManager:
             node: Echo가 생성될 노드
             source_player_id: 생성자 플레이어 ID
             custom_flavor: 커스텀 플레이버 텍스트
-            dc_modifier: DC 수정치
+            difficulty_modifier: 난이도 수정치
 
         Returns:
             생성된 Echo
@@ -237,13 +238,13 @@ class EchoManager:
             if axiom:
                 flavor = f"{flavor} ({axiom.name_kr}의 기운과 함께)"
 
-        # DC 계산
-        base_dc = template.base_dc + dc_modifier
+        # 난이도 계산
+        difficulty = template.base_difficulty + difficulty_modifier
 
         echo = Echo(
             echo_type=template.echo_type.value,
             visibility=template.visibility.value,
-            base_dc=base_dc,
+            base_difficulty=difficulty,
             timestamp=datetime.utcnow().isoformat(),
             flavor_text=flavor,
             source_player_id=source_player_id,
@@ -254,26 +255,20 @@ class EchoManager:
 
         return echo
 
-    def calculate_investigation_dc(
-        self, echo: Echo, investigator_fame: int = 0, bonus_modifiers: int = 0
-    ) -> Dict[str, Any]:
+    def calculate_investigation_difficulty(self, echo: Echo) -> Dict[str, Any]:
         """
-        조사 DC 계산
+        조사 난이도 계산 (d6 Dice Pool 시스템)
 
-        Formula: Final_DC = (Base_DC + Time_Decay) - Fame_Factor + Modifiers
+        Formula: final_difficulty = base_difficulty + time_modifier
 
         Args:
             echo: 조사할 Echo
-            investigator_fame: 조사자의 명성 수치
-            bonus_modifiers: 추가 수정치 (아이템, 스킬 등)
 
         Returns:
             {
-                "base_dc": 10,
-                "time_decay": 3,
-                "fame_bonus": -2,
-                "modifiers": -1,
-                "final_dc": 10
+                "base_difficulty": int,
+                "time_modifier": int,
+                "final_difficulty": int
             }
         """
         # 시간 경과 계산
@@ -283,56 +278,53 @@ class EchoManager:
         now = datetime.utcnow()
         days_passed = (now - created).days
 
-        time_decay = min(days_passed * self.TIME_DECAY_PER_DAY, self.MAX_TIME_DECAY)
+        # 7일마다 +1 난이도, 최대 +2
+        time_modifier = min(
+            days_passed // self.TIME_MODIFIER_DAYS, self.MAX_TIME_MODIFIER
+        )
 
-        # Fame 보너스 (높은 명성 = 정보 얻기 쉬움)
-        fame_bonus = investigator_fame // 10  # 10 Fame당 -1 DC
+        base_difficulty = echo.base_difficulty
 
-        # 최종 DC
-        final_dc = echo.base_dc + time_decay - fame_bonus - bonus_modifiers
-        final_dc = max(5, final_dc)  # 최소 DC 5
+        # 최종 난이도
+        final_difficulty = base_difficulty + time_modifier
 
         return {
-            "base_dc": echo.base_dc,
-            "time_decay": time_decay,
+            "base_difficulty": base_difficulty,
+            "time_modifier": time_modifier,
             "days_passed": days_passed,
-            "fame_bonus": fame_bonus,
-            "modifiers": bonus_modifiers,
-            "final_dc": final_dc,
+            "final_difficulty": final_difficulty,
         }
 
     def investigate(
         self,
         echo: Echo,
-        roll: int,
+        hits: int,
         investigator_fame: int = 0,
         bonus_modifiers: int = 0,
     ) -> Dict[str, Any]:
         """
-        Echo 조사 시도
+        Echo 조사 시도 (d6 Dice Pool 시스템)
 
         Args:
             echo: 조사할 Echo
-            roll: 주사위 굴림 결과 (1d20 + 능력치)
-            investigator_fame: 조사자 명성
-            bonus_modifiers: 추가 수정치
+            hits: 주사위 성공 개수 (5, 6이 나온 d6 개수)
+            investigator_fame: 조사자 명성 (미사용, 호환성 유지)
+            bonus_modifiers: 추가 수정치 (미사용, 호환성 유지)
 
         Returns:
             조사 결과 (성공/실패, 발견 정보 등)
         """
-        dc_info = self.calculate_investigation_dc(
-            echo, investigator_fame, bonus_modifiers
-        )
-        final_dc = dc_info["final_dc"]
+        difficulty_info = self.calculate_investigation_difficulty(echo)
+        final_difficulty = difficulty_info["final_difficulty"]
 
-        success = roll >= final_dc
-        margin = roll - final_dc
+        success = hits >= final_difficulty
+        margin = hits - final_difficulty
 
         result = {
             "success": success,
-            "roll": roll,
-            "dc": final_dc,
-            "dc_breakdown": dc_info,
+            "hits": hits,
+            "difficulty": final_difficulty,
+            "difficulty_breakdown": difficulty_info,
             "margin": margin,
         }
 
@@ -341,12 +333,12 @@ class EchoManager:
             result["discovered_info"] = {
                 "flavor": echo.flavor_text,
                 "type": echo.echo_type,
-                "age": f"{dc_info['days_passed']}일 전",
+                "age": f"{difficulty_info['days_passed']}일 전",
                 "source_hint": self._get_source_hint(echo, margin),
             }
 
-            # 대성공 (margin >= 5) 시 추가 정보
-            if margin >= 5:
+            # 대성공 (hits >= difficulty + 2) 시 추가 정보
+            if margin >= 2:
                 result["bonus_info"] = "흔적을 남긴 자의 대략적인 특징이 느껴진다..."
                 if echo.source_player_id:
                     result["source_player_hint"] = echo.source_player_id[:4] + "****"
@@ -354,19 +346,17 @@ class EchoManager:
             # 실패
             result["message"] = "흔적을 해석하는 데 실패했다..."
 
-            # 대실패 (margin <= -5) 시 페널티
-            if margin <= -5:
-                result["penalty"] = (
-                    "잘못된 해석으로 혼란에 빠졌다. 다음 조사에 -2 페널티."
-                )
+            # 대실패 (hits = 0) 시 페널티
+            if hits == 0:
+                result["penalty"] = "잘못된 해석으로 혼란에 빠졌다. 다음 조사에 페널티."
 
         return result
 
     def _get_source_hint(self, echo: Echo, margin: int) -> str:
-        """성공 마진에 따른 소스 힌트 생성"""
-        if margin >= 10:
+        """성공 마진에 따른 소스 힌트 생성 (d6 Dice Pool 스케일)"""
+        if margin >= 3:
             return "매우 명확한 흔적. 세부사항까지 알 수 있다."
-        elif margin >= 5:
+        elif margin >= 2:
             return "선명한 흔적. 대략적인 상황을 파악할 수 있다."
         elif margin >= 0:
             return "희미한 흔적. 기본적인 정보만 알 수 있다."
@@ -439,12 +429,12 @@ class EchoManager:
 
 @dataclass
 class InvestigationResult:
-    """조사 결과 상세"""
+    """조사 결과 상세 (d6 Dice Pool 시스템)"""
 
     success: bool
     echo: Echo
-    roll: int
-    dc: int
+    hits: int
+    difficulty: int
     margin: int
     discovered_info: Optional[Dict] = None
     bonus_info: Optional[str] = None
@@ -453,7 +443,9 @@ class InvestigationResult:
     def to_narrative(self) -> str:
         """서사적 결과 텍스트 생성"""
         if self.success:
-            narrative = f"조사에 성공했다! (굴림: {self.roll} vs DC: {self.dc})\n"
+            narrative = (
+                f"조사에 성공했다! (Hits: {self.hits} vs 난이도: {self.difficulty})\n"
+            )
             if self.discovered_info:
                 narrative += f"\n{self.discovered_info['flavor']}\n"
                 narrative += f"약 {self.discovered_info['age']} 전의 흔적이다.\n"
@@ -461,7 +453,9 @@ class InvestigationResult:
             if self.bonus_info:
                 narrative += f"\n\n[추가 정보] {self.bonus_info}"
         else:
-            narrative = f"조사에 실패했다... (굴림: {self.roll} vs DC: {self.dc})\n"
+            narrative = (
+                f"조사에 실패했다... (Hits: {self.hits} vs 난이도: {self.difficulty})\n"
+            )
             narrative += "흔적을 해석하는 데 실패했다."
             if self.penalty:
                 narrative += f"\n\n[페널티] {self.penalty}"
@@ -503,36 +497,38 @@ if __name__ == "__main__":
     mystery_echo = echo_manager.create_echo(
         EchoCategory.MYSTERY,
         test_node,
-        dc_modifier=5,  # 더 어렵게
+        difficulty_modifier=1,  # 더 어렵게
     )
     logger.info("Mystery Echo: %s", mystery_echo.flavor_text)
 
-    # DC 계산 테스트
-    logger.info("=== Investigation DC Calculation ===")
-    dc_info = echo_manager.calculate_investigation_dc(
-        mystery_echo, investigator_fame=50, bonus_modifiers=2
-    )
-    logger.info("Base DC: %d", dc_info["base_dc"])
+    # 난이도 계산 테스트
+    logger.info("=== Investigation Difficulty Calculation ===")
+    diff_info = echo_manager.calculate_investigation_difficulty(mystery_echo)
+    logger.info("Base Difficulty: %d", diff_info["base_difficulty"])
     logger.info(
-        "Time Decay: +%d (%d days)", dc_info["time_decay"], dc_info["days_passed"]
+        "Time Modifier: +%d (%d days)",
+        diff_info["time_modifier"],
+        diff_info["days_passed"],
     )
-    logger.info("Fame Bonus: -%d", dc_info["fame_bonus"])
-    logger.info("Modifiers: -%d", dc_info["modifiers"])
-    logger.info("Final DC: %d", dc_info["final_dc"])
+    logger.info("Final Difficulty: %d", diff_info["final_difficulty"])
 
     # 조사 테스트
     logger.info("=== Investigation Attempts ===")
 
-    # 성공 케이스
-    result = echo_manager.investigate(mystery_echo, roll=25, investigator_fame=50)
-    logger.info("Roll 25 - Success: %s", result["success"])
+    # 성공 케이스 (hits >= difficulty)
+    result = echo_manager.investigate(mystery_echo, hits=5)
+    logger.info("Hits 5 - Success: %s", result["success"])
     if result["success"]:
         logger.info("  Discovered: %s...", result["discovered_info"]["flavor"][:50])
 
     # 실패 케이스
-    result = echo_manager.investigate(mystery_echo, roll=8, investigator_fame=0)
-    logger.info("Roll 8 - Success: %s", result["success"])
+    result = echo_manager.investigate(mystery_echo, hits=2)
+    logger.info("Hits 2 - Success: %s", result["success"])
     logger.info("  Message: %s", result.get("message", "N/A"))
+
+    # 대실패 케이스 (hits = 0)
+    result = echo_manager.investigate(mystery_echo, hits=0)
+    logger.info("Hits 0 - Success: %s", result["success"])
     if result.get("penalty"):
         logger.info("  Penalty: %s", result["penalty"])
 

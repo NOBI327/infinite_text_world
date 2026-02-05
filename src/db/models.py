@@ -76,7 +76,7 @@ class EchoModel(Base):
     )
     echo_type: Mapped[str] = mapped_column(String, nullable=False)
     visibility: Mapped[str] = mapped_column(String, nullable=False)
-    base_dc: Mapped[int] = mapped_column(Integer, nullable=False)
+    base_difficulty: Mapped[int] = mapped_column(Integer, nullable=False)
     timestamp: Mapped[str] = mapped_column(String, nullable=False)
     flavor_text: Mapped[str] = mapped_column(Text, nullable=False)
     source_player_id: Mapped[str | None] = mapped_column(String, nullable=True)
