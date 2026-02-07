@@ -20,12 +20,24 @@ Text-based procedural single-player TRPG engine (Python/FastAPI/SQLite)
 - HOW: docs/30_technical/
 - RUN: docs/40_operations/
 
+## Reference
+- docs/INDEX.md - 설계 문서 인덱스
+- docs/SRC_INDEX.md - 소스 코드 인덱스
+- 작업 전 관련 문서를 먼저 읽을 것
+
+## Architecture Rules
+- 의존 방향: API → Service → Core → DB (역방향 금지)
+- Service간 직접 호출 금지, EventBus 경유 (Phase 2~)
+- Core는 DB를 모른다, Service가 Core와 DB를 연결
+- 상세: docs/30_technical/architecture.md 참조
+
 ## Rules
 1. Code is truth (if implemented)
 2. Ask user if unclear (if not implemented)
-3. Don't guess - read docs first
+3. Don't guess - read docs/INDEX.md, docs/SRC_INDEX.md first
+4. 다른 서비스를 직접 import하지 말 것
 
-## Quality Gates (추가 예정)
+## Quality Gates
 1. ruff check - 린트 통과
 2. pytest - 테스트 통과
 3. pytest --cov - 커버리지 70%+
