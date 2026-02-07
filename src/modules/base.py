@@ -43,6 +43,11 @@ class GameModule(ABC):
     - Module → Module은 금지
     """
 
+    _enabled: bool
+
+    def __init__(self) -> None:
+        self._enabled = False
+
     @property
     @abstractmethod
     def name(self) -> str:
@@ -64,9 +69,6 @@ class GameModule(ABC):
     @enabled.setter
     def enabled(self, value: bool) -> None:
         self._enabled = value
-
-    def __init__(self) -> None:
-        self._enabled: bool = False
 
     @abstractmethod
     def on_enable(self) -> None:
