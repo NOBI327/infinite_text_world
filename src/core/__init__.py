@@ -33,6 +33,7 @@ from src.core.core_rule import (
     ResolutionEngine,
 )
 from src.core.engine import ITWEngine, PlayerState, ActionResult
+from src.core.event_bus import EventBus, GameEvent
 
 __all__ = [
     "AxiomLoader",
@@ -63,4 +64,6 @@ __all__ = [
     "ITWEngine",
     "PlayerState",
     "ActionResult",
+    "EventBus",
+    "GameEvent",
 ]
