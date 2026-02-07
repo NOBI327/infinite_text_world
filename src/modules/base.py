@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from sqlalchemy.orm import Session
 
@@ -14,7 +14,7 @@ class GameContext:
     player_id: str
     current_node_id: str
     current_turn: int
-    db_session: Session
+    db_session: Optional[Session] = None
 
     # 모듈이 추가 데이터를 넣을 수 있는 확장 슬롯
     extra: Dict[str, Any] = field(default_factory=dict)

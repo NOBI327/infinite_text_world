@@ -3,12 +3,15 @@
 ## Project
 Text-based procedural single-player TRPG engine (Python/FastAPI/SQLite)
 
-## Commands Before Commit
-1. ruff check src/ tests/ - must pass
-2. pytest -v - must pass
+## Git Convention
+- 논리 단위마다 즉시 커밋 + push
+- 커밋 전: ruff check src/ tests/ && pytest tests/ -v
+- 메시지: Conventional Commits (feat/fix/docs/test/refactor/chore)
+- git push origin main
 
 ## Structure
 - src/core/ - Game logic (no DB dependency)
+- src/modules/ - Toggleable feature modules (GameModule interface)
 - src/services/ - Business logic with DB
 - src/db/ - ORM models
 - src/api/ - FastAPI endpoints
@@ -19,6 +22,7 @@ Text-based procedural single-player TRPG engine (Python/FastAPI/SQLite)
 - WHAT: docs/20_design/
 - HOW: docs/30_technical/
 - RUN: docs/40_operations/
+- 구현 지시서: docs/40_operations/instructions/
 
 ## Reference
 - docs/INDEX.md - 설계 문서 인덱스
@@ -27,7 +31,8 @@ Text-based procedural single-player TRPG engine (Python/FastAPI/SQLite)
 
 ## Architecture Rules
 - 의존 방향: API → Service → Core → DB (역방향 금지)
-- Service간 직접 호출 금지, EventBus 경유 (Phase 2~)
+- Module → Core, Module → DB 허용. Module → Module 금지
+- Service간 직접 호출 금지, EventBus 경유
 - Core는 DB를 모른다, Service가 Core와 DB를 연결
 - 상세: docs/30_technical/architecture.md 참조
 

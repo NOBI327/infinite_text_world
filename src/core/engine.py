@@ -30,6 +30,9 @@ from src.core.world_generator import (
     WorldGenerator,
 )
 from src.db.models import EchoModel, MapNodeModel, PlayerModel, ResourceModel
+from src.modules.base import GameContext
+from src.modules.module_manager import ModuleManager
+from src.modules.geography import GeographyModule
 
 logger = get_logger(__name__)
 
@@ -324,7 +327,29 @@ class ITWEngine:
         # 글로벌 이벤트 로그
         self.global_hooks: list[dict] = []
 
+        # === 모듈 시스템 초기화 (기존 인스턴스 래핑) ===
+        self._module_manager = ModuleManager()
+
+        geography = GeographyModule(
+            world_generator=self.world,
+            navigator=self.navigator,
+            sub_grid_generator=self.sub_grid_generator,
+        )
+        self._module_manager.register(geography)
+
+        logger.info(
+            "ModuleManager initialized. Registered modules: %s",
+            list(self._module_manager.modules.keys()),
+        )
+
         logger.info("Ready. %d Axioms loaded.", len(self.axiom_loader.get_all()))
+
+    # === 모듈 시스템 ===
+
+    @property
+    def module_manager(self) -> ModuleManager:
+        """모듈 관리자 접근"""
+        return self._module_manager
 
     # === 플레이어 관리 ===
 
@@ -455,6 +480,9 @@ class ITWEngine:
             }
             if result.encounter:
                 data["encounter"] = result.encounter
+
+            # 모듈 알림 (이동 성공 시)
+            self._notify_modules_node_enter(player.player_id, player.x, player.y)
 
             return ActionResult(
                 success=True,
@@ -722,6 +750,38 @@ class ITWEngine:
         view = self.navigator.get_location_view(player.x, player.y, player_id)
         return render_compass(view)
 
+    # === 모듈 편의 메서드 ===
+
+    def enable_module(self, module_name: str) -> bool:
+        """모듈 활성화"""
+        return self._module_manager.enable(module_name)
+
+    def disable_module(self, module_name: str) -> bool:
+        """모듈 비활성화"""
+        return self._module_manager.disable(module_name)
+
+    def _build_game_context(
+        self, player_id: str, node_id: str, db_session: Optional[Session] = None
+    ) -> GameContext:
+        """모듈에 전달할 GameContext 생성 헬퍼"""
+        return GameContext(
+            player_id=player_id,
+            current_node_id=node_id,
+            current_turn=0,
+            db_session=db_session,
+        )
+
+    def _notify_modules_node_enter(
+        self, player_id: str, x: int, y: int, db_session: Optional[Session] = None
+    ) -> None:
+        """이동 성공 시 모듈에 노드 진입 알림"""
+        if not self._module_manager.get_enabled_modules():
+            return
+
+        node_id = f"{x}_{y}"
+        context = self._build_game_context(player_id, node_id, db_session)
+        self._module_manager.process_node_enter(node_id, context)
+
     # === 서브 그리드 진입/탈출 ===
 
     def enter_depth(self, player_id: str) -> ActionResult:
@@ -778,6 +838,9 @@ class ITWEngine:
             special_features=["🚪 입구", "⬇️ 아래로 내려갈 수 있다"],
         )
 
+        # 모듈 알림 (서브그리드 진입)
+        self._notify_modules_node_enter(player.player_id, player.x, player.y)
+
         return ActionResult(
             success=True,
             action_type="enter",
@@ -824,6 +887,9 @@ class ITWEngine:
 
         # 메인 그리드 위치 뷰
         view = self.navigator.get_location_view(player.x, player.y, player_id)
+
+        # 모듈 알림 (메인 그리드 복귀)
+        self._notify_modules_node_enter(player_id, player.x, player.y)
 
         return ActionResult(
             success=True,
@@ -1058,6 +1124,14 @@ class ITWEngine:
             removed = self.echo_manager.decay_echoes(node)
             if removed > 0:
                 logger.debug("[%s] %d echoes decayed", coord, removed)
+
+        # 모듈 턴 처리
+        if self._module_manager.get_enabled_modules():
+            context = self._build_game_context(
+                player_id="__system__",
+                node_id="__global__",
+            )
+            self._module_manager.process_turn(context)
 
         logger.info("Daily tick complete")
 
