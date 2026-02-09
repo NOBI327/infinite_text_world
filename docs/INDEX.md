@@ -156,4 +156,4 @@
 - ~~dialogue-system.md: AI 대화 컨텍스트, 이중 출력~~ → ✅ 완료
 - event-bus.md: 서비스 간 이벤트 통신 패턴
 - ~~item-system.md: 아이템 체계, 거래, 퀘스트 보상~~ → ✅ 완료
-- db-schema-v2.md: NPC/관계/퀘스트/대화 통합 스키마
+- ~~db-schema-v2.md: NPC/관계/퀘스트/대화 통합 스키마~~ → ✅ 완료
