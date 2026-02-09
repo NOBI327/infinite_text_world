@@ -80,6 +80,17 @@
 - Constraints 주입 + Python 사후 검증 파이프라인 - 미구현
 - LLM 프롬프트 계층 구조 - 미구현
 
+### 아이템 시스템 (docs/20_design/item-system.md)
+- Prototype(불변) + Instance(가변) 분리 구조 - 미구현
+- PrototypeRegistry 동적 등록 - 미구현
+- axiom_tags 매핑 테이블 - 미구현
+- bulk 기반 인벤토리 (50+EXEC 보정) - 미구현
+- 4종 분류 (EQUIPMENT/CONSUMABLE/MATERIAL/MISC) - 미구현
+- 거래 시스템 (관계/HEXACO H 보정 거래가, 흥정 3단계) - 미구현
+- 선물 시스템 (calculate_gift_affinity) - 미구현
+- 내구도 시스템 (파괴 → 변환/소멸) - 미구현
+- 점포 구조 (container 체이닝, 임시 자동 보충) - 미구현
+
 ### 오버레이 시스템 (docs/20_design/overlay-layer-system.md)
 - Weather/Territory/Quest/Event 오버레이 - 미구현
 - severity 기반 영향권 - 미구현
@@ -116,7 +127,7 @@
 ## 설계 미완 (로드맵/요구사항에 있지만 설계 문서 없음)
 
 ### Phase 2 잔여 (설계 필요)
-- item-system.md: 아이템 체계, 거래, 퀘스트 보상
+- ~~item-system.md: 아이템 체계, 거래, 퀘스트 보상~~ → ✅ 설계 완료
 - db-schema-v2.md: NPC/관계/퀘스트/대화 통합 스키마
 - event-bus.md: 서비스 간 이벤트 통신 패턴 상세
 
@@ -150,7 +161,7 @@
 ## 다음 작업 후보
 
 ### 설계 (다음 작성 대상)
-1. **item-system.md**: 아이템 체계, 거래, 퀘스트 보상
+1. ~~**item-system.md**: 아이템 체계, 거래, 퀘스트 보상~~ → ✅ 완료
 2. **db-schema-v2.md**: quest/dialogue/relationship/item 확정 후 통합 스키마
 3. **event-bus.md**: 서비스 간 이벤트 통신 패턴 상세 (각 모듈 EventBus 인터페이스를 통합 정리)
 

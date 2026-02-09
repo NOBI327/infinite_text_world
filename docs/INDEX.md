@@ -74,6 +74,12 @@
 - **META JSON:** narrative + meta 이중 구조. dialogue_state, relationship_delta, memory_tags, quest_seed_response, action_interpretation, resolution_comment, npc_internal.
 - **검증:** Constraints 항상 주입(퀘스트 무관) + Python 사후 검증(보정 우선, 재생성 최소화).
 
+### item-system.md
+- **목적:** 아이템 체계, 거래, 선물, 인벤토리, 내구도 시스템 설계
+- **핵심:** Prototype(불변) + Instance(가변) 분리, axiom_tags 매핑, bulk 기반 인벤토리(50+EXEC 보정), 4종 분류(EQUIPMENT/CONSUMABLE/MATERIAL/MISC).
+- **거래:** 관계/HEXACO H 보정 거래가, A(관용성) 기반 흥정 3단계(accept/counter/reject), browse→거래대화 자동진입.
+- **확장:** PrototypeRegistry 동적 등록, 초기 43종 → 수천 종 스케일.
+
 ---
 
 ## 30_technical/ (HOW)
@@ -107,6 +113,11 @@
 - **목적:** SQLite DB 스키마 정의
 - **핵심:** map_nodes(좌표/tier/axiom/sensory) + players(위치/상태) 테이블. 레이어별 필드 추가 예정.
 - **신규:** biomes 테이블 추가 예정(id, name_kr, base_tags, weather_interpretation).
+
+### db-schema-v2.md
+- **목적:** Phase 2 통합 DB 스키마 (NPC/관계/퀘스트/대화/아이템)
+- **핵심:** 기존 v1 유지 + 15개 신규 테이블. models_v2.py 단일 파일 구성. JSON 필드 활용.
+- **마이그레이션:** 의존 순서 5단계 생성. 운영 DB 발생 시 Alembic 도입 예정.
 
 ### module-architecture.md
 - **목적:** 모듈식 개발 구조 설계
@@ -144,5 +155,5 @@
 - ~~quest-system.md: 퀘스트 자연발생, 연작 구조~~ → ✅ 완료
 - ~~dialogue-system.md: AI 대화 컨텍스트, 이중 출력~~ → ✅ 완료
 - event-bus.md: 서비스 간 이벤트 통신 패턴
-- item-system.md: 아이템 체계, 거래, 퀘스트 보상
+- ~~item-system.md: 아이템 체계, 거래, 퀘스트 보상~~ → ✅ 완료
 - db-schema-v2.md: NPC/관계/퀘스트/대화 통합 스키마

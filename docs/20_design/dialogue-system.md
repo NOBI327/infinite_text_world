@@ -272,6 +272,10 @@ talk 명령은 look/move와 동일하게 1턴을 소비한다. 차이점은 내�
 
     "resolution_comment": null,
 
+    "trade_request": null,
+
+    "gift_offered": null,
+
     "npc_internal": {
       "emotional_state": "anxious",
       "hidden_intent": null
@@ -360,6 +364,26 @@ quest-system.md의 hint_type → objective_type 매핑 및 fallback 목표 생�
 ```
 
 quest-system.md의 NPC 한줄평 규칙 참조. NPC 기억(Tier 2) + 퀘스트 DB 이중 저장.
+
+#### trade_request (선택, 거래 발생 시)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `action` | str | "buy" \| "sell" \| "negotiate" \| "confirm" \| "reject" |
+| `item_instance_id` | str | 거래 대상 아이템 instance ID |
+| `proposed_price` | int \| null | PC/NPC 제안가 (negotiate 시) |
+| `final_price` | int \| null | 최종 합의가 (confirm 시) |
+
+Python 검증: action이 허용 값인지, 아이템이 실제 존재하는지, 통화 잔고 충분한지 확인. 상세는 item-system.md 섹션 6 참조.
+
+#### gift_offered (선택, 선물 제공 시)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `item_instance_id` | str | 선물 아이템 instance ID |
+| `npc_reaction` | str | NPC 반응 태그 ("grateful", "indifferent", "offended" 등) |
+
+Python이 item-system.md의 `calculate_gift_affinity()`로 relationship_delta를 계산하고, 세션 종료 시 일괄 적용.
 
 #### npc_internal (선택, 매 턴)
 
@@ -474,6 +498,9 @@ action_interpretation은 **이미 진행되는 대화 LLM 호출의 META 안에*
 | `action_interpretation.modifiers` | PC 보유 자원에 존재 | 미보유 modifier 제거 |
 | `resolution_comment.method_tag` | 허용 태그 목록 | "unconventional" 기본값 |
 | `resolution_comment.impression_tag` | 허용 태그 목록 | "neutral" 기본값 |
+| `trade_request.action` | "buy" \| "sell" \| "negotiate" \| "confirm" \| "reject" | null 처리 |
+| `trade_request.item_instance_id` | 아이템 존재 확인 | null 처리 (거래 무효) |
+| `gift_offered.item_instance_id` | 아이템 존재 + PC 소유 확인 | null 처리 (선물 무효) |
 
 ### 6.3 검증 흐름
 
@@ -815,3 +842,4 @@ class DialogueTurn:
 | 버전 | 일자 | 내용 |
 |------|------|------|
 | 1.0 | 2026-02-10 | 최초 작성 |
+| 1.1 | 2026-02-10 | trade_request, gift_offered META 필드 추가 (item-system.md 연동) |
