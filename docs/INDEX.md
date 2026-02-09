@@ -56,6 +56,24 @@
 - **핵심:** L2 Weather, L3 Territory, L4 Quest, L5 Event 오버레이. severity(0.0~1.0) 기반 영향권 확장/축소. 우선순위 병합 + 충돌 시 창발적 효과.
 - **상호작용:** 대화 태그 주입, 조우 확률 변경, 경제 수정자 적용.
 
+### relationship-system.md
+- **목적:** PC-NPC 간, NPC-NPC 간 관계 시스템 설계
+- **핵심:** 3축(affinity/trust/familiarity), 6단계 상태 전이(Stranger→Bonded, Rival→Nemesis), 반전 이벤트 3유형(betrayal/redemption/trust_collapse).
+- **태도 태그:** Python 3단계 파이프라인 (관계 수치 → HEXACO 보정 → 기억 보정). LLM은 서술만.
+- **감쇠:** affinity/trust 지수 1.2 감쇠, trust 하락은 감쇠 없음, familiarity 30일당 -1.
+
+### quest-system.md
+- **목적:** 퀘스트 발생, 체이닝, 판정, 보상 시스템 설계
+- **핵심:** Python 선행 제어(5% 확률) + LLM 내용 생성 2단계 구조. Quest Seed로 떡밥 심기 → PC 선택권 → 수락 시 활성화.
+- **체이닝:** 시드 티어 3단계(소60%/중30%/대10%), 시드 생성 시 DB 참조하여 연작 결정. chain_eligible_npcs(existing + unborn).
+- **판정:** 수단의 자유 원칙. 공리 역학 활용이 전투 핵심. NPC 한줄평(impression_tag)이 태도 태그에 반영.
+
+### dialogue-system.md
+- **목적:** PC-NPC 대화 세션 관리, META JSON 통합, 행동 검증 시스템 설계
+- **핵심:** 대화 세션 전체 = 게임 1턴. 예산제(관계/HEXACO/시드 기반) + 4단계 그라데이션 종료(open→winding→closing→final).
+- **META JSON:** narrative + meta 이중 구조. dialogue_state, relationship_delta, memory_tags, quest_seed_response, action_interpretation, resolution_comment, npc_internal.
+- **검증:** Constraints 항상 주입(퀘스트 무관) + Python 사후 검증(보정 우선, 재생성 최소화).
+
 ---
 
 ## 30_technical/ (HOW)
@@ -95,6 +113,12 @@
 - **핵심:** Layer 0(Core) → Layer 1(기반: geography, time, npc, item) → Layer 2(오버레이) → Layer 3(상호작용) → Layer 4(고급). GameModule ABC + ModuleManager로 모듈 토글.
 - **원칙:** 모듈 격리, 명시적 의존성, EventBus 통신, 점진적 복잡도 증가.
 
+### simulation-scope.md
+- **목적:** NPC 시뮬레이션 범위와 Zone 밖 NPC 처리 규칙 정의
+- **핵심:** Active Zone(PC 중심 5×5, active_radius 설정 가능) 풀 시뮬레이션. Background Zone은 상태만 추적.
+- **Zone 밖 NPC:** event_bound(백그라운드 처리 유지) vs desire_wandered(유예 턴 후 귀환). PC 접근 시 즉시 활성화.
+- **연산:** Python+DB ~8ms/턴, LLM 1~3초. 병목은 항상 LLM.
+
 ---
 
 ## 40_operations/ (RUN)
@@ -116,7 +140,9 @@
 
 ### 🔜 예정 문서 (Phase 2)
 - ~~npc-system.md: NPC 승격, HEXACO 성격, 기억 구조~~ → ✅ 완료
-- relationship-system.md: 관계 축, 상태 전이
-- quest-system.md: 퀘스트 자연발생, 연작 구조
-- dialogue-system.md: AI 대화 컨텍스트, 이중 출력
+- ~~relationship-system.md: 관계 축, 상태 전이~~ → ✅ 완료
+- ~~quest-system.md: 퀘스트 자연발생, 연작 구조~~ → ✅ 완료
+- ~~dialogue-system.md: AI 대화 컨텍스트, 이중 출력~~ → ✅ 완료
 - event-bus.md: 서비스 간 이벤트 통신 패턴
+- item-system.md: 아이템 체계, 거래, 퀘스트 보상
+- db-schema-v2.md: NPC/관계/퀘스트/대화 통합 스키마

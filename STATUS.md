@@ -1,5 +1,5 @@
 # ITW 프로젝트 현재 상태
-자동 생성일: 2026-02-08
+자동 생성일: 2026-02-10
 
 ## 구현 완료 (코드 존재)
 
@@ -48,6 +48,49 @@
 
 ## 설계 완료 (문서 존재, 코드 미구현)
 
+### NPC 시스템 (docs/20_design/npc-system.md)
+- 배경 존재 3유형 (거주형/유랑형/적대형) - 미구현
+- 승격 점수제 (임계값 50) - 미구현
+- HEXACO 성격 (0.0~1.0) - 미구현
+- 3계층 기억 (핵심/최근/아카이브) - 미구현
+- 공리 숙련도 (level^2.2) - 미구현
+- 자율 행동 (Phase A/B/C) - 미구현
+
+### 관계 시스템 (docs/20_design/relationship-system.md)
+- 3축 관계 (affinity/trust/familiarity) - 미구현
+- 6단계 상태 전이 (Stranger~Bonded, Rival~Nemesis) - 미구현
+- 반전 이벤트 3유형 (betrayal/redemption/trust_collapse) - 미구현
+- Python 3단계 태도 태그 파이프라인 - 미구현
+- 감쇠 곡선 (지수 1.2, trust 비대칭) - 미구현
+
+### 퀘스트 시스템 (docs/20_design/quest-system.md)
+- Quest Seed 메커니즘 (5% 확률, TTL, 4유형) - 미구현
+- 시드 티어 3단계 (소60%/중30%/대10%) - 미구현
+- 체이닝 구조 (chain_eligible_npcs, unresolved_threads) - 미구현
+- 수단의 자유 + 공리 역학 판정 - 미구현
+- NPC 한줄평 (resolution_comment, impression_tag) - 미구현
+- L4 Quest 오버레이 자동 생성/제거 - 미구현
+- PC 경향 (pc_tendency) 산출 - 미구현
+
+### 대화 시스템 (docs/20_design/dialogue-system.md)
+- 대화 세션 관리 (세션 = 게임 1턴) - 미구현
+- 예산제 대화 (관계/HEXACO/시드 기반 budget) - 미구현
+- 4단계 그라데이션 종료 (open→winding→closing→final) - 미구현
+- META JSON 통합 형식 (서술 + meta 이중 구조) - 미구현
+- Constraints 주입 + Python 사후 검증 파이프라인 - 미구현
+- LLM 프롬프트 계층 구조 - 미구현
+
+### 오버레이 시스템 (docs/20_design/overlay-layer-system.md)
+- Weather/Territory/Quest/Event 오버레이 - 미구현
+- severity 기반 영향권 - 미구현
+- 오버레이 병합/충돌 처리 - 미구현
+
+### 시뮬레이션 범위 (docs/30_technical/simulation-scope.md)
+- Active Zone 5×5 (active_radius 설정 가능) - 미구현
+- Background Zone 처리 (상태 추적, 시간 감쇠) - 미구현
+- Zone 전환 처리 (진입/이탈) - 미구현
+- BackgroundTask (event_bound/desire_wandered) - 미구현
+
 ### Nexus System & Travel Montage (docs/20_design/nexus_and_travel_spec.md)
 - 구조물 건설 (SIGN, CACHE, SHELTER 등) - MapStructure 테이블 미구현
 - 정착지 진화 (visit_count + structure_score 임계치) - 미구현
@@ -64,19 +107,6 @@
 - biomes 테이블 - 미구현
 - 레이어별 필드 추가 - 미구현
 
-### NPC 시스템 (docs/20_design/npc-system.md)
-- 배경 존재 3유형 (거주형/유랑형/적대형) - 미구현
-- 승격 점수제 (임계값 50) - 미구현
-- HEXACO 성격 (0.0~1.0) - 미구현
-- 3계층 기억 (핵심/최근/아카이브) - 미구현
-- 공리 숙련도 (level^2.2) - 미구현
-- 자율 행동 (Phase A/B/C) - 미구현
-
-### 오버레이 시스템 (docs/20_design/overlay-layer-system.md)
-- Weather/Territory/Quest/Event 오버레이 - 미구현
-- severity 기반 영향권 - 미구현
-- 오버레이 병합/충돌 처리 - 미구현
-
 ### 모듈 아키텍처 (docs/30_technical/module-architecture.md)
 - ModuleManager - 미구현
 - GameModule ABC - 미구현
@@ -85,11 +115,10 @@
 
 ## 설계 미완 (로드맵/요구사항에 있지만 설계 문서 없음)
 
-### Phase 2 예정 (docs/INDEX.md에 "예정 문서"로 명시)
-- 관계 시스템 (relationship-system.md 미작성): 관계 축, 상태 전이
-- 퀘스트 시스템 (quest-system.md 미작성): 퀘스트 자연발생, 연작 구조
-- 대화 시스템 (dialogue-system.md 미작성): AI 대화 컨텍스트, 이중 출력
-- 이벤트버스 (event-bus.md 미작성): 서비스 간 이벤트 통신 패턴
+### Phase 2 잔여 (설계 필요)
+- item-system.md: 아이템 체계, 거래, 퀘스트 보상
+- db-schema-v2.md: NPC/관계/퀘스트/대화 통합 스키마
+- event-bus.md: 서비스 간 이벤트 통신 패턴 상세
 
 ### Phase 3 예정 (docs/10_product/roadmap.md)
 - 던전 시스템 (서브 그리드 기반 확장)
@@ -120,8 +149,14 @@
 
 ## 다음 작업 후보
 
-1. **구현 지시서 #01**: ModuleManager + GameModule ABC + GameContext 구현
-2. **구현 지시서 #02**: EventBus 인프라 구현
+### 설계 (다음 작성 대상)
+1. **item-system.md**: 아이템 체계, 거래, 퀘스트 보상
+2. **db-schema-v2.md**: quest/dialogue/relationship/item 확정 후 통합 스키마
+3. **event-bus.md**: 서비스 간 이벤트 통신 패턴 상세 (각 모듈 EventBus 인터페이스를 통합 정리)
+
+### 구현 (설계 완료 후)
+1. **구현 지시서 #01**: ModuleManager + GameModule ABC + GameContext
+2. **구현 지시서 #02**: EventBus 인프라
 3. **구현 지시서 #03**: geography 모듈 (기존 코드 래핑)
 4. **구현 지시서 #04**: engine.py 통합 (ModuleManager 연결)
 5. **Phase 1 잔여**: SQLite 영속화 통합 흐름 완성
