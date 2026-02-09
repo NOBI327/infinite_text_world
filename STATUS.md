@@ -10,8 +10,14 @@
 - **sub_grid.py** (386줄): L3 Depth 서브 그리드 생성 (Dungeon/Tower/Forest/Cave), 깊이별 난이도
 - **echo_system.py** (556줄): 8 카테고리 Echo 생성, d6 Dice Pool 조사 판정, 시간 경과 소멸
 - **core_rule.py** (315줄): Protocol T.A.G. 판정 엔진, d6 Dice Pool, CharacterSheet(WRITE/READ/EXEC/SUDO)
-- **engine.py** (1250줄): 메인 엔진, 모든 하위 시스템 통합, 게임 액션(look/move/investigate/harvest/rest/enter/exit), DB 저장/로드
+- **engine.py** (1324줄): 메인 엔진, 모든 하위 시스템 통합, ModuleManager 연결, 게임 액션(look/move/investigate/harvest/rest/enter/exit), DB 저장/로드
+- **event_bus.py** (136줄): 동기식 EventBus, 전파 깊이 제한(MAX_DEPTH=5), 동일 source:event_type 중복 차단
 - **logging.py**: 프로젝트 공용 로깅
+
+### Modules (src/modules/)
+- **base.py** (97줄): GameModule ABC, GameContext, Action 데이터 클래스
+- **module_manager.py** (126줄): 모듈 등록/활성화/비활성화, 의존성 검증, cascade 비활성화, EventBus 소유, 턴/노드진입 전파
+- **geography/module.py** (215줄): 첫 번째 실제 모듈. WorldGenerator/Navigator/SubGridGenerator 래핑, context.extra에 지리 정보 저장, 이동/depth 액션 제공
 
 ### API (src/api/)
 - **game.py** (261줄): POST /game/register, GET /game/state/{id}, POST /game/action (look/move/rest/investigate/harvest/enter/exit)
@@ -37,14 +43,16 @@
 - **config.py**: pydantic-settings 기반 환경 설정
 
 ### Tests (tests/)
-- 168개 테스트 전체 통과
-- 전체 커버리지: **77%**
+- 247개 테스트 전체 통과
+- 전체 커버리지: **80%**
 - 파일별 커버리지:
+  - modules/base.py: 100%, modules/module_manager.py: 100%, modules/geography/module.py: 96%
+  - core/event_bus.py: 97%
   - schemas.py: 100%, db/models.py: 100%, config.py: 100%, logging.py: 100%
   - sub_grid.py: 96%, narrative_service.py: 93%, ai/factory.py: 90%
-  - game.py: 87%, world_generator.py: 84%, health.py: 83%
+  - game.py: 87%, world_generator.py: 86%, health.py: 83%
   - navigator.py: 78%, core_rule.py: 71%, axiom_system.py: 66%
-  - engine.py: 65%, echo_system.py: 68%, main.py: 55%
+  - engine.py: 69%, echo_system.py: 68%, main.py: 55%
 
 ## 설계 완료 (문서 존재, 코드 미구현)
 
@@ -76,7 +84,7 @@
 - 대화 세션 관리 (세션 = 게임 1턴) - 미구현
 - 예산제 대화 (관계/HEXACO/시드 기반 budget) - 미구현
 - 4단계 그라데이션 종료 (open→winding→closing→final) - 미구현
-- META JSON 통합 형식 (서술 + meta 이중 구조) - 미구현
+- META JSON 통합 형식 (서술 + meta 이중 구조, trade_request/gift_offered 포함) - 미구현
 - Constraints 주입 + Python 사후 검증 파이프라인 - 미구현
 - LLM 프롬프트 계층 구조 - 미구현
 
@@ -90,6 +98,11 @@
 - 선물 시스템 (calculate_gift_affinity) - 미구현
 - 내구도 시스템 (파괴 → 변환/소멸) - 미구현
 - 점포 구조 (container 체이닝, 임시 자동 보충) - 미구현
+
+### DB 스키마 v2 (docs/30_technical/db-schema-v2.md)
+- 15개 신규 테이블 (NPC/관계/퀘스트/대화/아이템) - 미구현
+- models_v2.py 단일 파일 구성 - 미구현
+- 의존 순서 5단계 마이그레이션 - 미구현
 
 ### 오버레이 시스템 (docs/20_design/overlay-layer-system.md)
 - Weather/Territory/Quest/Event 오버레이 - 미구현
@@ -114,22 +127,14 @@
 - L2 Facility (Mine, Inn, Farm, owner_id) - 미구현
 - L3 Depth - **구현 완료** (sub_grid.py)
 
-### DB 스키마 확장 (docs/30_technical/db-schema.md)
+### DB 스키마 v1 확장 (docs/30_technical/db-schema.md)
 - biomes 테이블 - 미구현
 - 레이어별 필드 추가 - 미구현
-
-### 모듈 아키텍처 (docs/30_technical/module-architecture.md)
-- ModuleManager - 미구현
-- GameModule ABC - 미구현
-- EventBus - 미구현
-- geography 모듈 - 미구현
 
 ## 설계 미완 (로드맵/요구사항에 있지만 설계 문서 없음)
 
 ### Phase 2 잔여 (설계 필요)
-- ~~item-system.md: 아이템 체계, 거래, 퀘스트 보상~~ → ✅ 설계 완료
-- db-schema-v2.md: NPC/관계/퀘스트/대화 통합 스키마
-- event-bus.md: 서비스 간 이벤트 통신 패턴 상세
+- event-bus.md: 서비스 간 이벤트 통신 패턴 상세 (코드는 구현 완료, 설계 문서 미작성)
 
 ### Phase 3 예정 (docs/10_product/roadmap.md)
 - 던전 시스템 (서브 그리드 기반 확장)
@@ -142,9 +147,9 @@
 ## 아키텍처 현황
 
 - **레이어 구조**: API → Service → Core → DB (docs/30_technical/architecture.md 정의대로)
-- **서비스 간 직접 호출**: 없음 (narrative_service는 ai 모듈 내부만 참조)
-- **이벤트버스**: 미구현 (Phase 2에서 NPC 시스템과 동시 도입 예정)
-- **모듈 매니저**: 미구현 (설계 문서 존재: docs/30_technical/module-architecture.md)
+- **모듈 시스템**: **구현 완료** (GameModule ABC + ModuleManager + geography 모듈)
+- **이벤트버스**: **구현 완료** (src/core/event_bus.py, 깊이 제한 5, 중복 차단, ModuleManager 연동)
+- **서비스 간 직접 호출**: 없음 (narrative_service는 ai 모듈 내부만 참조, 모듈 간 통신은 EventBus 경유)
 - **SQLite 영속화**: 부분 구현 (engine.py에 save/load_world_to_db, save/load_players_to_db 존재)
 - **CI/CD**: 구현 완료 (GitHub Actions, ruff + pytest)
 
@@ -155,20 +160,20 @@
 | CI/CD 파이프라인 | 완료 |
 | 프로토타입 이식 | 완료 |
 | SQLite 영속화 | 부분 구현 (save/load 메서드 존재, 통합 흐름 미완) |
-| 통합 테스트 | 부분 (test_persistence.py 존재, 168개 테스트 통과) |
+| 통합 테스트 | 완료 (247개 테스트 통과, 커버리지 80%) |
 | 서브 그리드 맵 시스템 | 완료 (sub_grid.py + test_sub_grid.py) |
+| 모듈 시스템 인프라 | 완료 (지시서 #01~#04 완료) |
 
 ## 다음 작업 후보
 
 ### 설계 (다음 작성 대상)
-1. ~~**item-system.md**: 아이템 체계, 거래, 퀘스트 보상~~ → ✅ 완료
-2. **db-schema-v2.md**: quest/dialogue/relationship/item 확정 후 통합 스키마
-3. **event-bus.md**: 서비스 간 이벤트 통신 패턴 상세 (각 모듈 EventBus 인터페이스를 통합 정리)
+1. **event-bus.md**: 서비스 간 이벤트 통신 패턴 상세 (코드 존재, 문서 미작성)
 
 ### 구현 (설계 완료 후)
-1. **구현 지시서 #01**: ModuleManager + GameModule ABC + GameContext
-2. **구현 지시서 #02**: EventBus 인프라
-3. **구현 지시서 #03**: geography 모듈 (기존 코드 래핑)
-4. **구현 지시서 #04**: engine.py 통합 (ModuleManager 연결)
-5. **Phase 1 잔여**: SQLite 영속화 통합 흐름 완성
-6. **커버리지 향상**: engine.py(65%), echo_system.py(68%), axiom_system.py(66%) 테스트 보강
+1. ~~**구현 지시서 #01**: ModuleManager + GameModule ABC + GameContext~~ → **완료**
+2. ~~**구현 지시서 #02**: EventBus 인프라~~ → **완료**
+3. ~~**구현 지시서 #03**: geography 모듈 (기존 코드 래핑)~~ → **완료**
+4. ~~**구현 지시서 #04**: engine.py 통합 (ModuleManager 연결)~~ → **완료**
+5. **Phase 2 구현**: db-schema-v2 마이그레이션 → NPC/대화/관계/퀘스트/아이템 모듈 순차 구현
+6. **Phase 1 잔여**: SQLite 영속화 통합 흐름 완성
+7. **커버리지 향상**: engine.py(69%), echo_system.py(68%), axiom_system.py(66%) 테스트 보강
