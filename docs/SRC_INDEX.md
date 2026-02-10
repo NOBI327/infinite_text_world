@@ -4,6 +4,9 @@
 main.py → api/game.py → services/narrative_service.py → services/ai/base.py
                        → core/engine.py → (axiom, world_gen, navigator, echo, sub_grid, core_rule)
                        → db/models.py
+modules/module_manager.py → modules/base.py, core/event_bus.py
+modules/geography/module.py → core/(world_gen, navigator, sub_grid)
+modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.py
 
 ## 루트
 
@@ -66,6 +69,56 @@ main.py → api/game.py → services/narrative_service.py → services/ai/base.p
 - **핵심:** `ITWEngine` - AxiomLoader/WorldGenerator/Navigator/EchoManager/ResolutionEngine 조합. 게임 액션(look/move/investigate/harvest/rest/enter/exit) 처리. DB 저장/로드(SQLAlchemy Session). CLI 데모 포함.
 - **주요 클래스:** PlayerState, ActionResult, ITWEngine.
 
+### core/event_bus.py
+- **목적:** 모듈/서비스 간 동기식 이벤트 통신 인프라
+- **핵심:** `EventBus` - subscribe/emit/unsubscribe. 전파 깊이 최대 5단계, 동일 source 중복 발행 차단. `GameEvent(event_type, data, source)`.
+- **주요 클래스:** GameEvent, EventBus.
+
+### core/event_types.py
+- **목적:** 이벤트 유형 문자열 상수
+- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, TURN_PROCESSED.
+
+### core/npc/ - NPC 핵심 로직 (순수 Python, DB 무관)
+
+### core/npc/\_\_init\_\_.py
+- **목적:** npc 패키지 공개 API (re-export)
+- **핵심:** models, hexaco, tone, slots, promotion, naming, memory 전체 심볼 re-export.
+
+### core/npc/models.py
+- **목적:** NPC 데이터 모델 정의
+- **핵심:** `EntityType(Enum)` - RESIDENT/WANDERER/HOSTILE. `BackgroundEntity` - 배경 존재 데이터. `BackgroundSlot` - 시설 슬롯. `HEXACO` - 6요인 성격 모델. `NPCData` - 승격된 NPC 전체 데이터.
+- **주요 클래스:** EntityType, BackgroundEntity, BackgroundSlot, HEXACO, NPCData.
+
+### core/npc/hexaco.py
+- **목적:** HEXACO 성격 생성 및 행동 수정자
+- **핵심:** `generate_hexaco(role, seed)` - 역할별 템플릿 + ±0.15 랜덤 분산. `get_behavior_modifier(hexaco, factor, modifier)` - 성격→행동 변환.
+- **주요 데이터:** ROLE_HEXACO_TEMPLATES(7종), HEXACO_BEHAVIOR_MAP(6요인×2).
+
+### core/npc/tone.py
+- **목적:** NPC 어조/감정 태그 시스템
+- **핵심:** `derive_manner_tags(hexaco)` - HEXACO→태도 태그. `calculate_emotion(event, affinity, hexaco)` - 이벤트+관계→감정 도출.
+- **주요 클래스:** ToneContext.
+
+### core/npc/slots.py
+- **목적:** 시설 배경 슬롯 관리
+- **핵심:** `calculate_slot_count(facility_type, size)` - 시설 크기별 슬롯 수. `should_reset_slot(score, turns, interval)` - 슬롯 리셋 판정.
+- **주요 데이터:** FACILITY_BASE_SLOTS(7종), FACILITY_REQUIRED_ROLES(7종).
+
+### core/npc/promotion.py
+- **목적:** 배경 존재 → NPC 승격 시스템
+- **핵심:** `calculate_new_score(current, action)` - 행동별 점수 부여. `check_promotion_status(score)` - 임계값 판정(50=promoted, 15=worldpool). `build_npc_from_entity(entity, hexaco)` - 순수 변환.
+- **주요 상수:** PROMOTION_THRESHOLD=50, WORLDPOOL_THRESHOLD=15, PROMOTION_SCORE_TABLE(10종).
+
+### core/npc/naming.py
+- **목적:** NPC 이름 절차적 생성
+- **핵심:** `generate_name(seed, rng_seed)` - 시드 기반 이름 생성. `NPCFullName` - formal/current/short_name 포맷.
+- **주요 클래스:** NPCNameSeed, NPCFullName.
+
+### core/npc/memory.py
+- **목적:** NPC 3계층 기억 시스템
+- **핵심:** `create_memory(...)` - 자동 importance 할당. `assign_tier1_slot(memories, new)` - 고정2+교체3 슬롯 관리. `enforce_tier2_capacity(memories, status)` - 관계별 용량 제한. `get_memories_for_context(all, status)` - Tier 1+2만 반환.
+- **주요 클래스:** NPCMemory. **주요 데이터:** IMPORTANCE_TABLE(7종), TIER2_CAPACITY(5단계).
+
 ---
 
 ## api/ - FastAPI 엔드포인트
@@ -100,10 +153,40 @@ main.py → api/game.py → services/narrative_service.py → services/ai/base.p
 - **핵심:** SQLite 기반. `create_engine` + `SessionLocal`. `get_db()` 제너레이터로 FastAPI 의존성 주입.
 - **설정:** config.settings에서 DATABASE_URL/DEBUG 참조.
 
-### db/models.py (137줄)
-- **목적:** SQLAlchemy ORM 모델 정의
-- **핵심:** `MapNodeModel` (좌표/tier/axiom/sensory + L3 Depth 필드), `ResourceModel`, `EchoModel`, `PlayerModel` (위치/스탯/인벤토리), `SubGridNodeModel`.
+### db/models.py (138줄)
+- **목적:** SQLAlchemy ORM 모델 정의 (v1)
+- **핵심:** `MapNodeModel` (좌표/tier/axiom/sensory + L3 Depth 필드), `ResourceModel`, `EchoModel`, `PlayerModel` (위치/스탯/인벤토리/currency), `SubGridNodeModel`.
 - **관계:** MapNode 1:N Resource, MapNode 1:N Echo (cascade delete).
+
+### db/models_v2.py (338줄)
+- **목적:** Phase 2 ORM 모델 정의 (NPC/관계/퀘스트/대화/아이템)
+- **핵심:** 16개 테이블. `Column()` 스타일. `relationship()` 없음, FK 제약만. `__table_args__`에 Index/UniqueConstraint 선언.
+- **모델:** ItemPrototypeModel, QuestChainModel, BackgroundSlotModel, BackgroundEntityModel, NPCModel, NPCMemoryModel, RelationshipModel, QuestSeedModel, WorldPoolModel, QuestModel, QuestObjectiveModel, QuestChainEligibleModel, QuestUnresolvedThreadModel, DialogueSessionModel, DialogueTurnModel, ItemInstanceModel.
+- **참조:** DDL은 docs/30_technical/db-schema-v2.md.
+
+---
+
+## modules/ - 토글 가능한 기능 모듈
+
+### modules/base.py
+- **목적:** 모듈 기반 인터페이스 정의
+- **핵심:** `GameModule(ABC)` - name, on_enable, on_disable, on_turn, on_node_enter, get_available_actions. `GameContext` - player_id, current_node_id, current_turn, db_session, extra. `Action` - name, display_name, module_name, description, params.
+- **주요 클래스:** GameModule, GameContext, Action.
+
+### modules/module_manager.py
+- **목적:** 모듈 등록/활성화/비활성화/의존성 검증/턴 전파
+- **핵심:** `ModuleManager` - 자체 EventBus 소유. register/enable/disable(cascade)/process_turn/process_node_enter/get_all_actions.
+- **주요 클래스:** ModuleManager.
+
+### modules/geography/module.py
+- **목적:** 지리 시스템 모듈 (WorldGenerator/Navigator/SubGridGenerator 래핑)
+- **핵심:** `GeographyModule` - 맵 노드 조회, 위치 정보, 서브그리드. on_node_enter에서 context.extra["geography"] 설정.
+- **의존성:** 없음 (Layer 1).
+
+### modules/npc/module.py
+- **목적:** NPC 시스템 모듈 (NPCService 래핑, GameModule 인터페이스)
+- **핵심:** `NPCCoreModule` - NPCService 생성/관리, npc_needed 이벤트 구독, 노드 진입 시 NPC/엔티티 정보 context.extra["npc_core"]에 저장. 공개 API: get_npcs_at_node, get_npc_by_id, get_background_entities_at_node, add_promotion_score.
+- **의존성:** ["geography"].
 
 ---
 
@@ -111,6 +194,11 @@ main.py → api/game.py → services/narrative_service.py → services/ai/base.p
 
 ### services/\_\_init\_\_.py
 - **목적:** services 패키지 초기화 (빈 파일)
+
+### services/npc_service.py (404줄)
+- **목적:** NPC CRUD, 승격, WorldPool, 기억 관리 (Core↔DB 연결)
+- **핵심:** `NPCService` - get_background_entities_at_node, get_npcs_at_node, get_npc_by_id, add_promotion_score(_promote_entity, _register_worldpool), create_npc_for_quest, save_memory, get_memories_for_context. ORM↔Core 변환 메서드 포함.
+- **의존:** core.npc.*, db.models_v2, core.event_bus.
 
 ### services/narrative_service.py (147줄)
 - **목적:** AI 기반 게임 서술 생성 서비스

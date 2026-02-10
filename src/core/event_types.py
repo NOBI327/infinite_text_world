@@ -13,6 +13,7 @@ class EventTypes:
     NPC_CREATED = "npc_created"
     NPC_DIED = "npc_died"
     NPC_MOVED = "npc_moved"
+    NPC_NEEDED = "npc_needed"
 
     # engine
     TURN_PROCESSED = "turn_processed"
