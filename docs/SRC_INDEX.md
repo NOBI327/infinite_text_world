@@ -158,9 +158,9 @@ modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.
 - **핵심:** `MapNodeModel` (좌표/tier/axiom/sensory + L3 Depth 필드), `ResourceModel`, `EchoModel`, `PlayerModel` (위치/스탯/인벤토리/currency), `SubGridNodeModel`.
 - **관계:** MapNode 1:N Resource, MapNode 1:N Echo (cascade delete).
 
-### db/models_v2.py (338줄)
+### db/models_v2.py (506줄)
 - **목적:** Phase 2 ORM 모델 정의 (NPC/관계/퀘스트/대화/아이템)
-- **핵심:** 16개 테이블. `Column()` 스타일. `relationship()` 없음, FK 제약만. `__table_args__`에 Index/UniqueConstraint 선언.
+- **핵심:** 16개 테이블. `Mapped[T]` + `mapped_column()` 스타일 (models.py와 일관). `relationship()` 없음, FK 제약만. `__table_args__`에 Index/UniqueConstraint 선언.
 - **모델:** ItemPrototypeModel, QuestChainModel, BackgroundSlotModel, BackgroundEntityModel, NPCModel, NPCMemoryModel, RelationshipModel, QuestSeedModel, WorldPoolModel, QuestModel, QuestObjectiveModel, QuestChainEligibleModel, QuestUnresolvedThreadModel, DialogueSessionModel, DialogueTurnModel, ItemInstanceModel.
 - **참조:** DDL은 docs/30_technical/db-schema-v2.md.
 

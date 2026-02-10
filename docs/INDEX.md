@@ -116,8 +116,9 @@
 
 ### db-schema-v2.md
 - **목적:** Phase 2 통합 DB 스키마 (NPC/관계/퀘스트/대화/아이템)
-- **핵심:** 기존 v1 유지 + 15개 신규 테이블. models_v2.py 단일 파일 구성. JSON 필드 활용.
+- **핵심:** 기존 v1 유지 + 16개 신규 테이블. models_v2.py 단일 파일 구성. JSON 필드 활용.
 - **마이그레이션:** 의존 순서 5단계 생성. 운영 DB 발생 시 Alembic 도입 예정.
+- **구현:** models_v2.py 완료 (Mapped 스타일, main.py에서 자동 등록)
 
 ### module-architecture.md
 - **목적:** 모듈식 개발 구조 설계
@@ -142,18 +143,23 @@
 ### instructions/ (구현 지시서)
 - **목적:** Claude Code용 단계별 구현 지시서
 - **내용:**
+  - #00: 문서 세팅
   - #01: ModuleManager + GameModule ABC + GameContext
   - #02: EventBus 인프라
   - #03: geography 모듈 (기존 코드 래핑)
   - #04: engine.py 통합 (ModuleManager 연결)
+  - #05: 설계 문서 배치
+  - #06: 아이템/대화 문서 배치 + META 갱신
+  - #07: models_v2.py (Phase 2 DB 스키마 ORM)
+  - #08: NPC 모듈 (5블록 — Core/승격/기억/Service/Module)
 
 ---
 
-### 🔜 예정 문서 (Phase 2)
-- ~~npc-system.md: NPC 승격, HEXACO 성격, 기억 구조~~ → ✅ 완료
-- ~~relationship-system.md: 관계 축, 상태 전이~~ → ✅ 완료
-- ~~quest-system.md: 퀘스트 자연발생, 연작 구조~~ → ✅ 완료
-- ~~dialogue-system.md: AI 대화 컨텍스트, 이중 출력~~ → ✅ 완료
-- event-bus.md: 서비스 간 이벤트 통신 패턴
-- ~~item-system.md: 아이템 체계, 거래, 퀘스트 보상~~ → ✅ 완료
-- ~~db-schema-v2.md: NPC/관계/퀘스트/대화 통합 스키마~~ → ✅ 완료
+### 예정 문서 (Phase 2)
+- ~~npc-system.md~~ → ✅ 설계 완료 + 코드 구현 (#08)
+- ~~relationship-system.md~~ → ✅ 설계 완료 (코드 미구현)
+- ~~quest-system.md~~ → ✅ 설계 완료 (코드 미구현)
+- ~~dialogue-system.md~~ → ✅ 설계 완료 (코드 미구현)
+- event-bus.md: 서비스 간 이벤트 통신 패턴 (코드 존재, 문서 미작성)
+- ~~item-system.md~~ → ✅ 설계 완료 (코드 미구현)
+- ~~db-schema-v2.md~~ → ✅ 설계 완료 + 코드 구현 (#07)
