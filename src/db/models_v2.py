@@ -4,17 +4,13 @@ DDL reference: docs/30_technical/db-schema-v2.md
 """
 
 from sqlalchemy import (
-    Boolean,
-    Column,
-    Float,
     ForeignKey,
     Index,
-    Integer,
-    LargeBinary,
-    Text,
     UniqueConstraint,
     text,
 )
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.types import Boolean, Float, Integer, LargeBinary, Text
 
 from src.db.models import Base
 
@@ -27,27 +23,31 @@ class ItemPrototypeModel(Base):
 
     __tablename__ = "item_prototypes"
 
-    item_id = Column(Text, primary_key=True)
-    name_kr = Column(Text, nullable=False)
-    item_type = Column(Text, nullable=False)
+    item_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name_kr: Mapped[str] = mapped_column(Text, nullable=False)
+    item_type: Mapped[str] = mapped_column(Text, nullable=False)
 
-    weight = Column(Float, nullable=False, default=0.0)
-    bulk = Column(Integer, nullable=False, default=1)
-    base_value = Column(Integer, nullable=False, default=0)
+    weight: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    bulk: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    base_value: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    primary_material = Column(Text, nullable=False, server_default="")
-    axiom_tags = Column(Text, nullable=False, server_default="{}")
+    primary_material: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=""
+    )
+    axiom_tags: Mapped[str] = mapped_column(Text, nullable=False, server_default="{}")
 
-    max_durability = Column(Integer, nullable=False, default=0)
-    durability_loss_per_use = Column(Integer, nullable=False, default=0)
-    broken_result = Column(Text, nullable=True)
+    max_durability: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    durability_loss_per_use: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    broken_result: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    container_capacity = Column(Integer, nullable=False, default=0)
+    container_capacity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    flavor_text = Column(Text, nullable=False, server_default="")
-    tags = Column(Text, nullable=False, server_default="[]")
+    flavor_text: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
+    tags: Mapped[str] = mapped_column(Text, nullable=False, server_default="[]")
 
-    is_dynamic = Column(Boolean, nullable=False, default=False)
+    is_dynamic: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
 class QuestChainModel(Base):
@@ -55,12 +55,14 @@ class QuestChainModel(Base):
 
     __tablename__ = "quest_chains"
 
-    chain_id = Column(Text, primary_key=True)
-    created_turn = Column(Integer, nullable=False)
-    finalized = Column(Boolean, nullable=False, default=False)
-    total_quests = Column(Integer, nullable=False, default=0)
+    chain_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    created_turn: Mapped[int] = mapped_column(Integer, nullable=False)
+    finalized: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    total_quests: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    created_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
 
 
 # ── 2단계: v1 테이블 의존 ──────────────────────────────────
@@ -71,20 +73,22 @@ class BackgroundSlotModel(Base):
 
     __tablename__ = "background_slots"
 
-    slot_id = Column(Text, primary_key=True)
-    node_id = Column(Text, nullable=False)
-    facility_id = Column(Text, nullable=False)
-    facility_type = Column(Text, nullable=False)
+    slot_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    node_id: Mapped[str] = mapped_column(Text, nullable=False)
+    facility_id: Mapped[str] = mapped_column(Text, nullable=False)
+    facility_type: Mapped[str] = mapped_column(Text, nullable=False)
 
-    role = Column(Text, nullable=False)
-    is_required = Column(Boolean, nullable=False, default=False)
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+    is_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    entity_id = Column(Text, nullable=True)
+    entity_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    reset_interval = Column(Integer, nullable=False, default=24)
-    last_reset_turn = Column(Integer, nullable=False, default=0)
+    reset_interval: Mapped[int] = mapped_column(Integer, nullable=False, default=24)
+    last_reset_turn: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    created_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
 
     __table_args__ = (
         Index("idx_slot_node", "node_id"),
@@ -97,27 +101,31 @@ class BackgroundEntityModel(Base):
 
     __tablename__ = "background_entities"
 
-    entity_id = Column(Text, primary_key=True)
-    entity_type = Column(Text, nullable=False)
+    entity_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    entity_type: Mapped[str] = mapped_column(Text, nullable=False)
 
-    current_node = Column(Text, nullable=False)
-    home_node = Column(Text, nullable=True)
+    current_node: Mapped[str] = mapped_column(Text, nullable=False)
+    home_node: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    role = Column(Text, nullable=False)
-    appearance_seed = Column(Text, nullable=False, server_default="{}")
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+    appearance_seed: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default="{}"
+    )
 
-    promotion_score = Column(Integer, nullable=False, default=0)
-    promoted = Column(Boolean, nullable=False, default=False)
-    promoted_npc_id = Column(Text, nullable=True)
+    promotion_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    promoted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    promoted_npc_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    temp_combat_id = Column(Text, nullable=True)
+    temp_combat_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    name_seed = Column(Text, nullable=True)
+    name_seed: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    slot_id = Column(Text, nullable=True)
+    slot_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    created_turn = Column(Integer, nullable=False, default=0)
-    updated_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
+    created_turn: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
 
     __table_args__ = (
         Index("idx_bg_entity_node", "current_node"),
@@ -130,36 +138,40 @@ class NPCModel(Base):
 
     __tablename__ = "npcs"
 
-    npc_id = Column(Text, primary_key=True)
+    npc_id: Mapped[str] = mapped_column(Text, primary_key=True)
 
-    full_name = Column(Text, nullable=False)
-    given_name = Column(Text, nullable=False)
+    full_name: Mapped[str] = mapped_column(Text, nullable=False)
+    given_name: Mapped[str] = mapped_column(Text, nullable=False)
 
-    hexaco = Column(Text, nullable=False)
+    hexaco: Mapped[str] = mapped_column(Text, nullable=False)
 
-    character_sheet = Column(Text, nullable=False)
-    resonance_shield = Column(Text, nullable=False)
-    axiom_proficiencies = Column(Text, nullable=False, server_default="{}")
+    character_sheet: Mapped[str] = mapped_column(Text, nullable=False)
+    resonance_shield: Mapped[str] = mapped_column(Text, nullable=False)
+    axiom_proficiencies: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default="{}"
+    )
 
-    home_node = Column(Text, nullable=True)
-    current_node = Column(Text, nullable=False)
+    home_node: Mapped[str | None] = mapped_column(Text, nullable=True)
+    current_node: Mapped[str] = mapped_column(Text, nullable=False)
 
-    routine = Column(Text, nullable=True)
-    state = Column(Text, nullable=False, server_default="{}")
+    routine: Mapped[str | None] = mapped_column(Text, nullable=True)
+    state: Mapped[str] = mapped_column(Text, nullable=False, server_default="{}")
 
-    lord_id = Column(Text, nullable=True)
-    faction_id = Column(Text, nullable=True)
-    loyalty = Column(Float, nullable=False, default=0.5)
+    lord_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    faction_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    loyalty: Mapped[float] = mapped_column(Float, nullable=False, default=0.5)
 
-    currency = Column(Integer, nullable=False, default=0)
+    currency: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    origin_type = Column(Text, nullable=False)
-    origin_entity_type = Column(Text, nullable=True)
-    role = Column(Text, nullable=False)
-    tags = Column(Text, nullable=False, server_default="[]")
+    origin_type: Mapped[str] = mapped_column(Text, nullable=False)
+    origin_entity_type: Mapped[str | None] = mapped_column(Text, nullable=True)
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+    tags: Mapped[str] = mapped_column(Text, nullable=False, server_default="[]")
 
-    created_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
-    last_interaction_turn = Column(Integer, nullable=True)
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
+    last_interaction_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     __table_args__ = (
         Index("idx_npc_node", "current_node"),
@@ -175,26 +187,28 @@ class NPCMemoryModel(Base):
 
     __tablename__ = "npc_memories"
 
-    memory_id = Column(Text, primary_key=True)
-    npc_id = Column(Text, ForeignKey("npcs.npc_id", ondelete="CASCADE"), nullable=False)
+    memory_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    npc_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("npcs.npc_id", ondelete="CASCADE"), nullable=False
+    )
 
-    tier = Column(Integer, nullable=False)
+    tier: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    memory_type = Column(Text, nullable=False)
-    summary = Column(Text, nullable=False)
+    memory_type: Mapped[str] = mapped_column(Text, nullable=False)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
 
-    emotional_valence = Column(Float, nullable=False, default=0.0)
-    importance = Column(Float, nullable=False, default=0.0)
+    emotional_valence: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    importance: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
-    embedding = Column(LargeBinary, nullable=True)
+    embedding: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
 
-    is_fixed = Column(Boolean, nullable=False, default=False)
-    fixed_slot = Column(Integer, nullable=True)
+    is_fixed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    fixed_slot: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    turn_created = Column(Integer, nullable=False)
-    related_node = Column(Text, nullable=True)
-    related_entity_id = Column(Text, nullable=True)
-    source_session_id = Column(Text, nullable=True)
+    turn_created: Mapped[int] = mapped_column(Integer, nullable=False)
+    related_node: Mapped[str | None] = mapped_column(Text, nullable=True)
+    related_entity_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_session_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
         Index("idx_memory_npc", "npc_id"),
@@ -207,23 +221,29 @@ class RelationshipModel(Base):
 
     __tablename__ = "relationships"
 
-    relationship_id = Column(Text, primary_key=True)
+    relationship_id: Mapped[str] = mapped_column(Text, primary_key=True)
 
-    source_type = Column(Text, nullable=False)
-    source_id = Column(Text, nullable=False)
-    target_type = Column(Text, nullable=False)
-    target_id = Column(Text, nullable=False)
+    source_type: Mapped[str] = mapped_column(Text, nullable=False)
+    source_id: Mapped[str] = mapped_column(Text, nullable=False)
+    target_type: Mapped[str] = mapped_column(Text, nullable=False)
+    target_id: Mapped[str] = mapped_column(Text, nullable=False)
 
-    affinity = Column(Float, nullable=False, default=0.0)
-    trust = Column(Float, nullable=False, default=0.0)
-    familiarity = Column(Integer, nullable=False, default=0)
+    affinity: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    trust: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    familiarity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    status = Column(Text, nullable=False, server_default="stranger")
-    tags = Column(Text, nullable=False, server_default="[]")
+    status: Mapped[str] = mapped_column(Text, nullable=False, server_default="stranger")
+    tags: Mapped[str] = mapped_column(Text, nullable=False, server_default="[]")
 
-    last_interaction_turn = Column(Integer, nullable=False, default=0)
-    created_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
-    updated_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
+    last_interaction_turn: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
+    updated_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
 
     __table_args__ = (
         UniqueConstraint(
@@ -243,22 +263,24 @@ class QuestSeedModel(Base):
 
     __tablename__ = "quest_seeds"
 
-    seed_id = Column(Text, primary_key=True)
-    npc_id = Column(Text, ForeignKey("npcs.npc_id"), nullable=False)
+    seed_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    npc_id: Mapped[str] = mapped_column(Text, ForeignKey("npcs.npc_id"), nullable=False)
 
-    seed_type = Column(Text, nullable=False)
-    seed_tier = Column(Integer, nullable=False)
+    seed_type: Mapped[str] = mapped_column(Text, nullable=False)
+    seed_tier: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    created_turn = Column(Integer, nullable=False)
-    ttl_turns = Column(Integer, nullable=False)
-    status = Column(Text, nullable=False, server_default="active")
+    created_turn: Mapped[int] = mapped_column(Integer, nullable=False)
+    ttl_turns: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, server_default="active")
 
-    context_tags = Column(Text, nullable=False, server_default="[]")
-    expiry_result = Column(Text, nullable=True)
+    context_tags: Mapped[str] = mapped_column(Text, nullable=False, server_default="[]")
+    expiry_result: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    chain_id = Column(Text, nullable=True)
+    chain_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    conversation_count_at_creation = Column(Integer, nullable=False, default=0)
+    conversation_count_at_creation: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
 
     __table_args__ = (
         Index("idx_seed_npc", "npc_id"),
@@ -271,15 +293,15 @@ class WorldPoolModel(Base):
 
     __tablename__ = "world_pool"
 
-    entity_id = Column(
+    entity_id: Mapped[str] = mapped_column(
         Text,
         ForeignKey("background_entities.entity_id", ondelete="CASCADE"),
         primary_key=True,
     )
-    entity_type = Column(Text, nullable=False)
-    promotion_score = Column(Integer, nullable=False)
-    last_known_node = Column(Text, nullable=False)
-    registered_turn = Column(Integer, nullable=False)
+    entity_type: Mapped[str] = mapped_column(Text, nullable=False)
+    promotion_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    last_known_node: Mapped[str] = mapped_column(Text, nullable=False)
+    registered_turn: Mapped[int] = mapped_column(Integer, nullable=False)
 
     __table_args__ = (Index("idx_wp_type", "entity_type"),)
 
@@ -292,43 +314,53 @@ class QuestModel(Base):
 
     __tablename__ = "quests"
 
-    quest_id = Column(Text, primary_key=True)
-    title = Column(Text, nullable=False)
-    description = Column(Text, nullable=False)
+    quest_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
 
-    origin_type = Column(Text, nullable=False)
-    origin_npc_id = Column(Text, nullable=True)
-    origin_seed_id = Column(Text, nullable=True)
-    origin_overlay_id = Column(Text, nullable=True)
+    origin_type: Mapped[str] = mapped_column(Text, nullable=False)
+    origin_npc_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    origin_seed_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    origin_overlay_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    quest_type = Column(Text, nullable=False)
-    seed_tier = Column(Integer, nullable=False)
-    urgency = Column(Text, nullable=False, server_default="normal")
-    time_limit = Column(Integer, nullable=True)
+    quest_type: Mapped[str] = mapped_column(Text, nullable=False)
+    seed_tier: Mapped[int] = mapped_column(Integer, nullable=False)
+    urgency: Mapped[str] = mapped_column(Text, nullable=False, server_default="normal")
+    time_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    status = Column(Text, nullable=False, server_default="active")
-    result = Column(Text, nullable=True)
-    activated_turn = Column(Integer, nullable=False)
-    completed_turn = Column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False, server_default="active")
+    result: Mapped[str | None] = mapped_column(Text, nullable=True)
+    activated_turn: Mapped[int] = mapped_column(Integer, nullable=False)
+    completed_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    chain_id = Column(Text, nullable=True)
-    chain_index = Column(Integer, nullable=False, default=0)
-    is_chain_finale = Column(Boolean, nullable=False, default=False)
+    chain_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    chain_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_chain_finale: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
 
-    related_npc_ids = Column(Text, nullable=False, server_default="[]")
-    target_node_ids = Column(Text, nullable=False, server_default="[]")
-    overlay_id = Column(Text, nullable=True)
+    related_npc_ids: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default="[]"
+    )
+    target_node_ids: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default="[]"
+    )
+    overlay_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    resolution_method = Column(Text, nullable=True)
-    resolution_comment = Column(Text, nullable=True)
-    resolution_method_tag = Column(Text, nullable=True)
-    resolution_impression_tag = Column(Text, nullable=True)
+    resolution_method: Mapped[str | None] = mapped_column(Text, nullable=True)
+    resolution_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    resolution_method_tag: Mapped[str | None] = mapped_column(Text, nullable=True)
+    resolution_impression_tag: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    rewards = Column(Text, nullable=True)
+    rewards: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    tags = Column(Text, nullable=False, server_default="[]")
-    created_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
-    updated_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
+    tags: Mapped[str] = mapped_column(Text, nullable=False, server_default="[]")
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
+    updated_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
 
     __table_args__ = (
         Index("idx_quest_status", "status"),
@@ -342,17 +374,17 @@ class QuestObjectiveModel(Base):
 
     __tablename__ = "quest_objectives"
 
-    objective_id = Column(Text, primary_key=True)
-    quest_id = Column(
+    objective_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    quest_id: Mapped[str] = mapped_column(
         Text, ForeignKey("quests.quest_id", ondelete="CASCADE"), nullable=False
     )
 
-    description = Column(Text, nullable=False)
-    objective_type = Column(Text, nullable=False)
-    target = Column(Text, nullable=False, server_default="{}")
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    objective_type: Mapped[str] = mapped_column(Text, nullable=False)
+    target: Mapped[str] = mapped_column(Text, nullable=False, server_default="{}")
 
-    completed = Column(Boolean, nullable=False, default=False)
-    completed_turn = Column(Integer, nullable=True)
+    completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    completed_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     __table_args__ = (Index("idx_objective_quest", "quest_id"),)
 
@@ -362,18 +394,18 @@ class QuestChainEligibleModel(Base):
 
     __tablename__ = "quest_chain_eligible"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    quest_id = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    quest_id: Mapped[str] = mapped_column(
         Text, ForeignKey("quests.quest_id", ondelete="CASCADE"), nullable=False
     )
 
-    npc_ref = Column(Text, nullable=False)
-    ref_type = Column(Text, nullable=False)
-    node_hint = Column(Text, nullable=True)
-    reason = Column(Text, nullable=False)
+    npc_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    ref_type: Mapped[str] = mapped_column(Text, nullable=False)
+    node_hint: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
 
-    matched_npc_id = Column(Text, nullable=True)
-    matched_turn = Column(Integer, nullable=True)
+    matched_npc_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    matched_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     __table_args__ = (
         Index("idx_chain_eligible_quest", "quest_id"),
@@ -386,18 +418,18 @@ class QuestUnresolvedThreadModel(Base):
 
     __tablename__ = "quest_unresolved_threads"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    quest_id = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    quest_id: Mapped[str | None] = mapped_column(
         Text, ForeignKey("quests.quest_id", ondelete="SET NULL"), nullable=True
     )
-    chain_id = Column(
+    chain_id: Mapped[str | None] = mapped_column(
         Text, ForeignKey("quest_chains.chain_id", ondelete="SET NULL"), nullable=True
     )
 
-    thread_tag = Column(Text, nullable=False)
-    created_turn = Column(Integer, nullable=False)
-    resolved = Column(Boolean, nullable=False, default=False)
-    resolved_turn = Column(Integer, nullable=True)
+    thread_tag: Mapped[str] = mapped_column(Text, nullable=False)
+    created_turn: Mapped[int] = mapped_column(Integer, nullable=False)
+    resolved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    resolved_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     __table_args__ = (Index("idx_thread_chain", "chain_id"),)
 
@@ -410,24 +442,28 @@ class DialogueSessionModel(Base):
 
     __tablename__ = "dialogue_sessions"
 
-    session_id = Column(Text, primary_key=True)
-    player_id = Column(Text, nullable=False)
-    npc_id = Column(Text, nullable=False)
-    node_id = Column(Text, nullable=False)
+    session_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    player_id: Mapped[str] = mapped_column(Text, nullable=False)
+    npc_id: Mapped[str] = mapped_column(Text, nullable=False)
+    node_id: Mapped[str] = mapped_column(Text, nullable=False)
 
-    budget_total = Column(Integer, nullable=False)
+    budget_total: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    status = Column(Text, nullable=False, server_default="active")
-    started_turn = Column(Integer, nullable=False)
-    ended_turn = Column(Integer, nullable=True)
-    dialogue_turn_count = Column(Integer, nullable=False, default=0)
+    status: Mapped[str] = mapped_column(Text, nullable=False, server_default="active")
+    started_turn: Mapped[int] = mapped_column(Integer, nullable=False)
+    ended_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    dialogue_turn_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    seed_id = Column(Text, nullable=True)
-    seed_result = Column(Text, nullable=True)
+    seed_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    seed_result: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    total_affinity_delta = Column(Float, nullable=False, default=0.0)
+    total_affinity_delta: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0.0
+    )
 
-    created_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
 
     __table_args__ = (
         Index("idx_session_player", "player_id"),
@@ -440,20 +476,24 @@ class DialogueTurnModel(Base):
 
     __tablename__ = "dialogue_turns"
 
-    turn_id = Column(Text, primary_key=True)
-    session_id = Column(
+    turn_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    session_id: Mapped[str] = mapped_column(
         Text,
         ForeignKey("dialogue_sessions.session_id", ondelete="CASCADE"),
         nullable=False,
     )
-    turn_index = Column(Integer, nullable=False)
+    turn_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    pc_input = Column(Text, nullable=False)
-    npc_narrative = Column(Text, nullable=False)
-    raw_meta = Column(Text, nullable=False, server_default="{}")
-    validated_meta = Column(Text, nullable=False, server_default="{}")
+    pc_input: Mapped[str] = mapped_column(Text, nullable=False)
+    npc_narrative: Mapped[str] = mapped_column(Text, nullable=False)
+    raw_meta: Mapped[str] = mapped_column(Text, nullable=False, server_default="{}")
+    validated_meta: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default="{}"
+    )
 
-    created_at = Column(Text, nullable=False, server_default=text("datetime('now')"))
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
 
     __table_args__ = (Index("idx_turn_session", "session_id"),)
 
@@ -463,17 +503,19 @@ class ItemInstanceModel(Base):
 
     __tablename__ = "item_instances"
 
-    instance_id = Column(Text, primary_key=True)
-    prototype_id = Column(Text, ForeignKey("item_prototypes.item_id"), nullable=False)
+    instance_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    prototype_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("item_prototypes.item_id"), nullable=False
+    )
 
-    owner_type = Column(Text, nullable=False)
-    owner_id = Column(Text, nullable=False)
+    owner_type: Mapped[str] = mapped_column(Text, nullable=False)
+    owner_id: Mapped[str] = mapped_column(Text, nullable=False)
 
-    current_durability = Column(Integer, nullable=False)
-    state_tags = Column(Text, nullable=False, server_default="[]")
+    current_durability: Mapped[int] = mapped_column(Integer, nullable=False)
+    state_tags: Mapped[str] = mapped_column(Text, nullable=False, server_default="[]")
 
-    acquired_turn = Column(Integer, nullable=False, default=0)
-    custom_name = Column(Text, nullable=True)
+    acquired_turn: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    custom_name: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
         Index("idx_item_owner", "owner_type", "owner_id"),
