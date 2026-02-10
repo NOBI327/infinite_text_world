@@ -4,6 +4,9 @@
 - 도메인 모델: EntityType, BackgroundEntity, BackgroundSlot, HEXACO, NPCData
 - HEXACO 생성: generate_hexaco, get_behavior_modifier
 - 톤 태그: ToneContext, derive_manner_tags, calculate_emotion
+- 슬롯: calculate_slot_count, should_reset_slot
+- 승격: calculate_new_score, check_promotion_status, build_npc_from_entity
+- 명명: NPCNameSeed, NPCFullName, generate_name
 """
 
 from src.core.npc.models import (
@@ -25,6 +28,25 @@ from src.core.npc.tone import (
     calculate_emotion,
     derive_manner_tags,
 )
+from src.core.npc.slots import (
+    FACILITY_BASE_SLOTS,
+    FACILITY_REQUIRED_ROLES,
+    calculate_slot_count,
+    should_reset_slot,
+)
+from src.core.npc.promotion import (
+    PROMOTION_SCORE_TABLE,
+    PROMOTION_THRESHOLD,
+    WORLDPOOL_THRESHOLD,
+    build_npc_from_entity,
+    calculate_new_score,
+    check_promotion_status,
+)
+from src.core.npc.naming import (
+    NPCFullName,
+    NPCNameSeed,
+    generate_name,
+)
 
 __all__ = [
     # models
@@ -43,4 +65,20 @@ __all__ = [
     "derive_manner_tags",
     "EVENT_EMOTION_MAP",
     "calculate_emotion",
+    # slots
+    "FACILITY_BASE_SLOTS",
+    "FACILITY_REQUIRED_ROLES",
+    "calculate_slot_count",
+    "should_reset_slot",
+    # promotion
+    "PROMOTION_THRESHOLD",
+    "WORLDPOOL_THRESHOLD",
+    "PROMOTION_SCORE_TABLE",
+    "calculate_new_score",
+    "check_promotion_status",
+    "build_npc_from_entity",
+    # naming
+    "NPCNameSeed",
+    "NPCFullName",
+    "generate_name",
 ]
