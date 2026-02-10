@@ -101,6 +101,7 @@ class PlayerModel(Base):
     active_effects: Mapped[list] = mapped_column(JSON, default=list)
     investigation_penalty: Mapped[int] = mapped_column(Integer, default=0)
     last_action_time: Mapped[str | None] = mapped_column(String, nullable=True)
+    currency: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class SubGridNodeModel(Base):
