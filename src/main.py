@@ -12,6 +12,7 @@ from src.core.engine import ITWEngine
 from src.core.logging import get_logger, setup_logging
 from src.db.database import engine as db_engine
 from src.db.models import Base
+import src.db.models_v2  # noqa: F401  Phase 2 테이블 등록
 from src.services.ai import get_ai_provider
 from src.services.narrative_service import NarrativeService
 
