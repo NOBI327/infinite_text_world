@@ -47,6 +47,15 @@ from src.core.npc.naming import (
     NPCNameSeed,
     generate_name,
 )
+from src.core.npc.memory import (
+    IMPORTANCE_TABLE,
+    TIER2_CAPACITY,
+    NPCMemory,
+    assign_tier1_slot,
+    create_memory,
+    enforce_tier2_capacity,
+    get_memories_for_context,
+)
 
 __all__ = [
     # models
@@ -81,4 +90,12 @@ __all__ = [
     "NPCNameSeed",
     "NPCFullName",
     "generate_name",
+    # memory
+    "IMPORTANCE_TABLE",
+    "TIER2_CAPACITY",
+    "NPCMemory",
+    "create_memory",
+    "assign_tier1_slot",
+    "enforce_tier2_capacity",
+    "get_memories_for_context",
 ]
