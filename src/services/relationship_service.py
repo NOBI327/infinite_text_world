@@ -151,6 +151,7 @@ class RelationshipService:
         if row is None:
             self.create_relationship("player", source_id, "npc", target_id)
             row = self._get_relationship_row("player", source_id, "npc", target_id)
+            assert row is not None  # just created
 
         old_status = row.status
 
@@ -212,6 +213,7 @@ class RelationshipService:
         if row is None:
             self.create_relationship("player", source_id, "npc", target_id)
             row = self._get_relationship_row("player", source_id, "npc", target_id)
+            assert row is not None  # just created
 
         old_status = row.status
 
