@@ -12,10 +12,15 @@
 - **핵심:** Phase 1(Core Engine, 현재) → Phase 2(AI+NPC) → Phase 3(컨텐츠 확장) → Phase 4(Release).
 - **현황:** CI/CD 완료, 프로토타입 이식 완료. SQLite 영속화/통합 테스트/서브 그리드 진행 중.
 
+### worldbuilding-and-tone.md
+- **목적:** 세계관 기초 + 서술 톤앤매너 + LLM 프롬프트 가이드
+- **핵심:** "건조한 경이" 톤, 4종족, 만신전, 경제, 명명 규칙
+- **상태:** 확정 (v1.4)
+
 ### content-safety.md
-- **목적:** 콘텐츠 안전 정책 (v0.3 초안)
-- **핵심:** 페이드 아웃 정책 — 차단 아닌 묘사 생략 + 결과 전달. 세계 내 반응 원칙.
-- **상태:** 아이디어 단계. SaaS 대비 고려사항, 소환 아이템 확장 아이디어 포함.
+- **목적:** 콘텐츠 안전 정책 — 페이드 아웃 방식
+- **핵심:** 묘사 레벨 3단계, 폴백 체인, 카테고리별 캐싱
+- **상태:** 초안 (v0.3)
 
 ---
 
@@ -147,6 +152,11 @@
 - **목적:** EventBus 이벤트 통합 설계 — 전체 이벤트 카탈로그, 구독 매트릭스, 순환 분석
 - **핵심:** 모듈/서비스 간 동기식 이벤트 통신. 이벤트 카탈로그 9그룹, 구독 매트릭스, 페이로드 스키마.
 - **v1.1:** 이벤트 7종 추가(player_moved, action_completed, item_given, objective_failed, companion_joined/moved/disbanded), ObjectiveWatcher + companion 구독 반영, 모듈 초기화 순서 갱신.
+
+### i18n-policy.md
+- **목적:** 다언어 대응 방침
+- **핵심:** 일본어 최우선, Phase 2 후반 i18n 인프라 선투입
+- **상태:** 방침 확정
 
 ### simulation-scope.md
 - **목적:** NPC 시뮬레이션 범위와 Zone 밖 NPC 처리 규칙 정의
