@@ -1,6 +1,6 @@
 # ITW 퀘스트 시스템 설계서
 
-**버전**: 1.0  
+**버전**: 1.1
 **작성일**: 2026-02-08  
 **상태**: 확정  
 **관련**: npc-system.md, relationship-system.md, overlay-layer-system.md, simulation-scope.md
@@ -154,9 +154,10 @@ class Quest:
     origin_seed_id: Optional[str]   # 대화 퀘스트: 원본 시드
     origin_overlay_id: Optional[str]  # 환경 퀘스트: 트리거 오버레이
 
-    # 유형
-    quest_type: str                 # "fetch" | "deliver" | "escort" | "investigate"
+    # 유형 (변경)
+    quest_type: str                 # "deliver" | "escort" | "investigate"
                                     # | "resolve" | "negotiate" | "bond" | "rivalry"
+    # ※ "fetch" 폐지 → deliver(납품처=의뢰인)로 통합
     seed_tier: int                  # 1(대), 2(중), 3(소) — 서사 규모, 체이닝 확률 결정
     urgency: str                    # "normal" | "urgent"
     time_limit: Optional[int]       # urgent일 때만: 턴 제한
@@ -196,16 +197,60 @@ class Quest:
 
 ### 3.2 퀘스트 유형
 
-| 카테고리 | 유형 | 설명 | 예시 |
-|---------|------|------|------|
-| **전달** | `fetch` | 아이템 수집/수거 | "산에서 약초를 가져다줘" |
-| | `deliver` | 아이템/메시지 전달 | "이 편지를 동쪽 마을에 전해줘" |
-| | `escort` | NPC 호위 | "사촌을 찾아서 데려와줘" |
-| **해결** | `investigate` | 조사/탐색 | "숲에서 나는 이상한 소리를 조사해줘" |
-| | `resolve` | 문제 해결 | "폭풍으로 무너진 다리를 수리해" |
-| | `negotiate` | 협상/중재 | "두 상인의 분쟁을 중재해줘" |
-| **관계** | `bond` | 우정/동맹 관련 | "한스의 대장간 확장을 도와줘" |
-| | `rivalry` | 적대/경쟁 관련 | "고렉이 보낸 도적을 처리해" |
+### 의뢰 추상화 원칙
+
+모든 퀘스트는 다음 구조로 환원된다:
+
+```
+의뢰인이 [대상]을 [납품처/목표 상태]로 하기를 의뢰
+  - 대상: 아이템, NPC, 상태/조건
+  - 납품처: 의뢰인 자신, 제3자 NPC, 특정 장소
+  - 달성: 납품처에 대상을 전달/도달시키면 완료
+  - 수단: PC 자유 (Python은 수단을 제약하지 않음)
+```
+
+### 유형 정의
+
+| 카테고리 | 유형 | 의뢰 구조 | 예시 |
+|---------|------|----------|------|
+| **전달** | `deliver` | 대상(아이템)을 납품처(NPC/장소)에 전달 | "약초를 가져다줘" (납품처=의뢰인), "편지를 B에게 전해줘" (납품처=B) |
+| **호위** | `escort` | 대상(NPC)을 목표지에 안전하게 이동 | "나를 D까지 호위해줘" (대상=의뢰인), "사촌을 찾아서 데려와줘" (대상=제3자, 선행: 발견) |
+| **해결** | `investigate` | 대상(장소/상황)을 조사하여 정보 획득 | "숲의 이상한 소리를 조사해줘" |
+| | `resolve` | 대상(문제/상태)을 해결 | "무너진 다리를 수리해", "도적을 처리해" |
+| | `negotiate` | 대상(분쟁/관계)을 협상으로 해결 | "두 상인의 분쟁을 중재해줘" |
+| **관계** | `bond` | 대상(NPC)과의 관계 발전 | "한스의 대장간 확장을 도와줘" |
+| | `rivalry` | 대상(NPC/세력)과의 적대 해결 | "고렉이 보낸 도적을 처리해" |
+
+### fetch 폐지 사유
+
+`fetch`("아이템을 가져와")는 `deliver`의 특수 케이스이다 (납품처 = 의뢰인). 입수 방법을 판정하지 않고 "의뢰인에게 전달하면 완료"로 통일하면, fetch와 deliver의 구분이 불필요하다.
+
+```
+기존 fetch: "약초를 구해와" → find_item(보유 판정) → 별도 전달 불필요
+변경 deliver: "약초를 구해와" → deliver(약초, 납품처=의뢰인) → 의뢰인에게 give로 완료
+```
+
+### escort 세분화: 호위 vs 구출
+
+escort 유형은 대상 NPC의 초기 상태에 따라 분기된다:
+
+| 상황 | 대상 초기 상태 | 선행 조건 | 분기 |
+|------|-------------|----------|------|
+| **호위** | PC와 같은 위치, 대화 가능 | 없음 | 동행 시작 → 목표지 이동 |
+| **구출** | 별도 위치, 발견 필요 | reach_node(대상 위치) | 발견 → 생존/사망 분기 → 후속 처리 |
+
+구출 퀘스트의 현장 분기:
+
+```
+대상 위치 도착
+  ├─ 생존 → 동행 요청 (퀘스트 동행) → 목표지까지 escort → 완료
+  ├─ 사망 → Objective 실패 → 대체 목표 생성 (섹션 12.2.4)
+  │    ├─ 유품 회수 → deliver(유품, 의뢰인) → partial
+  │    └─ 의뢰인에게 보고 → talk_to_npc(의뢰인) → partial or 새 퀘스트 분기
+  └─ 부재 → Objective 실패(대상 미발견) → 대체 목표 생성
+       ├─ 추가 조사 → 새 reach_node 또는 talk_to_npc 추가
+       └─ 의뢰인에게 보고 → talk_to_npc(의뢰인) → 정보 갱신
+```
 
 ### 3.3 긴급도
 
@@ -218,10 +263,12 @@ class Quest:
 
 | 결과 | 조건 | 보상 | 관계 영향 |
 |------|------|------|----------|
-| **success** | 모든 목표 달성 | 전체 보상 | affinity/trust 상승 |
-| **partial** | 일부 목표 달성 | 부분 보상 (50~80%) | affinity 소폭 상승, trust 변동 없음 |
+| **success** | 모든 원본 목표 달성 | 전체 보상 | affinity/trust 상승 |
+| **partial** | 원본 목표 일부 실패 + 대체 목표 달성 | 부분 보상 (50~80%) | affinity 소폭 상승, trust 변동 없음 |
 | **failure** | urgent 시간 초과, 핵심 목표 미달성 | 보상 없음 | trust 하락 |
 | **abandoned** | PC가 포기 선언 | 보상 없음 | affinity/trust 하락 |
+
+대체 목표를 통한 partial 경로가 추가됨으로써, "원래 목표는 실패했지만 최선을 다했다"는 서사가 보상으로 반영된다.
 
 ---
 
@@ -747,25 +794,34 @@ PC의 수단 선언 (자유 텍스트)
 
 ### 7.4 결과 판정
 
-퀘스트 전체 결과는 목표(Objective) 달성 비율로 판정한다. 각 목표의 달성 여부는 위 수단별 판정의 누적이다.
+퀘스트 전체 결과는 목표(Objective) 달성 상태로 판정한다. 대체 목표를 포함한 판정 로직:
 
 ```python
-def evaluate_quest_result(quest: Quest, objectives: List[Objective]) -> str:
-    """퀘스트 결과 판정"""
-    completed = [o for o in objectives if o.completed]
-    total = len(objectives)
-    
-    if not completed:
-        return "failure"
-    
-    completion_ratio = len(completed) / total
-    
-    if completion_ratio >= 1.0:
+def evaluate_quest_result(quest: Quest, objectives: list[Objective]) -> str:
+    """퀘스트 결과 판정 — 대체 목표 포함"""
+
+    original = [o for o in objectives if not o.is_replacement]
+    replacements = [o for o in objectives if o.is_replacement]
+
+    original_completed = [o for o in original if o.status == "completed"]
+    original_failed = [o for o in original if o.status == "failed"]
+    replacement_completed = [o for o in replacements if o.status == "completed"]
+
+    # 원본 목표 전부 달성 → success
+    if len(original_completed) == len(original):
         return "success"
-    elif completion_ratio >= 0.5:
+
+    # 원본 일부 실패 + 대체 목표 달성 → partial
+    if original_failed and replacement_completed:
         return "partial"
-    else:
-        return "failure"
+
+    # 원본 일부 달성, 나머지 진행 중 → 아직 미완료
+    active = [o for o in objectives if o.status == "active"]
+    if active:
+        return None  # 진행 중
+
+    # 전부 실패 → failure
+    return "failure"
 ```
 
 ### 7.5 판정에서 LLM과 Python의 역할 분담
@@ -887,6 +943,7 @@ PC가 시드에 반응하면, LLM에게 퀘스트 내용 생성을 요청한다:
 | `npc_promoted` | npc_core | unborn chain_eligible NPC 매칭 스캔 |
 | `turn_processed` | ModuleManager | 시드 TTL 체크, urgent 퀘스트 시간 체크 |
 | `objective_completed` | (게임 액션) | 퀘스트 목표 달성 체크, 결과 판정 |
+| `objective_failed` | engine (ObjectiveWatcher) | 목표 실패 처리, 대체 목표 생성 판정 |
 
 ---
 
@@ -955,11 +1012,13 @@ simulation-scope.md의 `event_bound` NPC 처리:
 | `quest_seeds` | seed_id, npc_id, seed_type, seed_tier, created_turn, ttl_turns, status, context_tags, expiry_result, chain_id (연작 시드일 때) |
 | `quest_chain_eligible` | id, quest_id, npc_ref, ref_type, node_hint, reason |
 | `quest_unresolved_threads` | id, quest_id (or chain_id), thread_tag, created_turn, resolved |
-| `quest_objectives` | objective_id, quest_id, description, completed, completed_turn |
+| `quest_objectives` | objective_id, quest_id, description, objective_type, target, status, completed_turn, failed_turn, fail_reason, is_replacement, replaced_objective_id, replacement_origin |
 | `quest_rewards` | reward_id, quest_id, reward_type, data |
 | `quest_chains` | chain_id, created_turn, finalized, total_quests |
 
 ### 12.2 Objective
+
+#### 12.2.1 Objective 데이터 모델
 
 ```python
 @dataclass
@@ -967,14 +1026,93 @@ class Objective:
     """퀘스트 목표 단위"""
     objective_id: str
     quest_id: str
-    description: str                # LLM 생성
-    objective_type: str             # "reach_node" | "find_item" | "talk_to_npc" | "resolve_check"
-    target: Dict[str, Any]          # {"node_id": "3_5"} or {"npc_id": "npc_fritz"} etc.
-    completed: bool = False
+    description: str                    # LLM 생성
+    objective_type: str                 # "reach_node" | "deliver" | "escort"
+                                        # | "talk_to_npc" | "resolve_check"
+    target: Dict[str, Any]              # 유형별 목표 대상 (12.2.2 참조)
+
+    # 상태
+    status: str = "active"              # "active" | "completed" | "failed"
     completed_turn: Optional[int] = None
+    failed_turn: Optional[int] = None
+    fail_reason: Optional[str] = None   # "target_dead" | "target_missing" | "time_expired" | ...
+
+    # 대체 목표 관련
+    is_replacement: bool = False        # 대체 목표 여부
+    replaced_objective_id: Optional[str] = None  # 원본 목표 ID
+    replacement_origin: Optional[str] = None     # "auto_fallback" | "client_consult" | "pc_initiative"
 ```
 
-#### Objective 생성 흐름: LLM 제안 → Python 검증/구조화
+#### 12.2.2 유형별 target 구조
+
+##### reach_node — 도달 목표
+
+```python
+{
+    "node_id": "5_3",                       # 목표 노드
+    "require_action": None,                 # None | "investigate" | "look"
+}
+```
+
+달성 조건: PC가 node_id에 도착. require_action이 설정되면 도착 후 해당 액션 수행 시 달성.
+
+##### deliver — 전달 목표
+
+```python
+{
+    "item_prototype_id": "healing_herb",    # 전달할 아이템 (프로토타입 ID)
+    "item_tag": None,                       # 또는 태그 매칭 ("herb_any")
+    "quantity": 3,                          # 수량 (기본 1)
+    "recipient_npc_id": "npc_hans_042",     # 납품처 NPC
+}
+```
+
+달성 조건: PC가 recipient_npc_id에게 해당 아이템을 전달 (give 액션 또는 대화 중 gift_offered). 입수 방법은 판정하지 않는다.
+
+##### escort — 호위 목표
+
+```python
+{
+    "target_npc_id": "npc_fritz_043",       # 호위 대상 NPC
+    "destination_node_id": "2_2",           # 목표지
+    "target_initial_status": "unknown",     # "present" | "missing" | "unknown"
+    "target_location_hint": "5_8",          # 대상이 있을 것으로 추정되는 위치 (구출 시)
+}
+```
+
+달성 조건: 대상 NPC와 함께(동행 상태) 목표지 도착. target_initial_status에 따라:
+
+| 초기 상태 | 선행 조건 | 흐름 |
+|----------|----------|------|
+| `present` | 없음 | 즉시 동행 시작 → 목표지 이동 |
+| `missing` / `unknown` | 대상 위치 도달 + 발견 | 발견 → 생존 분기 → 동행 or 대체 목표 |
+
+##### talk_to_npc — 대화 목표
+
+```python
+{
+    "npc_id": "npc_merchant_012",           # 대화 대상
+    "require_topic": None,                  # None | "dispute_resolution" (주제 태그)
+}
+```
+
+달성 조건: 해당 NPC와 대화. require_topic이 설정되면 대화 topic_tags에 해당 주제 등장 시 달성.
+
+##### resolve_check — 판정 성공 목표
+
+```python
+{
+    "check_type": "EXEC",                   # 필요 스탯 (None = 어떤 스탯이든)
+    "min_result_tier": "success",           # "success" | "critical"
+    "context_tag": "bridge_repair",         # 판정 맥락 태그 (선택)
+}
+```
+
+달성 조건: Protocol T.A.G. 판정에서 조건 충족.
+
+#### 12.2.3 Objective 생성 흐름
+
+기존과 동일: LLM 제안 → Python 검증/구조화. hint_type 매핑은 섹션 8.3 갱신분 참조.
 
 ```
 퀘스트 활성화 시 LLM이 META에 목표를 제안한다.
@@ -989,19 +1127,116 @@ LLM 제안 (META):
 Python 검증:
   1. hint_type → objective_type 매핑 (유효성 체크)
   2. hint_target → 실제 엔티티 ID 매칭 (DB 조회)
-  3. 검증 실패 시 → 퀘스트 유형 기반 fallback 목표 자동 생성
+  3. escort의 경우 → target_initial_status 자동 판정 (NPC가 현재 위치에 있는가?)
+  4. 검증 실패 시 → 퀘스트 유형 기반 fallback 목표 자동 생성
 ```
+
+#### 12.2.4 대체 목표 생성 (Objective Replacement)
+
+##### 원칙
+
+Objective의 status가 `failed`로 전환될 때, Python이 상황에 맞는 **대체 목표 후보**를 생성한다. 대체 목표 중 하나는 반드시 **"의뢰주에게 보고"** (talk_to_npc)이다.
+
+##### 트리거
+
+| 실패 사유 | 트리거 시점 | 비고 |
+|----------|-----------|------|
+| `target_dead` | 호위/구출 대상 사망 확인 시 | escort 목표 |
+| `target_missing` | 대상 위치에 대상이 없을 때 | escort 목표 |
+| `item_unobtainable` | 아이템 획득 불가 확정 시 | deliver 목표 (예: 유일 아이템 파괴) |
+| `time_expired` | urgent 퀘스트 시간 초과 시 | 모든 활성 목표 |
+
+##### 대체 목표 생성 흐름
+
+```
+Objective 실패 감지
+  │
+  ├─ Python: fail_reason 기반 대체 후보 생성
+  │    │
+  │    ├─ [필수] talk_to_npc(의뢰인) — "의뢰주에게 보고"
+  │    │    replacement_origin: "client_consult"
+  │    │
+  │    └─ [자동] fail_reason별 자동 대체 후보
+  │         replacement_origin: "auto_fallback"
+  │
+  ├─ PC에게 선택지 제시 (시스템 메시지)
+  │    "프리츠가 사망한 것을 확인했다."
+  │    "1. 유품을 수습하여 한스에게 가져간다"
+  │    "2. 한스에게 돌아가서 보고한다"
+  │    "3. 주변을 더 조사한다"
+  │
+  └─ PC 선택 (또는 자유 행동) → 해당 대체 목표 활성화
+```
+
+##### fail_reason별 대체 후보
+
+| fail_reason | 필수 대체 | 자동 대체 후보 |
+|-------------|----------|--------------|
+| `target_dead` | talk_to_npc(의뢰인) 보고 | deliver(유품, 의뢰인), resolve_check(사인 조사) |
+| `target_missing` | talk_to_npc(의뢰인) 보고 | reach_node(추가 탐색), talk_to_npc(목격자) |
+| `item_unobtainable` | talk_to_npc(의뢰인) 보고 | deliver(대체품, 의뢰인), talk_to_npc(다른 입수처) |
+| `time_expired` | talk_to_npc(의뢰인) 보고 | — (시간 초과는 자동 대체 없음) |
+
+##### "의뢰주에게 보고" 특수 처리
+
+의뢰주 보고를 선택하면, **의뢰주와의 대화에서 새로운 퀘스트 분기가 발생할 수 있다.** 이는 대체 목표 달성이 아니라 **새 퀘스트 시드 생성**으로 처리한다.
+
+```
+PC: "talk hans" (구출 실패 후 보고)
+  → dialogue_started 발행
+  → quest 모듈: 보고 대화임을 감지 (실패한 퀘스트의 의뢰인)
+    → LLM 컨텍스트에 실패 정보 주입:
+      "quest_failure_report": {
+        "quest_id": "quest_fritz_001",
+        "failed_objective": "프리츠 호위",
+        "fail_reason": "target_dead",
+        "instruction": "의뢰인이 실패 보고를 받는다. 감정적 반응 후, 후속 행동을 자연스럽게 제안할 수 있다."
+      }
+  → 한스: "그, 그런... 프리츠가... 누가 그런 짓을... 범인을 찾아줄 수 있겠나?"
+  → PC 반응에 따라:
+    ├─ 수락 → 새 퀘스트 시드 (investigate/rivalry, "범인 추적")
+    │    → 원본 퀘스트: result = "partial" (보고 완료)
+    │    → 새 퀘스트: chain_id 계승 가능
+    └─ 거부 → 원본 퀘스트: result = "partial" (보고 완료)
+              → 시드 NPC 기억에 저장, TTL 시작
+```
+
+이 구조의 핵심: **추상화 덕분에 호위→구출→복수 납치 대응이 전부 같은 메커니즘으로 동작한다.** quest_type과 objective_type의 조합만 바뀔 뿐이다.
+
+```
+호위 실패 → 의뢰인 보고 → "복수해줘" → rivalry 퀘스트 (resolve_check)
+구출 실패 → 의뢰인 보고 → "납치범을 찾아줘" → investigate 퀘스트 (reach_node + talk_to_npc)
+배달 실패 → 의뢰인 보고 → "대체품을 구해줘" → deliver 퀘스트 (deliver)
+```
+
+#### 12.2.5 전투 퀘스트 추상화 (Alpha → Beta 전환)
+
+Alpha에서는 전투 시스템이 없으므로, 전투를 포함하는 퀘스트는 `resolve_check`으로 추상화한다. Beta에서 전투 시스템 도입 시, 동일한 Objective 구조에 전투 결과를 매핑한다.
+
+```
+Alpha:
+  "도적을 처리해" → resolve_check {check_type: "EXEC", context_tag: "combat_bandit"}
+  → d6 Dice Pool 판정 → success/failure
+
+Beta (전투 시스템 도입 후):
+  "도적을 처리해" → resolve_check {check_type: "COMBAT", context_tag: "combat_bandit"}
+  → combat 시스템이 전투 실행 → 결과를 check_result로 발행
+  → ObjectiveWatcher가 동일하게 처리
+```
+
+Objective 구조 변경 없이, check_type에 "COMBAT"을 추가하고 engine이 combat 시스템으로 라우팅하면 된다.
 
 #### hint_type → objective_type 매핑
 
-| LLM hint_type | objective_type | 완료 조건 (Python 자동 판정) |
-|---------------|---------------|--------------------------|
+| LLM hint_type | objective_type | 완료 조건 |
+|---------------|---------------|----------|
 | `find_npc` | `talk_to_npc` | 해당 NPC와 대화 시 |
-| `escort_to` | `reach_node` | NPC와 함께 목표 노드 도착 시 |
-| `fetch_item` | `find_item` | 해당 아이템 획득 시 |
-| `deliver_item` | `reach_node` + `find_item` | 목표 노드에서 아이템 전달 시 |
+| `escort_to` | `escort` | 대상 NPC와 함께 목표지 도착 시 (companion 연동) |
+| `fetch_item` | `deliver` | 의뢰인에게 아이템 전달 시 (납품처=의뢰인) |
+| `deliver_item` | `deliver` | 납품처 NPC에게 아이템 전달 시 |
 | `investigate_area` | `reach_node` | 해당 노드에서 investigate 액션 시 |
 | `resolve_problem` | `resolve_check` | Protocol T.A.G. 판정 성공 시 |
+| `go_to` | `reach_node` | 해당 노드 도착 시 |
 | (인식 불가) | fallback | 퀘스트 유형별 기본 목표 생성 |
 
 #### Fallback 목표 (퀘스트 유형별)
@@ -1010,9 +1245,8 @@ LLM 제안이 검증 실패하거나 비어있을 때 Python이 자동 생성:
 
 ```python
 FALLBACK_OBJECTIVES = {
-    "fetch": [{"type": "find_item", "description": "요청된 물품을 구하라"}],
-    "deliver": [{"type": "reach_node", "description": "목적지에 도착하라"}],
-    "escort": [{"type": "reach_node", "description": "대상을 목적지에 호위하라"}],
+    "deliver": [{"type": "deliver", "description": "의뢰 물품을 납품처에 전달하라"}],
+    "escort": [{"type": "escort", "description": "대상을 목표지에 호위하라"}],
     "investigate": [{"type": "reach_node", "description": "해당 지역을 조사하라"}],
     "resolve": [{"type": "resolve_check", "description": "문제를 해결하라"}],
     "negotiate": [{"type": "talk_to_npc", "description": "관련자와 대화하라"}],
@@ -1101,3 +1335,4 @@ PC: "가서 끌어올려줄게"
 | 버전 | 일자 | 내용 |
 |------|------|------|
 | 1.0 | 2026-02-08 | 최초 작성 |
+| 1.1 | 2026-02-12 | Objective 구조 재설계: fetch 폐지→deliver 통합, escort 독립화, 목표 실패/대체 목표 생성 추가, 전투 추상화, hint_type 매핑 갱신 |

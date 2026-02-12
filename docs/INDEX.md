@@ -12,6 +12,11 @@
 - **핵심:** Phase 1(Core Engine, 현재) → Phase 2(AI+NPC) → Phase 3(컨텐츠 확장) → Phase 4(Release).
 - **현황:** CI/CD 완료, 프로토타입 이식 완료. SQLite 영속화/통합 테스트/서브 그리드 진행 중.
 
+### content-safety.md
+- **목적:** 콘텐츠 안전 정책 (v0.3 초안)
+- **핵심:** 페이드 아웃 정책 — 차단 아닌 묘사 생략 + 결과 전달. 세계 내 반응 원칙.
+- **상태:** 아이디어 단계. SaaS 대비 고려사항, 소환 아이템 확장 아이디어 포함.
+
 ---
 
 ## 20_design/ (WHAT)
@@ -62,11 +67,24 @@
 - **태도 태그:** Python 3단계 파이프라인 (관계 수치 → HEXACO 보정 → 기억 보정). LLM은 서술만.
 - **감쇠:** affinity/trust 지수 1.2 감쇠, trust 하락은 감쇠 없음, familiarity 30일당 -1.
 
-### quest-system.md
+### quest-system.md (v1.1)
 - **목적:** 퀘스트 발생, 체이닝, 판정, 보상 시스템 설계
 - **핵심:** Python 선행 제어(5% 확률) + LLM 내용 생성 2단계 구조. Quest Seed로 떡밥 심기 → PC 선택권 → 수락 시 활성화.
 - **체이닝:** 시드 티어 3단계(소60%/중30%/대10%), 시드 생성 시 DB 참조하여 연작 결정. chain_eligible_npcs(existing + unborn).
 - **판정:** 수단의 자유 원칙. 공리 역학 활용이 전투 핵심. NPC 한줄평(impression_tag)이 태도 태그에 반영.
+- **v1.1:** Objective 구조 재설계 — fetch 폐지→deliver 통합, escort 독립화, 목표 실패/대체 목표 생성, 전투 추상화.
+
+### quest-action-integration.md (v1.1)
+- **목적:** 퀘스트-액션 연동 설계 — Objective 달성/실패 판정, ObjectiveWatcher
+- **핵심:** Python 판정(LLM 서술만), 분산 감지·중앙 발행 구조. 5종 Objective(reach_node/deliver/escort/talk_to_npc/resolve_check) 달성 조건 정의.
+- **ObjectiveWatcher:** engine 내부 컴포넌트. player_moved, item_given, dialogue_started/ended, check_result 구독하여 목표 대조.
+- **대체 목표:** 목표 실패 시 PC 선택지 제시, 의뢰주 보고 필수 포함.
+
+### companion-system.md (v1.1)
+- **목적:** 동행(Companion) 시스템 설계 — 퀘스트/자발적 동행, 라이프사이클, escort 연동
+- **핵심:** 퀘스트 동행(escort 자동 요청) + 자발적 동행(recruit, 관계·성격 기반 수락), 1인 동행 제한(Alpha).
+- **라이프사이클:** 요청→수락(무조건/조건부)→동행(이동 동기화, 대화)→해산(자동/수동).
+- **해산 후 귀환:** 정주형(원래 위치), 구출 대상(의뢰인 위치), 방랑형(현재 잔류). Background Task 이동.
 
 ### dialogue-system.md
 - **목적:** PC-NPC 대화 세션 관리, META JSON 통합, 행동 검증 시스템 설계
@@ -125,6 +143,11 @@
 - **핵심:** Layer 0(Core) → Layer 1(기반: geography, time, npc, item) → Layer 2(오버레이) → Layer 3(상호작용) → Layer 4(고급). GameModule ABC + ModuleManager로 모듈 토글.
 - **원칙:** 모듈 격리, 명시적 의존성, EventBus 통신, 점진적 복잡도 증가.
 
+### event-bus.md (v1.1)
+- **목적:** EventBus 이벤트 통합 설계 — 전체 이벤트 카탈로그, 구독 매트릭스, 순환 분석
+- **핵심:** 모듈/서비스 간 동기식 이벤트 통신. 이벤트 카탈로그 9그룹, 구독 매트릭스, 페이로드 스키마.
+- **v1.1:** 이벤트 7종 추가(player_moved, action_completed, item_given, objective_failed, companion_joined/moved/disbanded), ObjectiveWatcher + companion 구독 반영, 모듈 초기화 순서 갱신.
+
 ### simulation-scope.md
 - **목적:** NPC 시뮬레이션 범위와 Zone 밖 NPC 처리 규칙 정의
 - **핵심:** Active Zone(PC 중심 5×5, active_radius 설정 가능) 풀 시뮬레이션. Background Zone은 상태만 추적.
@@ -158,8 +181,11 @@
 ### 예정 문서 (Phase 2)
 - ~~npc-system.md~~ → ✅ 설계 완료 + 코드 구현 (#08)
 - ~~relationship-system.md~~ → ✅ 설계 완료 (코드 미구현)
-- ~~quest-system.md~~ → ✅ 설계 완료 (코드 미구현)
+- ~~quest-system.md~~ → ✅ 설계 완료 v1.1 (코드 미구현)
+- ~~quest-action-integration.md~~ → ✅ 설계 완료 v1.1 (코드 미구현)
+- ~~companion-system.md~~ → ✅ 설계 완료 v1.1 (코드 미구현)
 - ~~dialogue-system.md~~ → ✅ 설계 완료 (코드 미구현)
-- event-bus.md: 서비스 간 이벤트 통신 패턴 (코드 존재, 문서 미작성)
+- ~~event-bus.md~~ → ✅ 설계 완료 v1.1 (코드 존재, event_types.py 부분 구현)
 - ~~item-system.md~~ → ✅ 설계 완료 (코드 미구현)
 - ~~db-schema-v2.md~~ → ✅ 설계 완료 + 코드 구현 (#07)
+- ~~content-safety.md~~ → 초안 v0.3 (아이디어 단계)

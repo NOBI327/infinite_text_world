@@ -1,5 +1,5 @@
 # ITW 프로젝트 현재 상태
-자동 생성일: 2026-02-11
+자동 생성일: 2026-02-12
 
 ## 구현 완료 (코드 존재)
 
@@ -80,7 +80,7 @@
 - Python 3단계 태도 태그 파이프라인 - 미구현
 - 감쇠 곡선 (지수 1.2, trust 비대칭) - 미구현
 
-### 퀘스트 시스템 (docs/20_design/quest-system.md)
+### 퀘스트 시스템 (docs/20_design/quest-system.md v1.1)
 - Quest Seed 메커니즘 (5% 확률, TTL, 4유형) - 미구현
 - 시드 티어 3단계 (소60%/중30%/대10%) - 미구현
 - 체이닝 구조 (chain_eligible_npcs, unresolved_threads) - 미구현
@@ -88,6 +88,21 @@
 - NPC 한줄평 (resolution_comment, impression_tag) - 미구현
 - L4 Quest 오버레이 자동 생성/제거 - 미구현
 - PC 경향 (pc_tendency) 산출 - 미구현
+- **v1.1 추가**: Objective 구조 재설계 (fetch→deliver 통합, escort 독립, 목표 실패/대체 목표) - 미구현
+
+### 퀘스트-액션 연동 (docs/20_design/quest-action-integration.md v1.1)
+- ObjectiveWatcher: 5종 Objective(reach_node/deliver/escort/talk_to_npc/resolve_check) 달성/실패 판정 - 미구현
+- 신규 액션 연동 (talk, give, use) - 미구현
+- 대화 중 목표 달성 → LLM 컨텍스트 반영 - 미구현
+- 대체 목표 생성 + 의뢰주 보고 필수 선택지 - 미구현
+
+### 동행 시스템 (docs/20_design/companion-system.md v1.1)
+- 퀘스트 동행 / 자발적 동행 2유형 - 미구현
+- 라이프사이클 (요청→수락→동행→해산) - 미구현
+- escort/rescue 퀘스트 연동 - 미구현
+- 이동 동기화 (player_moved 구독) - 미구현
+- 해산 후 NPC 귀환 행동 (정주형/구출대상/방랑형) - 미구현
+- 조건부 동행 (time_limit, destination_only 등) - 미구현
 
 ### 대화 시스템 (docs/20_design/dialogue-system.md)
 - 대화 세션 관리 (세션 = 게임 1턴) - 미구현
@@ -135,10 +150,17 @@
 - biomes 테이블 - 미구현
 - 레이어별 필드 추가 - 미구현
 
-## 설계 미완 (로드맵/요구사항에 있지만 설계 문서 없음)
+### EventBus 통합 (docs/30_technical/event-bus.md v1.1)
+- 이벤트 7종 추가 (player_moved, action_completed, item_given, objective_failed, companion_joined/moved/disbanded) - 설계 완료, event_types.py 미반영
+- 구독 매트릭스 갱신 (ObjectiveWatcher + companion) - 설계 완료
+- 모듈 초기화 순서 갱신 (companion → quest) - 설계 완료
 
-### Phase 2 잔여 (설계 필요)
-- event-bus.md: 서비스 간 이벤트 통신 패턴 상세 (코드는 구현 완료, 설계 문서 미작성)
+### 콘텐츠 안전 정책 (docs/10_product/content-safety.md v0.3 초안)
+- 페이드 아웃 정책 (차단 아닌 묘사 생략 + 결과 전달) - 아이디어 단계
+- SaaS 대비 고려사항 - 메모
+- 소환 아이템 확장 아이디어 - 메모
+
+## 설계 미완 (로드맵/요구사항에 있지만 설계 문서 없음)
 
 ### Phase 3 예정 (docs/10_product/roadmap.md)
 - 던전 시스템 (서브 그리드 기반 확장)
@@ -188,11 +210,15 @@
 ### Phase 2 다음 단계
 1. **관계 시스템 구현**: relationship-system.md 기반 — 3축 관계, 상태 전이, 감쇠
 2. **대화 시스템 구현**: dialogue-system.md 기반 — 세션 관리, META JSON, 예산제
-3. **퀘스트 시스템 구현**: quest-system.md 기반 — Seed, 체이닝, 판정
-4. **아이템 시스템 구현**: item-system.md 기반 — Prototype/Instance, 거래, 인벤토리
+3. **퀘스트 시스템 구현**: quest-system.md v1.1 기반 — Seed, 체이닝, 판정, Objective 재설계
+4. **퀘스트-액션 연동 구현**: quest-action-integration.md 기반 — ObjectiveWatcher, 달성/실패 판정
+5. **동행 시스템 구현**: companion-system.md 기반 — 동행 라이프사이클, escort 연동
+6. **아이템 시스템 구현**: item-system.md 기반 — Prototype/Instance, 거래, 인벤토리
 
-### 설계 (미작성)
-1. **event-bus.md**: 서비스 간 이벤트 통신 패턴 상세 (코드 존재, 문서 미작성)
+### 소규모 갱신 필요
+1. **dialogue-system.md**: dialogue_started 페이로드에 companion_npc_id 선택 키 추가
+2. **db-schema.md**: quest_objectives 필드 갱신, companions 테이블 추가
+3. **event_types.py**: 신규 이벤트 7종 상수 추가 (event-bus.md v1.1 반영)
 
 ### 기타
 1. **커버리지 향상**: engine.py(69%), echo_system.py(68%), axiom_system.py(66%) 테스트 보강
