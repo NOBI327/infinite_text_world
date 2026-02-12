@@ -52,3 +52,42 @@ Text-based procedural single-player TRPG engine (Python/FastAPI/SQLite)
 - print() 사용 금지
 - logging 모듈 사용
 - 레벨: DEBUG < INFO < WARNING < ERROR
+
+## Mypy Compliance Rules (MUST FOLLOW)
+
+### None-safety for ORM queries
+`.first()`, `.one_or_none()` 등 Optional을 반환하는 ORM 메서드 사용 후에는
+반드시 None 체크를 한 뒤 속성에 접근할 것.
+
+❌ BAD:
+```python
+obj = session.query(Model).filter(...).first()
+obj.name  # mypy error: union-attr
+```
+
+✅ GOOD:
+```python
+obj = session.query(Model).filter(...).first()
+if obj is None:
+    raise NotFoundError("...")
+obj.name  # safe
+```
+
+### 함수에 Optional이 아닌 타입을 기대하는 경우
+None 가능성이 있는 변수를 non-Optional 파라미터에 넘기기 전에 반드시 None 체크할 것.
+
+❌ BAD:
+```python
+obj = session.query(Model).filter(...).first()
+self._from_orm(obj)  # arg-type error
+```
+
+✅ GOOD:
+```python
+obj = session.query(Model).filter(...).first()
+if obj is None:
+    raise NotFoundError("...")
+self._from_orm(obj)  # safe
+```
+
+### CI에서 mypy를 통과해야 머지 가능. mypy 에러가 0개가 아니면 실패로 간주.

@@ -21,7 +21,28 @@
       "Bash(ruff check:*)",
       "Bash(pre-commit install:*)",
       "Bash(pre-commit run:*)",
-      "Bash(mypy:*)"
+      "Bash(mypy:*)",
+      "Bash(grep:*)",
+      "Bash(uvicorn:*)",
+      "Bash(timeout /t 3 /nobreak)",
+      "Bash(curl:*)",
+      "Bash(git push)",
+      "Bash(git checkout:*)",
+      "Bash(gh run:*)",
+      "Bash(where:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(timeout /t 30 /nobreak)",
+      "Bash(ls -la \"C:\\\\claude_pj\\\\infinite_text_world\\\\src\\\\services\"\" && echo \"---\" && ls -la \"C:claude_pjinfinite_text_worldsrcservicesai\"\")",
+      "Bash(move \"C:\\\\claude_pj\\\\infinite_text_world\\\\docs\\\\40_operations\\\\instruction-00-doc-setup.md\" \"C:\\\\claude_pj\\\\infinite_text_world\\\\docs\\\\40_operations\\\\instructions\"\" && move \"C:claude_pjinfinite_text_worlddocs40_operationsinstruction-01-module-manager.md\" \"C:claude_pjinfinite_text_worlddocs40_operationsinstructions\"\")",
+      "Bash(move \"C:\\\\claude_pj\\\\infinite_text_world\\\\docs\\\\40_operations\\\\instruction-02-event-bus.md\" \"C:\\\\claude_pj\\\\infinite_text_world\\\\docs\\\\40_operations\\\\instructions\"\" && move \"C:claude_pjinfinite_text_worlddocs40_operationsinstruction-03-geography-module.md\" \"C:claude_pjinfinite_text_worlddocs40_operationsinstructions\"\")",
+      "Bash(move \"C:\\\\claude_pj\\\\infinite_text_world\\\\docs\\\\40_operations\\\\instruction-04-engine-integration.md\" \"C:\\\\claude_pj\\\\infinite_text_world\\\\docs\\\\40_operations\\\\instructions\"\")",
+      "Bash(git push:*)",
+      "Bash(git -C \"C:\\\\claude_pj\\\\infinite_text_world\" status)",
+      "Bash(git -C \"C:\\\\claude_pj\\\\infinite_text_world\" log --oneline -5)",
+      "Bash(git -C \"C:\\\\claude_pj\\\\infinite_text_world\" add src/modules/npc/__init__.py src/modules/npc/module.py src/core/event_types.py tests/test_npc_module.py docs/SRC_INDEX.md)",
+      "Bash(git -C \"C:\\\\claude_pj\\\\infinite_text_world\" commit -m \"$\\(cat <<''EOF''\nfeat\\(npc\\): add NPCCoreModule \\(GameModule wrapping\\)\n\n- NPCCoreModule: GameModule ABC 구현, NPCService 래핑\n- EventBus 구독: npc_needed 이벤트 핸들링\n- 공개 쿼리 API: get_npcs_at_node, get_npc_by_id, add_promotion_score\n- EventTypes에 NPC_NEEDED 추가\n- tests/test_npc_module.py: 3 통합 테스트\n- docs/SRC_INDEX.md: core/npc/, modules/, services/npc_service 섹션 추가\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"C:\\\\claude_pj\\\\infinite_text_world\" push origin main)",
+      "Bash(findstr:*)"
     ]
   }
 }
