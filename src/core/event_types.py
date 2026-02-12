@@ -15,5 +15,11 @@ class EventTypes:
     NPC_MOVED = "npc_moved"
     NPC_NEEDED = "npc_needed"
 
+    # relationship
+    RELATIONSHIP_CHANGED = "relationship_changed"
+    RELATIONSHIP_REVERSED = "relationship_reversed"
+    ATTITUDE_REQUEST = "attitude_request"
+    ATTITUDE_RESPONSE = "attitude_response"
+
     # engine
     TURN_PROCESSED = "turn_processed"
