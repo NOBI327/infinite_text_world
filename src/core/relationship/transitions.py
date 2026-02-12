@@ -3,43 +3,59 @@
 relationship-system.md 섹션 3, 9.4 대응.
 """
 
-from typing import Optional
+from dataclasses import dataclass
+from typing import Callable, Dict, Optional
 
 from src.core.relationship.models import Relationship, RelationshipStatus
 
-TRANSITION_TABLE = {
-    RelationshipStatus.STRANGER: {
-        "promote": lambda r: r.familiarity >= 3,
-        "promote_to": RelationshipStatus.ACQUAINTANCE,
-    },
-    RelationshipStatus.ACQUAINTANCE: {
-        "promote": lambda r: r.affinity >= 30 and r.trust >= 25,
-        "promote_to": RelationshipStatus.FRIEND,
-        "demote": lambda r: abs(r.affinity) < 10 and r.familiarity < 3,
-        "demote_to": RelationshipStatus.STRANGER,
-        "rival": lambda r: r.affinity <= -25 and r.familiarity >= 5,
-        "rival_to": RelationshipStatus.RIVAL,
-    },
-    RelationshipStatus.FRIEND: {
-        "promote": lambda r: r.affinity >= 65 and r.trust >= 60 and r.familiarity >= 20,
-        "promote_to": RelationshipStatus.BONDED,
-        "demote": lambda r: r.affinity < 15 or r.trust < 10,
-        "demote_to": RelationshipStatus.ACQUAINTANCE,
-    },
-    RelationshipStatus.BONDED: {
-        "demote": lambda r: r.affinity < 40 or r.trust < 30,
-        "demote_to": RelationshipStatus.FRIEND,
-    },
-    RelationshipStatus.RIVAL: {
-        "demote": lambda r: r.affinity > -10,
-        "demote_to": RelationshipStatus.ACQUAINTANCE,
-        "promote": lambda r: r.affinity <= -55 and r.trust <= 15,
-        "promote_to": RelationshipStatus.NEMESIS,
-    },
-    RelationshipStatus.NEMESIS: {
-        "demote": lambda r: r.affinity > -30 or r.trust > 30,
-        "demote_to": RelationshipStatus.RIVAL,
-    },
+TransitionCheck = Callable[[Relationship], bool]
+
+
+@dataclass
+class TransitionEntry:
+    """상태별 전이 조건."""
+
+    promote: Optional[TransitionCheck] = None
+    promote_to: Optional[RelationshipStatus] = None
+    demote: Optional[TransitionCheck] = None
+    demote_to: Optional[RelationshipStatus] = None
+    rival: Optional[TransitionCheck] = None
+    rival_to: Optional[RelationshipStatus] = None
+
+
+TRANSITION_TABLE: Dict[RelationshipStatus, TransitionEntry] = {
+    RelationshipStatus.STRANGER: TransitionEntry(
+        promote=lambda r: r.familiarity >= 3,
+        promote_to=RelationshipStatus.ACQUAINTANCE,
+    ),
+    RelationshipStatus.ACQUAINTANCE: TransitionEntry(
+        promote=lambda r: r.affinity >= 30 and r.trust >= 25,
+        promote_to=RelationshipStatus.FRIEND,
+        demote=lambda r: abs(r.affinity) < 10 and r.familiarity < 3,
+        demote_to=RelationshipStatus.STRANGER,
+        rival=lambda r: r.affinity <= -25 and r.familiarity >= 5,
+        rival_to=RelationshipStatus.RIVAL,
+    ),
+    RelationshipStatus.FRIEND: TransitionEntry(
+        promote=lambda r: r.affinity >= 65 and r.trust >= 60 and r.familiarity >= 20,
+        promote_to=RelationshipStatus.BONDED,
+        demote=lambda r: r.affinity < 15 or r.trust < 10,
+        demote_to=RelationshipStatus.ACQUAINTANCE,
+    ),
+    RelationshipStatus.BONDED: TransitionEntry(
+        demote=lambda r: r.affinity < 40 or r.trust < 30,
+        demote_to=RelationshipStatus.FRIEND,
+    ),
+    RelationshipStatus.RIVAL: TransitionEntry(
+        demote=lambda r: r.affinity > -10,
+        demote_to=RelationshipStatus.ACQUAINTANCE,
+        promote=lambda r: r.affinity <= -55 and r.trust <= 15,
+        promote_to=RelationshipStatus.NEMESIS,
+    ),
+    RelationshipStatus.NEMESIS: TransitionEntry(
+        demote=lambda r: r.affinity > -30 or r.trust > 30,
+        demote_to=RelationshipStatus.RIVAL,
+    ),
 }
 
 
@@ -57,18 +73,15 @@ def evaluate_transition(
         return None
 
     # demote 우선
-    demote_fn = entry.get("demote")
-    if demote_fn is not None and demote_fn(relationship):
-        return entry["demote_to"]
+    if entry.demote is not None and entry.demote(relationship):
+        return entry.demote_to
 
     # rival
-    rival_fn = entry.get("rival")
-    if rival_fn is not None and rival_fn(relationship):
-        return entry["rival_to"]
+    if entry.rival is not None and entry.rival(relationship):
+        return entry.rival_to
 
     # promote
-    promote_fn = entry.get("promote")
-    if promote_fn is not None and promote_fn(relationship):
-        return entry["promote_to"]
+    if entry.promote is not None and entry.promote(relationship):
+        return entry.promote_to
 
     return None

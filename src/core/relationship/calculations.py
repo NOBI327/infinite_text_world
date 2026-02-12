@@ -10,7 +10,7 @@ def apply_affinity_damping(current: float, raw_change: float) -> float:
 
     양방향 대칭, 지수 1.2. 최소 10% 보장.
     """
-    damping = 1.0 - (abs(current) / 100) ** 1.2
+    damping: float = 1.0 - (abs(current) / 100) ** 1.2
     return raw_change * max(damping, 0.1)
 
 
@@ -20,7 +20,7 @@ def apply_trust_damping(current: float, raw_change: float) -> float:
     비대칭: 상승은 감쇠 적용, 하락은 감쇠 없음.
     """
     if raw_change >= 0:
-        damping = 1.0 - (current / 100) ** 1.2
+        damping: float = 1.0 - (current / 100) ** 1.2
         return raw_change * max(damping, 0.1)
     else:
         return raw_change
