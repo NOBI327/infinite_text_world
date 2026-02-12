@@ -21,6 +21,16 @@ from src.core.relationship.reversals import (
     ReversalType,
     apply_reversal,
 )
+from src.core.relationship.attitude import (
+    generate_attitude_tags,
+    generate_base_attitude,
+    apply_hexaco_modifiers,
+    apply_memory_modifiers,
+)
+from src.core.relationship.npc_opinions import (
+    build_npc_opinions,
+    generate_npc_opinion_tags,
+)
 
 __all__ = [
     "AttitudeContext",
@@ -36,4 +46,10 @@ __all__ = [
     "evaluate_transition",
     "ReversalType",
     "apply_reversal",
+    "generate_attitude_tags",
+    "generate_base_attitude",
+    "apply_hexaco_modifiers",
+    "apply_memory_modifiers",
+    "build_npc_opinions",
+    "generate_npc_opinion_tags",
 ]
