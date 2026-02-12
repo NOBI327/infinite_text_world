@@ -20,6 +20,7 @@ class EventTypes:
     RELATIONSHIP_REVERSED = "relationship_reversed"
     ATTITUDE_REQUEST = "attitude_request"
     ATTITUDE_RESPONSE = "attitude_response"
+    DIALOGUE_ENDED = "dialogue_ended"
 
     # engine
     TURN_PROCESSED = "turn_processed"

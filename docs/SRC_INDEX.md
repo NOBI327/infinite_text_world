@@ -7,6 +7,7 @@ main.py → api/game.py → services/narrative_service.py → services/ai/base.p
 modules/module_manager.py → modules/base.py, core/event_bus.py
 modules/geography/module.py → core/(world_gen, navigator, sub_grid)
 modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.py
+modules/relationship/module.py → services/relationship_service.py → core/relationship/* + db/models_v2.py
 
 ## 루트
 
@@ -76,7 +77,33 @@ modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.
 
 ### core/event_types.py
 - **목적:** 이벤트 유형 문자열 상수
-- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, TURN_PROCESSED.
+- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, RELATIONSHIP_CHANGED, RELATIONSHIP_REVERSED, ATTITUDE_REQUEST, ATTITUDE_RESPONSE, DIALOGUE_ENDED, TURN_PROCESSED.
+
+### core/relationship/ - 관계 시스템 Core 로직
+
+### core/relationship/models.py
+- **목적:** 관계 도메인 모델 (DB 무관)
+- **핵심:** RelationshipStatus, Relationship, AttitudeContext
+
+### core/relationship/calculations.py
+- **목적:** 3축 수치 계산
+- **핵심:** affinity/trust 감쇠, familiarity 시간 감쇠, 클램프
+
+### core/relationship/transitions.py
+- **목적:** 관계 상태 전이 판정
+- **핵심:** TRANSITION_TABLE, 우선순위 기반 전이 평가
+
+### core/relationship/reversals.py
+- **목적:** 반전 이벤트 처리
+- **핵심:** betrayal/redemption/trust_collapse 공식
+
+### core/relationship/attitude.py
+- **목적:** 태도 태그 생성 파이프라인
+- **핵심:** 3단계 (수치 → HEXACO → 기억), 태그 2~7개
+
+### core/relationship/npc_opinions.py
+- **목적:** NPC간 의견 태그
+- **핵심:** 관계 수치 → 대화용 태그 변환
 
 ### core/npc/ - NPC 핵심 로직 (순수 Python, DB 무관)
 
@@ -188,6 +215,11 @@ modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.
 - **핵심:** `NPCCoreModule` - NPCService 생성/관리, npc_needed 이벤트 구독, 노드 진입 시 NPC/엔티티 정보 context.extra["npc_core"]에 저장. 공개 API: get_npcs_at_node, get_npc_by_id, get_background_entities_at_node, add_promotion_score.
 - **의존성:** ["geography"].
 
+### modules/relationship/module.py
+- **목적:** RelationshipModule — GameModule 인터페이스
+- **핵심:** `RelationshipModule` - RelationshipService 래핑, EventBus 구독 (npc_promoted, dialogue_ended, attitude_request). 턴 처리: familiarity 감쇠. 공개 API: get_relationship, get_relationships_for, generate_attitude.
+- **의존성:** ["npc_core"].
+
 ---
 
 ## services/ - 비즈니스 로직
@@ -199,6 +231,11 @@ modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.
 - **목적:** NPC CRUD, 승격, WorldPool, 기억 관리 (Core↔DB 연결)
 - **핵심:** `NPCService` - get_background_entities_at_node, get_npcs_at_node, get_npc_by_id, add_promotion_score(_promote_entity, _register_worldpool), create_npc_for_quest, save_memory, get_memories_for_context. ORM↔Core 변환 메서드 포함.
 - **의존:** core.npc.*, db.models_v2, core.event_bus.
+
+### services/relationship_service.py
+- **목적:** Relationship Service — Core와 DB 연결
+- **핵심:** `RelationshipService` - get/create/apply_dialogue_delta/apply_action_delta/apply_reversal/process_familiarity_decay/create_initial_npc_relationships/generate_attitude. ORM↔Core 변환.
+- **의존:** core.relationship.*, db.models_v2, core.event_bus.
 
 ### services/narrative_service.py (147줄)
 - **목적:** AI 기반 게임 서술 생성 서비스
