@@ -15,6 +15,7 @@ from src.api.schemas import (
 from src.core.engine import ITWEngine
 from src.core.logging import get_logger
 from src.services.dialogue_service import DialogueService
+from src.services.item_service import ItemService
 from src.services.narrative_service import NarrativeService
 
 logger = get_logger(__name__)
@@ -38,6 +39,12 @@ def get_narrative_service(request: Request) -> NarrativeService:
 def get_dialogue_service(request: Request) -> DialogueService:
     """DialogueService 인스턴스 반환 (의존성 주입)"""
     service: DialogueService = request.app.state.dialogue_service
+    return service
+
+
+def get_item_service(request: Request) -> ItemService:
+    """ItemService 인스턴스 반환 (의존성 주입)"""
+    service: ItemService = request.app.state.item_service
     return service
 
 
@@ -297,12 +304,120 @@ def execute_action(
                 data=end_result,
                 narrative=None,
             )
+        elif action == "inventory":
+            item_service = get_item_service(http_request)
+            instances = item_service.get_instances_by_owner("player", request.player_id)
+            items_data = []
+            for inst in instances:
+                proto = item_service.get_prototype(inst.prototype_id)
+                items_data.append(
+                    {
+                        "instance_id": inst.instance_id,
+                        "prototype_id": inst.prototype_id,
+                        "name_kr": proto.name_kr if proto else "",
+                        "current_durability": inst.current_durability,
+                        "bulk": proto.bulk if proto else 0,
+                    }
+                )
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Inventory: {len(items_data)} items",
+                data={"items": items_data},
+                narrative=None,
+            )
+        elif action == "pickup":
+            instance_id = params.get("instance_id", "")
+            if not instance_id:
+                raise HTTPException(
+                    status_code=400, detail="Missing 'instance_id' parameter"
+                )
+            item_service = get_item_service(http_request)
+            instance = item_service.get_instance(instance_id)
+            if instance is None or instance.owner_type != "node":
+                raise HTTPException(status_code=400, detail="Item not found on ground")
+            stats = {k.value: v for k, v in player.character.stats.items()}
+            if not item_service.can_add_to_inventory(
+                "player",
+                request.player_id,
+                instance.prototype_id,
+                stats,
+            ):
+                raise HTTPException(status_code=400, detail="Inventory full")
+            item_service.transfer_item(
+                instance_id, "player", request.player_id, reason="pickup"
+            )
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Picked up {instance.prototype_id}",
+                data={"instance_id": instance_id},
+                narrative=None,
+            )
+        elif action == "drop":
+            instance_id = params.get("instance_id", "")
+            if not instance_id:
+                raise HTTPException(
+                    status_code=400, detail="Missing 'instance_id' parameter"
+                )
+            item_service = get_item_service(http_request)
+            node_id = f"{player.x}_{player.y}"
+            item_service.transfer_item(instance_id, "node", node_id, reason="drop")
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Dropped item at {node_id}",
+                data={"instance_id": instance_id},
+                narrative=None,
+            )
+        elif action == "use":
+            instance_id = params.get("instance_id", "")
+            if not instance_id:
+                raise HTTPException(
+                    status_code=400, detail="Missing 'instance_id' parameter"
+                )
+            item_service = get_item_service(http_request)
+            use_result = item_service.use_item(instance_id)
+            return ActionResponse(
+                success=True,
+                action=action,
+                message="Item used" if not use_result["broken"] else "Item broken",
+                data=use_result,
+                narrative=None,
+            )
+        elif action == "browse":
+            container_id = params.get("container_id", "")
+            if not container_id:
+                raise HTTPException(
+                    status_code=400, detail="Missing 'container_id' parameter"
+                )
+            item_service = get_item_service(http_request)
+            instances = item_service.get_instances_by_owner("container", container_id)
+            items_data = []
+            for inst in instances:
+                proto = item_service.get_prototype(inst.prototype_id)
+                items_data.append(
+                    {
+                        "instance_id": inst.instance_id,
+                        "prototype_id": inst.prototype_id,
+                        "name_kr": proto.name_kr if proto else "",
+                        "base_value": proto.base_value if proto else 0,
+                    }
+                )
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Browse: {len(items_data)} items",
+                data={"items": items_data},
+                narrative=None,
+            )
         else:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unknown action: {action}. "
                 "Valid actions: look, move, rest, investigate, harvest, "
-                "enter, exit, talk, say, end_talk",
+                "enter, exit, talk, say, end_talk, "
+                "inventory, pickup, drop, use, browse",
             )
 
         # 응답 생성

@@ -3,6 +3,7 @@
 ## 의존 흐름 요약
 main.py → api/game.py → services/narrative_service.py → services/ai/base.py
                        → services/dialogue_service.py → services/narrative_service.py + core/dialogue/* + db/models_v2.py
+                       → services/item_service.py → core/item/* + db/models_v2.py
                        → core/engine.py → (axiom, world_gen, navigator, echo, sub_grid, core_rule)
                        → db/models.py
 modules/module_manager.py → modules/base.py, core/event_bus.py
@@ -10,6 +11,7 @@ modules/geography/module.py → core/(world_gen, navigator, sub_grid)
 modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.py
 modules/relationship/module.py → services/relationship_service.py → core/relationship/* + db/models_v2.py
 modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* + services/narrative_service.py + db/models_v2.py
+modules/item/module.py → services/item_service.py → core/item/* + db/models_v2.py
 
 ## 루트
 
@@ -20,8 +22,8 @@ modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* 
 
 ### main.py
 - **목적:** FastAPI 앱 엔트리포인트 및 라이프사이클 관리
-- **핵심:** lifespan에서 DB 테이블 생성, ITWEngine 초기화, AI Provider/NarrativeService/DialogueService 초기화.
-- **의존:** config, core.engine, core.event_bus, db, services.ai, services.narrative_service, services.dialogue_service.
+- **핵심:** lifespan에서 DB 테이블 생성, ITWEngine 초기화, AI Provider/NarrativeService/DialogueService/ItemService 초기화. PrototypeRegistry+AxiomTagMapping 로드 후 ItemService 생성, sync_prototypes_to_db 실행.
+- **의존:** config, core.engine, core.event_bus, core.item.registry, core.item.axiom_mapping, db, services.ai, services.narrative_service, services.dialogue_service, services.item_service.
 
 ---
 
@@ -79,7 +81,7 @@ modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* 
 
 ### core/event_types.py
 - **목적:** 이벤트 유형 문자열 상수
-- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, RELATIONSHIP_CHANGED, RELATIONSHIP_REVERSED, ATTITUDE_REQUEST, ATTITUDE_RESPONSE, DIALOGUE_STARTED, DIALOGUE_ENDED, QUEST_SEED_GENERATED, TURN_PROCESSED.
+- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, RELATIONSHIP_CHANGED, RELATIONSHIP_REVERSED, ATTITUDE_REQUEST, ATTITUDE_RESPONSE, DIALOGUE_STARTED, DIALOGUE_ENDED, QUEST_SEED_GENERATED, TURN_PROCESSED, ITEM_TRANSFERRED, ITEM_BROKEN, ITEM_CREATED.
 
 ### core/dialogue/ - 대화 시스템 Core 로직 (순수 Python, DB 무관)
 
@@ -171,6 +173,52 @@ modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* 
 - **핵심:** `create_memory(...)` - 자동 importance 할당. `assign_tier1_slot(memories, new)` - 고정2+교체3 슬롯 관리. `enforce_tier2_capacity(memories, status)` - 관계별 용량 제한. `get_memories_for_context(all, status)` - Tier 1+2만 반환.
 - **주요 클래스:** NPCMemory. **주요 데이터:** IMPORTANCE_TABLE(7종), TIER2_CAPACITY(5단계).
 
+### core/item/ - 아이템 시스템 Core 로직 (순수 Python, DB 무관)
+
+### core/item/\_\_init\_\_.py
+- **목적:** item 패키지 공개 API (re-export)
+- **핵심:** ItemType, ItemPrototype, ItemInstance, PrototypeRegistry, AxiomTagInfo, AxiomTagMapping re-export.
+
+### core/item/models.py
+- **목적:** 아이템 도메인 모델 (Prototype + Instance)
+- **핵심:** `ItemType(str, Enum)` - EQUIPMENT/CONSUMABLE/MATERIAL/MISC. `ItemPrototype(frozen=True)` - 불변 원형 (id, type, weight, bulk, base_value, axiom_tags, max_durability 등). `ItemInstance` - 가변 인스턴스 (owner, durability, state_tags).
+- **주요 클래스:** ItemType, ItemPrototype, ItemInstance.
+
+### core/item/registry.py
+- **목적:** 프로토타입 레지스트리 (JSON 로드 + 검색)
+- **핵심:** `PrototypeRegistry` - load_from_json(60종 시드), register, get, get_all, search_by_tags(OR 로직), search_by_axiom, count.
+
+### core/item/axiom_mapping.py
+- **목적:** 자유 태그 → Divine Axiom 매핑
+- **핵심:** `AxiomTagInfo(frozen=True)` - tag, domain, resonance, axiom_ids. `AxiomTagMapping` - load_from_json(23종), get, get_domain, get_resonance, get_all_tags.
+- **주요 클래스:** AxiomTagInfo, AxiomTagMapping.
+
+### core/item/inventory.py
+- **목적:** Bulk 기반 인벤토리 용량 계산
+- **핵심:** `calculate_inventory_capacity(stats)` - BASE 50 + (EXEC-2)*5, min 30. `calculate_current_bulk`, `can_add_item`.
+- **주요 상수:** BASE_INVENTORY_CAPACITY=50.
+
+### core/item/durability.py
+- **목적:** 내구도 소모 및 파괴 판정
+- **핵심:** `apply_durability_loss(instance, prototype)` - 사용 시 내구도 감소, 0 이하 시 파괴(broken_result 반환). `get_durability_ratio` - 0.0~1.0.
+
+### core/item/trade.py
+- **목적:** 거래 가격 계산 및 흥정(Haggle) 시스템
+- **핵심:** `calculate_trade_price` - 기본값×매매 배수×관계 할인×HEXACO H×내구도. `evaluate_haggle` - HEXACO A 기반 수락/역제안/거절. `calculate_counter_price` - 중간값.
+- **주요 데이터:** RELATIONSHIP_DISCOUNT(6단계).
+
+### core/item/gift.py
+- **목적:** 선물 호감도 계산
+- **핵심:** `calculate_gift_affinity(base_value, npc_desire_tags, item_tags)` - base 1 + 가치 보너스 + 태그 매칭, max 5.
+
+### core/item/constraints.py
+- **목적:** PC 아이템 제약 조건 빌드 (대화 시스템 연동)
+- **핵심:** `build_item_constraints(instances, get_prototype)` - {pc_items, pc_axiom_powers} 반환. DI 콜러블로 Core↔Service 분리.
+
+### core/item/restock.py (TEMPORARY)
+- **목적:** 상점 재입고 로직 (NPC Phase B에서 자율 행동으로 대체 예정)
+- **핵심:** `ShopRestockConfig` - npc_id, shelf_instance_id, stock_template, restock_cooldown, max_stock_per_item. `check_restock_needed` - 쿨다운 모듈로 판정. `calculate_restock_deficit` - 부족 수량 계산.
+
 ---
 
 ## api/ - FastAPI 엔드포인트
@@ -190,8 +238,8 @@ modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* 
 
 ### api/game.py
 - **목적:** 게임 API 라우터 (`/game` 접두사)
-- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리.
-- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk.
+- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리. ItemService로 inventory/pickup/drop/use/browse 아이템 처리.
+- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk, inventory, pickup, drop, use, browse.
 
 ---
 
@@ -250,6 +298,15 @@ modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* 
 - **핵심:** `DialogueModule` - DialogueService 래핑 (DI). 대화 상태를 context.extra["dialogue"]에 표시. talk/say/end_talk 액션 제공. EventBus 구독은 DialogueService가 자체 처리.
 - **의존성:** ["npc_core", "relationship"].
 
+### modules/item/\_\_init\_\_.py
+- **목적:** item 모듈 패키지 초기화
+- **핵심:** ItemModule re-export.
+
+### modules/item/module.py
+- **목적:** ItemModule — GameModule 인터페이스
+- **핵심:** `ItemModule` - ItemService 래핑. on_node_enter에서 context.extra["item"]에 노드 아이템 정보 설정. inventory/pickup/drop/use/browse 5개 액션 제공. TEMPORARY: register_restock_config로 상점 재입고 설정, on_turn에서 쿨다운 기반 자동 재입고 실행.
+- **의존성:** [] (Layer 1).
+
 ---
 
 ## services/ - 비즈니스 로직
@@ -266,6 +323,11 @@ modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* 
 - **목적:** Relationship Service — Core와 DB 연결
 - **핵심:** `RelationshipService` - get/create/apply_dialogue_delta/apply_action_delta/apply_reversal/process_familiarity_decay/create_initial_npc_relationships/generate_attitude. ORM↔Core 변환.
 - **의존:** core.relationship.*, db.models_v2, core.event_bus.
+
+### services/item_service.py
+- **목적:** 아이템 CRUD, 거래, 선물, 인벤토리 관리 Service (Core↔DB 연결)
+- **핵심:** `ItemService` - Prototype: get_prototype, sync_prototypes_to_db. Instance: create_instance(uuid+event), get_instance, get_instances_by_owner, count_instances, transfer_item(event). Durability: use_item(파괴 시 broken_result 생성). Trade: calculate_price, process_haggle, execute_trade(통화 갱신). Gift: process_gift(호감도+이전). Constraints: get_item_constraints. Inventory: get_inventory_bulk, get_inventory_capacity, can_add_to_inventory. EventBus 구독: DIALOGUE_ENDED(stub).
+- **의존:** core.item.*, core.event_bus, db.models, db.models_v2.
 
 ### services/dialogue_service.py
 - **목적:** 대화 세션 관리 Service (Core↔DB 연결, EventBus 통신)
@@ -328,3 +390,13 @@ modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* 
 - **목적:** 214 Divine Axioms 마스터 데이터
 - **핵심:** 214개 공리의 id, code, name(latin/kr/en), domain, resonance, tier, logic(passive/on_contact/damage_mod), tags, flavor.
 - **용도:** AxiomLoader가 시작 시 로드.
+
+### data/seed_items.json
+- **목적:** 아이템 프로토타입 시드 데이터 (60종)
+- **핵심:** 20 EQUIPMENT, 11 CONSUMABLE, 14 MATERIAL, 12 MISC, 3 파괴 부산물. 각 아이템: item_id, item_type, weight, bulk, base_value, primary_material, axiom_tags, max_durability, durability_loss_per_use, tags, name_kr 등.
+- **용도:** PrototypeRegistry.load_from_json으로 시작 시 로드.
+
+### data/axiom_tag_mapping.json
+- **목적:** 자유 태그 → Divine Axiom 매핑 데이터 (23종)
+- **핵심:** 각 태그: tag, domain, resonance, axiom_ids, description. Ignis/Ferrum/Aqua/Herba 등 물성 태그를 8개 도메인+8개 레조넌스에 연결.
+- **용도:** AxiomTagMapping.load_from_json으로 시작 시 로드.

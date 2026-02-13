@@ -14,8 +14,11 @@ from src.core.logging import get_logger, setup_logging
 from src.db.database import SessionLocal, engine as db_engine
 from src.db.models import Base
 import src.db.models_v2  # noqa: F401  Phase 2 테이블 등록
+from src.core.item.axiom_mapping import AxiomTagMapping
+from src.core.item.registry import PrototypeRegistry
 from src.services.ai import get_ai_provider
 from src.services.dialogue_service import DialogueService
+from src.services.item_service import ItemService
 from src.services.narrative_service import NarrativeService
 
 setup_logging(settings.LOG_LEVEL)
@@ -65,6 +68,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.dialogue_service = dialogue_service
     app.state.event_bus = event_bus
     logger.info("DialogueService initialized.")
+
+    # ItemService 초기화
+    logger.info("Initializing ItemService...")
+    registry = PrototypeRegistry()
+    registry.load_from_json("src/data/seed_items.json")
+
+    axiom_mapping = AxiomTagMapping()
+    axiom_mapping.load_from_json("src/data/axiom_tag_mapping.json")
+
+    item_service = ItemService(
+        db=db_session,
+        event_bus=event_bus,
+        registry=registry,
+        axiom_mapping=axiom_mapping,
+    )
+    item_service.sync_prototypes_to_db()
+    app.state.item_service = item_service
+    logger.info("ItemService initialized (60 prototypes synced).")
 
     yield
 
