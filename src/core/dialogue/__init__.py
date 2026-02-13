@@ -20,6 +20,18 @@ from src.core.dialogue.hexaco_descriptors import (
     HEXACO_DESCRIPTORS,
     hexaco_to_natural_language,
 )
+from src.core.dialogue.validation import (
+    validate_meta,
+    validate_dialogue_state,
+    validate_relationship_delta,
+    validate_memory_tags,
+    validate_quest_seed_response,
+    validate_trade_request,
+    validate_gift_offered,
+)
+from src.core.dialogue.constraints import (
+    validate_action_interpretation,
+)
 
 __all__ = [
     "DIALOGUE_END_STATUSES",
@@ -32,4 +44,12 @@ __all__ = [
     "get_phase_instruction",
     "HEXACO_DESCRIPTORS",
     "hexaco_to_natural_language",
+    "validate_meta",
+    "validate_dialogue_state",
+    "validate_relationship_delta",
+    "validate_memory_tags",
+    "validate_quest_seed_response",
+    "validate_trade_request",
+    "validate_gift_offered",
+    "validate_action_interpretation",
 ]
