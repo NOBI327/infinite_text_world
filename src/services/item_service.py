@@ -446,32 +446,36 @@ class ItemService:
     def _get_currency(self, owner_type: str, owner_id: str) -> int | None:
         """소유자의 통화 조회."""
         if owner_type == "player":
-            row = (
+            player_row = (
                 self._db.query(PlayerModel)
                 .filter(PlayerModel.player_id == owner_id)
                 .first()
             )
-            return row.currency if row else None
+            return player_row.currency if player_row else None
         elif owner_type == "npc":
-            row = self._db.query(NPCModel).filter(NPCModel.npc_id == owner_id).first()
-            return row.currency if row else None
+            npc_row = (
+                self._db.query(NPCModel).filter(NPCModel.npc_id == owner_id).first()
+            )
+            return npc_row.currency if npc_row else None
         return None
 
     def _set_currency(self, owner_type: str, owner_id: str, amount: int) -> None:
         """소유자의 통화 설정."""
         if owner_type == "player":
-            row = (
+            player_row = (
                 self._db.query(PlayerModel)
                 .filter(PlayerModel.player_id == owner_id)
                 .first()
             )
-            if row:
-                row.currency = amount
+            if player_row:
+                player_row.currency = amount
                 self._db.commit()
         elif owner_type == "npc":
-            row = self._db.query(NPCModel).filter(NPCModel.npc_id == owner_id).first()
-            if row:
-                row.currency = amount
+            npc_row = (
+                self._db.query(NPCModel).filter(NPCModel.npc_id == owner_id).first()
+            )
+            if npc_row:
+                npc_row.currency = amount
                 self._db.commit()
 
     # === ORM ↔ Core 변환 ===
