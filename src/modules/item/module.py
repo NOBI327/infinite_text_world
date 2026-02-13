@@ -82,7 +82,7 @@ class ItemModule(GameModule):
                 config.shelf_instance_id,
             )
 
-    def on_node_enter(self, context: GameContext) -> None:
+    def on_node_enter(self, node_id: str, context: GameContext) -> None:
         """노드 진입 시 바닥 아이템 정보를 context.extra에 추가."""
         node_items = self._service.get_instances_by_owner(
             "node", context.current_node_id

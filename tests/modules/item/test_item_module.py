@@ -86,7 +86,7 @@ class TestItemModule:
             current_turn=1,
             db_session=db,
         )
-        module.on_node_enter(ctx)
+        module.on_node_enter("3_5", ctx)
         assert "item" in ctx.extra
         assert len(ctx.extra["item"]["node_items"]) == 1
         assert ctx.extra["item"]["node_items"][0]["prototype_id"] == "wpn_rusty_sword"
