@@ -38,12 +38,20 @@ class GeminiProvider(AIProvider):
         """Check if the provider is available."""
         return bool(self._api_key) and self._model is not None
 
-    def generate(self, prompt: str, context: Optional[dict[str, Any]] = None) -> str:
+    def generate(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        max_tokens: int = 1000,
+        context: Optional[dict[str, Any]] = None,
+    ) -> str:
         """Generate text using Gemini API.
 
         Args:
-            prompt: The prompt to send to Gemini.
-            context: Optional context dictionary (currently unused).
+            prompt: The user prompt to send to Gemini.
+            system_prompt: Optional system instruction for Gemini.
+            max_tokens: Maximum output tokens.
+            context: Optional context dictionary (deprecated).
 
         Returns:
             Generated text response.
@@ -55,8 +63,24 @@ class GeminiProvider(AIProvider):
             raise RuntimeError("GeminiProvider is not available. Check API key.")
 
         assert self._model is not None
+
+        # Rebuild model with system instruction if provided
+        model = self._model
+        if system_prompt:
+            model = genai.GenerativeModel(
+                self._model_name,
+                system_instruction=system_prompt,
+            )
+
+        generation_config = genai.types.GenerationConfig(
+            max_output_tokens=max_tokens,
+        )
+
         try:
-            response = self._model.generate_content(prompt)
+            response = model.generate_content(
+                prompt,
+                generation_config=generation_config,
+            )
             result: str = response.text.strip()
             return result
         except Exception as e:
