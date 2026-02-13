@@ -2,12 +2,14 @@
 
 ## 의존 흐름 요약
 main.py → api/game.py → services/narrative_service.py → services/ai/base.py
+                       → services/dialogue_service.py → services/narrative_service.py + core/dialogue/* + db/models_v2.py
                        → core/engine.py → (axiom, world_gen, navigator, echo, sub_grid, core_rule)
                        → db/models.py
 modules/module_manager.py → modules/base.py, core/event_bus.py
 modules/geography/module.py → core/(world_gen, navigator, sub_grid)
 modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.py
 modules/relationship/module.py → services/relationship_service.py → core/relationship/* + db/models_v2.py
+modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* + services/narrative_service.py + db/models_v2.py
 
 ## 루트
 
@@ -18,8 +20,8 @@ modules/relationship/module.py → services/relationship_service.py → core/rel
 
 ### main.py
 - **목적:** FastAPI 앱 엔트리포인트 및 라이프사이클 관리
-- **핵심:** lifespan에서 DB 테이블 생성, ITWEngine 초기화, AI Provider/NarrativeService 초기화.
-- **의존:** config, core.engine, db, services.ai, services.narrative_service.
+- **핵심:** lifespan에서 DB 테이블 생성, ITWEngine 초기화, AI Provider/NarrativeService/DialogueService 초기화.
+- **의존:** config, core.engine, core.event_bus, db, services.ai, services.narrative_service, services.dialogue_service.
 
 ---
 
@@ -77,7 +79,30 @@ modules/relationship/module.py → services/relationship_service.py → core/rel
 
 ### core/event_types.py
 - **목적:** 이벤트 유형 문자열 상수
-- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, RELATIONSHIP_CHANGED, RELATIONSHIP_REVERSED, ATTITUDE_REQUEST, ATTITUDE_RESPONSE, DIALOGUE_ENDED, TURN_PROCESSED.
+- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, RELATIONSHIP_CHANGED, RELATIONSHIP_REVERSED, ATTITUDE_REQUEST, ATTITUDE_RESPONSE, DIALOGUE_STARTED, DIALOGUE_ENDED, QUEST_SEED_GENERATED, TURN_PROCESSED.
+
+### core/dialogue/ - 대화 시스템 Core 로직 (순수 Python, DB 무관)
+
+### core/dialogue/models.py
+- **목적:** 대화 세션/턴 도메인 모델
+- **핵심:** `DialogueSession` - 세션 상태, 예산, NPC 컨텍스트, 누적 delta. `DialogueTurn` - 턴별 PC 입력, NPC 응답, META.
+- **주요 클래스:** DialogueSession, DialogueTurn.
+
+### core/dialogue/budget.py
+- **목적:** 대화 예산 계산 및 페이즈 관리
+- **핵심:** `calculate_budget(rel_status, hexaco_x, has_seed)` - 관계+HEXACO+시드 기반 예산. `get_budget_phase(remaining, total)` - 4단계(open/winding/closing/final). `get_phase_instruction(phase, seed_delivered, has_seed)` - 페이즈별 지시.
+
+### core/dialogue/hexaco_descriptors.py
+- **목적:** HEXACO 6요인 → 자연어 성격 설명 변환
+- **핵심:** `hexaco_to_natural_language(hexaco_dict)` - 6요인 수치를 일본어 성격 요약으로 변환.
+
+### core/dialogue/validation.py
+- **목적:** LLM META JSON 검증 및 보정
+- **핵심:** `validate_meta(raw_meta)` - 스키마 기반 검증. 누락 키 보충, 범위 초과 클램프, 타입 불일치 교정.
+
+### core/dialogue/constraints.py
+- **목적:** PC 행동 해석(action_interpretation) 검증
+- **핵심:** `validate_action_interpretation(ai, pc_axioms, pc_items, pc_stats)` - LLM이 생성한 행동 해석을 PC 제약 조건에 맞춰 검증/보정.
 
 ### core/relationship/ - 관계 시스템 Core 로직
 
@@ -163,10 +188,10 @@ modules/relationship/module.py → services/relationship_service.py → core/rel
 - **핵심:** Request - RegisterRequest, ActionRequest. Response - GameStateResponse, ActionResponse, LocationInfo, DirectionInfo, PlayerInfo, ErrorResponse.
 - **패턴:** 모든 필드에 타입 어노테이션 및 Field 설명.
 
-### api/game.py (261줄)
+### api/game.py
 - **목적:** 게임 API 라우터 (`/game` 접두사)
-- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성.
-- **액션:** look, move, rest, investigate, harvest, enter, exit.
+- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리.
+- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk.
 
 ---
 
@@ -220,6 +245,11 @@ modules/relationship/module.py → services/relationship_service.py → core/rel
 - **핵심:** `RelationshipModule` - RelationshipService 래핑, EventBus 구독 (npc_promoted, dialogue_ended, attitude_request). 턴 처리: familiarity 감쇠. 공개 API: get_relationship, get_relationships_for, generate_attitude.
 - **의존성:** ["npc_core"].
 
+### modules/dialogue/module.py
+- **목적:** DialogueModule — GameModule 인터페이스
+- **핵심:** `DialogueModule` - DialogueService 래핑 (DI). 대화 상태를 context.extra["dialogue"]에 표시. talk/say/end_talk 액션 제공. EventBus 구독은 DialogueService가 자체 처리.
+- **의존성:** ["npc_core", "relationship"].
+
 ---
 
 ## services/ - 비즈니스 로직
@@ -237,10 +267,31 @@ modules/relationship/module.py → services/relationship_service.py → core/rel
 - **핵심:** `RelationshipService` - get/create/apply_dialogue_delta/apply_action_delta/apply_reversal/process_familiarity_decay/create_initial_npc_relationships/generate_attitude. ORM↔Core 변환.
 - **의존:** core.relationship.*, db.models_v2, core.event_bus.
 
-### services/narrative_service.py (147줄)
-- **목적:** AI 기반 게임 서술 생성 서비스
-- **핵심:** `NarrativeService` - AIProvider를 DI로 받아 look/move 서술 생성. AI 불가 시 기본 템플릿 fallback.
-- **의존:** services.ai.base (AIProvider 인터페이스만).
+### services/dialogue_service.py
+- **목적:** 대화 세션 관리 Service (Core↔DB 연결, EventBus 통신)
+- **핵심:** `DialogueService` - start_session/process_turn/end_session 생명주기. 예산 계산, NarrativeService 호출, META 검증, 누적 delta/memory 관리, DB 영속화. EventBus 구독: attitude_response, quest_seed_generated.
+- **의존:** core.dialogue.*, core.event_bus, db.models_v2, services.narrative_service (DI).
+
+### services/narrative_service.py
+- **목적:** AI 기반 게임 서술 생성 서비스 (v2.0 — 단일 관문)
+- **핵심:** `NarrativeService` - PromptBuilder/ResponseParser/Safety 조합. generate_look/move (기존 호환) + generate_dialogue_response/quest_seed/impression_tag (신규). 3단계 폴백 체인 (통상→간소화→템플릿).
+- **의존:** services.ai.base, services.narrative_types, services.narrative_prompts, services.narrative_parser, services.narrative_safety.
+
+### services/narrative_types.py
+- **목적:** Narrative 관련 타입 정의
+- **핵심:** `NarrativeRequestType(Enum)` - LOOK/MOVE/DIALOGUE/QUEST_SEED/IMPRESSION_TAG. `DialoguePromptContext` - 대화 프롬프트 컨텍스트. `QuestSeedPromptContext` - 퀘스트 시드 컨텍스트. `NarrativeResult` - narrative + raw_meta. `NarrativeConfig`, `BuiltPrompt`.
+
+### services/narrative_prompts.py
+- **목적:** 호출 유형별 프롬프트 빌더
+- **핵심:** `PromptBuilder` - build_look/move/dialogue/quest_seed/impression_tag. 일본어 시스템 프롬프트 + 구조화된 유저 프롬프트 조립. `DIALOGUE_TOKEN_MAP` 페이즈별 토큰 제한.
+
+### services/narrative_parser.py
+- **목적:** LLM 응답 파싱 (narrative + META 분리)
+- **핵심:** `ResponseParser` - parse_dual (3단계: 전체 JSON → ```json 블록 → fallback), parse_text.
+
+### services/narrative_safety.py
+- **목적:** 콘텐츠 안전 필터 + 나레이션 레벨 관리 (Alpha 최소)
+- **핵심:** `NarrationManager` - 카테고리별 나레이션 레벨 캐시. `ContentSafetyFilter` - scene_direction 프롬프트 생성.
 
 ### services/ai/\_\_init\_\_.py
 - **목적:** AI 모듈 공개 API
@@ -248,12 +299,12 @@ modules/relationship/module.py → services/relationship_service.py → core/rel
 
 ### services/ai/base.py
 - **목적:** AI Provider 추상 인터페이스
-- **핵심:** `AIProvider(ABC)` - name(property), is_available(), generate(prompt, context) 3개 추상 메서드.
+- **핵심:** `AIProvider(ABC)` - name(property), is_available(), generate(prompt, system_prompt, max_tokens, context) 추상 메서드.
 - **패턴:** 모든 구체 프로바이더가 이 인터페이스 구현.
 
 ### services/ai/mock.py
 - **목적:** 테스트/폴백용 Mock AI 프로바이더
-- **핵심:** `MockProvider` - is_available() 항상 True, generate()는 고정 문자열 반환.
+- **핵심:** `MockProvider` - is_available() 항상 True, generate()는 고정 문자열 반환. JSON 요청 시 MOCK_DIALOGUE_RESPONSE 반환.
 - **용도:** API 키 미설정 시 자동 사용.
 
 ### services/ai/factory.py

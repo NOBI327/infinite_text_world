@@ -14,6 +14,7 @@ from src.api.schemas import (
 )
 from src.core.engine import ITWEngine
 from src.core.logging import get_logger
+from src.services.dialogue_service import DialogueService
 from src.services.narrative_service import NarrativeService
 
 logger = get_logger(__name__)
@@ -31,6 +32,12 @@ def get_engine() -> ITWEngine:
 def get_narrative_service(request: Request) -> NarrativeService:
     """NarrativeService 인스턴스 반환 (의존성 주입)"""
     service: NarrativeService = request.app.state.narrative_service
+    return service
+
+
+def get_dialogue_service(request: Request) -> DialogueService:
+    """DialogueService 인스턴스 반환 (의존성 주입)"""
+    service: DialogueService = request.app.state.dialogue_service
     return service
 
 
@@ -171,6 +178,9 @@ def execute_action(
     - harvest: 자원 채취 (params: {resource_id: "...", amount: 1})
     - enter: 서브 그리드(Depth) 진입
     - exit: 서브 그리드에서 메인 그리드로 복귀
+    - talk: NPC와 대화 시작 (params: {npc_id: "..."})
+    - say: 대화 중 발언 (params: {text: "..."})
+    - end_talk: 대화 종료
     """
     player = engine.get_player(request.player_id)
 
@@ -231,11 +241,68 @@ def execute_action(
             result = engine.enter_depth(request.player_id)
         elif action == "exit":
             result = engine.exit_depth(request.player_id)
+        elif action == "talk":
+            npc_id = params.get("npc_id", "")
+            if not npc_id:
+                raise HTTPException(
+                    status_code=400, detail="Missing 'npc_id' parameter"
+                )
+            dialogue_service = get_dialogue_service(http_request)
+            session = dialogue_service.start_session(
+                player_id=request.player_id,
+                npc_id=npc_id,
+                node_id=f"{player.x}_{player.y}",
+                game_turn=0,
+                npc_data=params.get("npc_data", {"name": "NPC", "race": "human"}),
+                relationship_data=params.get(
+                    "relationship_data", {"status": "stranger", "familiarity": 0}
+                ),
+                npc_memories=params.get("npc_memories", []),
+                pc_constraints=params.get("pc_constraints", {}),
+            )
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Dialogue started with {npc_id}",
+                data={
+                    "session_id": session.session_id,
+                    "budget_total": session.budget_total,
+                    "budget_remaining": session.budget_remaining,
+                },
+                narrative=None,
+            )
+        elif action == "say":
+            text = params.get("text", "")
+            if not text:
+                raise HTTPException(status_code=400, detail="Missing 'text' parameter")
+            dialogue_service = get_dialogue_service(http_request)
+            turn_result = dialogue_service.process_turn(text)
+            return ActionResponse(
+                success=True,
+                action=action,
+                message="Dialogue turn processed",
+                data={
+                    "session_status": turn_result["session_status"],
+                    "turn_index": turn_result["turn_index"],
+                },
+                narrative=turn_result["narrative"],
+            )
+        elif action == "end_talk":
+            dialogue_service = get_dialogue_service(http_request)
+            end_result = dialogue_service.end_session("ended_by_pc")
+            return ActionResponse(
+                success=True,
+                action=action,
+                message="Dialogue ended",
+                data=end_result,
+                narrative=None,
+            )
         else:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unknown action: {action}. "
-                "Valid actions: look, move, rest, investigate, harvest, enter, exit",
+                "Valid actions: look, move, rest, investigate, harvest, "
+                "enter, exit, talk, say, end_talk",
             )
 
         # 응답 생성
