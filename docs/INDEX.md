@@ -123,9 +123,9 @@
 - **Fallback:** API 키 없음/에러/Provider 없음 시 모두 MockProvider로 대체.
 
 ### narrative-service.md
-- **목적:** AI 기반 게임 서술 생성 서비스 설계
-- **핵심:** NarrativeService가 AIProvider를 사용해 look/move 서술 생성.
-- **Fallback:** AI 사용 불가/API 에러/예외 시 기본 템플릿 서술 제공.
+- **목적:** 모든 LLM 호출의 단일 관문(single gateway) 설계
+- **핵심:** 5종 호출 유형(look/move/dialogue/quest_seed/impression_tag), PromptBuilder 패턴, META JSON 파싱, content-safety 연동, 폴백 체인, 예산→토큰 매핑
+- **상태:** 확정 (v2.0)
 
 ### world-layer-system.md
 - **목적:** 4-Layer Geography 시스템 통합 설계

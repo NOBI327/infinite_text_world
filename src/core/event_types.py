@@ -20,7 +20,14 @@ class EventTypes:
     RELATIONSHIP_REVERSED = "relationship_reversed"
     ATTITUDE_REQUEST = "attitude_request"
     ATTITUDE_RESPONSE = "attitude_response"
+
+    # dialogue
+    DIALOGUE_STARTED = "dialogue_started"
+    DIALOGUE_ACTION_DECLARED = "dialogue_action_declared"
     DIALOGUE_ENDED = "dialogue_ended"
+
+    # quest-dialogue integration
+    QUEST_SEED_GENERATED = "quest_seed_generated"
 
     # engine
     TURN_PROCESSED = "turn_processed"
