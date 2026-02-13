@@ -99,9 +99,8 @@
 
 ### item-system.md
 - **목적:** 아이템 체계, 거래, 선물, 인벤토리, 내구도 시스템 설계
-- **핵심:** Prototype(불변) + Instance(가변) 분리, axiom_tags 매핑, bulk 기반 인벤토리(50+EXEC 보정), 4종 분류(EQUIPMENT/CONSUMABLE/MATERIAL/MISC).
-- **거래:** 관계/HEXACO H 보정 거래가, A(관용성) 기반 흥정 3단계(accept/counter/reject), browse→거래대화 자동진입.
-- **확장:** PrototypeRegistry 동적 등록, 초기 43종 → 수천 종 스케일.
+- **핵심:** Prototype(불변) + Instance(가변) 분리, axiom_tags 매핑, bulk 기반 인벤토리, 4종 분류, 거래/흥정/선물 시스템, 임시 자동보충
+- **상태:** 확정 (v1.0), 시드 데이터 60종
 
 ---
 

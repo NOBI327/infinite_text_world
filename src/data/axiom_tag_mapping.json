@@ -1,0 +1,140 @@
+{
+  "Ignis": {
+    "domain": "Primordial",
+    "resonance": "Destruction",
+    "axiom_ids": [],
+    "description": "화염, 연소, 열"
+  },
+  "Aqua": {
+    "domain": "Primordial",
+    "resonance": "Creation",
+    "axiom_ids": [],
+    "description": "물, 액체, 습기"
+  },
+  "Terra": {
+    "domain": "Primordial",
+    "resonance": "Preservation",
+    "axiom_ids": [],
+    "description": "흙, 대지, 광물"
+  },
+  "Ventus": {
+    "domain": "Primordial",
+    "resonance": "Transformation",
+    "axiom_ids": [],
+    "description": "바람, 공기, 기류"
+  },
+  "Lux": {
+    "domain": "Primordial",
+    "resonance": "Perception",
+    "axiom_ids": [],
+    "description": "빛, 조명, 시야"
+  },
+  "Umbra": {
+    "domain": "Primordial",
+    "resonance": "Concealment",
+    "axiom_ids": [],
+    "description": "어둠, 그림자, 은폐"
+  },
+  "Ferrum": {
+    "domain": "Material",
+    "resonance": "Preservation",
+    "axiom_ids": [],
+    "description": "철, 금속, 합금"
+  },
+  "Lignum": {
+    "domain": "Material",
+    "resonance": "Creation",
+    "axiom_ids": [],
+    "description": "나무, 목재, 식물 구조"
+  },
+  "Pellis": {
+    "domain": "Material",
+    "resonance": "Transformation",
+    "axiom_ids": [],
+    "description": "가죽, 피혁, 외피"
+  },
+  "Petra": {
+    "domain": "Material",
+    "resonance": "Preservation",
+    "axiom_ids": [],
+    "description": "돌, 암석, 광물"
+  },
+  "Filum": {
+    "domain": "Material",
+    "resonance": "Creation",
+    "axiom_ids": [],
+    "description": "실, 섬유, 직물"
+  },
+  "Scindere": {
+    "domain": "Force",
+    "resonance": "Destruction",
+    "axiom_ids": [],
+    "description": "베기, 절단, 날"
+  },
+  "Contundere": {
+    "domain": "Force",
+    "resonance": "Destruction",
+    "axiom_ids": [],
+    "description": "타격, 충격, 분쇄"
+  },
+  "Perfodere": {
+    "domain": "Force",
+    "resonance": "Destruction",
+    "axiom_ids": [],
+    "description": "찌르기, 관통, 천공"
+  },
+  "Cura": {
+    "domain": "Organic",
+    "resonance": "Creation",
+    "axiom_ids": [],
+    "description": "치유, 회복, 재생"
+  },
+  "Venenum": {
+    "domain": "Organic",
+    "resonance": "Destruction",
+    "axiom_ids": [],
+    "description": "독, 부패, 분해"
+  },
+  "Nutrire": {
+    "domain": "Organic",
+    "resonance": "Preservation",
+    "axiom_ids": [],
+    "description": "영양, 포만, 자양"
+  },
+  "Ignitio": {
+    "domain": "Force",
+    "resonance": "Transformation",
+    "axiom_ids": [],
+    "description": "점화, 착화, 발화"
+  },
+  "Vinculum": {
+    "domain": "Force",
+    "resonance": "Preservation",
+    "axiom_ids": [],
+    "description": "속박, 결속, 고정"
+  },
+  "Protectio": {
+    "domain": "Force",
+    "resonance": "Suppression",
+    "axiom_ids": [],
+    "description": "방호, 차단, 방어"
+  },
+  "Acies": {
+    "domain": "Force",
+    "resonance": "Amplification",
+    "axiom_ids": [],
+    "description": "날카로움, 예리함, 첨예"
+  },
+  "Cognitio": {
+    "domain": "Mind",
+    "resonance": "Perception",
+    "axiom_ids": [],
+    "description": "지식, 인지, 이해"
+  },
+  "Memoria": {
+    "domain": "Mind",
+    "resonance": "Preservation",
+    "axiom_ids": [],
+    "description": "기억, 보존, 회상"
+  }
+}

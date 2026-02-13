@@ -29,5 +29,10 @@ class EventTypes:
     # quest-dialogue integration
     QUEST_SEED_GENERATED = "quest_seed_generated"
 
+    # item
+    ITEM_TRANSFERRED = "item_transferred"
+    ITEM_BROKEN = "item_broken"
+    ITEM_CREATED = "item_created"
+
     # engine
     TURN_PROCESSED = "turn_processed"
