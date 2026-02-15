@@ -17,6 +17,7 @@ from src.core.logging import get_logger
 from src.services.dialogue_service import DialogueService
 from src.services.item_service import ItemService
 from src.services.narrative_service import NarrativeService
+from src.services.quest_service import QuestService
 
 logger = get_logger(__name__)
 
@@ -45,6 +46,12 @@ def get_dialogue_service(request: Request) -> DialogueService:
 def get_item_service(request: Request) -> ItemService:
     """ItemService 인스턴스 반환 (의존성 주입)"""
     service: ItemService = request.app.state.item_service
+    return service
+
+
+def get_quest_service(request: Request) -> QuestService:
+    """QuestService 인스턴스 반환 (의존성 주입)"""
+    service: QuestService = request.app.state.quest_service
     return service
 
 
@@ -411,13 +418,98 @@ def execute_action(
                 data={"items": items_data},
                 narrative=None,
             )
+        elif action == "quest_list":
+            quest_service = get_quest_service(http_request)
+            active = quest_service.get_active_quests()
+            quests_data = [
+                {
+                    "quest_id": q.quest_id,
+                    "title": q.title,
+                    "quest_type": q.quest_type,
+                    "seed_tier": q.seed_tier,
+                    "urgency": q.urgency,
+                }
+                for q in active
+            ]
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Active quests: {len(quests_data)}",
+                data={"quests": quests_data},
+                narrative=None,
+            )
+        elif action == "quest_detail":
+            quest_id = params.get("quest_id", "")
+            if not quest_id:
+                raise HTTPException(
+                    status_code=400, detail="Missing 'quest_id' parameter"
+                )
+            quest_service = get_quest_service(http_request)
+            quest = quest_service.get_quest(quest_id)
+            if quest is None:
+                raise HTTPException(
+                    status_code=404, detail=f"Quest not found: {quest_id}"
+                )
+            objectives = quest_service.get_quest_objectives(quest_id)
+            objs_data = [
+                {
+                    "objective_id": o.objective_id,
+                    "description": o.description,
+                    "objective_type": o.objective_type,
+                    "status": o.status,
+                    "is_replacement": o.is_replacement,
+                }
+                for o in objectives
+            ]
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=quest.title,
+                data={
+                    "quest_id": quest.quest_id,
+                    "title": quest.title,
+                    "description": quest.description,
+                    "quest_type": quest.quest_type,
+                    "status": quest.status,
+                    "seed_tier": quest.seed_tier,
+                    "urgency": quest.urgency,
+                    "objectives": objs_data,
+                },
+                narrative=None,
+            )
+        elif action == "quest_abandon":
+            quest_id = params.get("quest_id", "")
+            if not quest_id:
+                raise HTTPException(
+                    status_code=400, detail="Missing 'quest_id' parameter"
+                )
+            quest_service = get_quest_service(http_request)
+            quest = quest_service.get_quest(quest_id)
+            if quest is None:
+                raise HTTPException(
+                    status_code=404, detail=f"Quest not found: {quest_id}"
+                )
+            if quest.status != "active":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Quest is not active (status: {quest.status})",
+                )
+            quest_service.abandon_quest(quest_id, current_turn=0)
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Quest abandoned: {quest.title}",
+                data={"quest_id": quest_id},
+                narrative=None,
+            )
         else:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unknown action: {action}. "
                 "Valid actions: look, move, rest, investigate, harvest, "
                 "enter, exit, talk, say, end_talk, "
-                "inventory, pickup, drop, use, browse",
+                "inventory, pickup, drop, use, browse, "
+                "quest_list, quest_detail, quest_abandon",
             )
 
         # 응답 생성

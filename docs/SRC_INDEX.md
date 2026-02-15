@@ -12,6 +12,7 @@ modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.
 modules/relationship/module.py → services/relationship_service.py → core/relationship/* + db/models_v2.py
 modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* + services/narrative_service.py + db/models_v2.py
 modules/item/module.py → services/item_service.py → core/item/* + db/models_v2.py
+modules/quest/module.py → services/quest_service.py → core/quest/* + db/models_v2.py
 
 ## 루트
 
@@ -22,8 +23,8 @@ modules/item/module.py → services/item_service.py → core/item/* + db/models_
 
 ### main.py
 - **목적:** FastAPI 앱 엔트리포인트 및 라이프사이클 관리
-- **핵심:** lifespan에서 DB 테이블 생성, ITWEngine 초기화, AI Provider/NarrativeService/DialogueService/ItemService 초기화. PrototypeRegistry+AxiomTagMapping 로드 후 ItemService 생성, sync_prototypes_to_db 실행.
-- **의존:** config, core.engine, core.event_bus, core.item.registry, core.item.axiom_mapping, db, services.ai, services.narrative_service, services.dialogue_service, services.item_service.
+- **핵심:** lifespan에서 DB 테이블 생성, ITWEngine 초기화, AI Provider/NarrativeService/DialogueService/ItemService/QuestService 초기화. PrototypeRegistry+AxiomTagMapping 로드 후 ItemService 생성, sync_prototypes_to_db 실행.
+- **의존:** config, core.engine, core.event_bus, core.item.registry, core.item.axiom_mapping, db, services.ai, services.narrative_service, services.dialogue_service, services.item_service, services.quest_service.
 
 ---
 
@@ -81,7 +82,7 @@ modules/item/module.py → services/item_service.py → core/item/* + db/models_
 
 ### core/event_types.py
 - **목적:** 이벤트 유형 문자열 상수
-- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, RELATIONSHIP_CHANGED, RELATIONSHIP_REVERSED, ATTITUDE_REQUEST, ATTITUDE_RESPONSE, DIALOGUE_STARTED, DIALOGUE_ENDED, QUEST_SEED_GENERATED, TURN_PROCESSED, ITEM_TRANSFERRED, ITEM_BROKEN, ITEM_CREATED.
+- **핵심:** `EventTypes` - NPC_PROMOTED, NPC_CREATED, NPC_DIED, NPC_MOVED, NPC_NEEDED, RELATIONSHIP_CHANGED, RELATIONSHIP_REVERSED, ATTITUDE_REQUEST, ATTITUDE_RESPONSE, DIALOGUE_STARTED, DIALOGUE_ENDED, QUEST_SEED_GENERATED, TURN_PROCESSED, ITEM_TRANSFERRED, ITEM_BROKEN, ITEM_CREATED, QUEST_ACTIVATED, QUEST_COMPLETED, QUEST_FAILED, QUEST_ABANDONED, QUEST_SEED_CREATED, QUEST_SEED_EXPIRED, QUEST_CHAIN_FORMED, QUEST_CHAIN_FINALIZED, CHAIN_ELIGIBLE_MATCHED, OBJECTIVE_COMPLETED, OBJECTIVE_FAILED, PLAYER_MOVED, ACTION_COMPLETED, ITEM_GIVEN, CHECK_RESULT, COMPANION_JOINED, COMPANION_MOVED, COMPANION_DISBANDED.
 
 ### core/dialogue/ - 대화 시스템 Core 로직 (순수 Python, DB 무관)
 
@@ -219,6 +220,44 @@ modules/item/module.py → services/item_service.py → core/item/* + db/models_
 - **목적:** 상점 재입고 로직 (NPC Phase B에서 자율 행동으로 대체 예정)
 - **핵심:** `ShopRestockConfig` - npc_id, shelf_instance_id, stock_template, restock_cooldown, max_stock_per_item. `check_restock_needed` - 쿨다운 모듈로 판정. `calculate_restock_deficit` - 부족 수량 계산.
 
+### core/quest/ - 퀘스트 시스템 Core 로직 (순수 Python, DB 무관)
+
+### core/quest/\_\_init\_\_.py
+- **목적:** quest 패키지 공개 API (re-export)
+- **핵심:** enums, models, probability 전체 심볼 re-export.
+
+### core/quest/enums.py
+- **목적:** 퀘스트 관련 열거형
+- **핵심:** QuestType(7종), ObjectiveType(5종), QuestStatus(4종), QuestResult(4종), SeedType(4종), SeedStatus(4종), ObjectiveStatus(3종), Urgency(2종).
+
+### core/quest/models.py
+- **목적:** 퀘스트 도메인 모델 (DB 무관)
+- **핵심:** `QuestSeed` - 퀘스트 떡밥. `Quest` - 퀘스트 본체 (출처/유형/상태/체이닝/보상). `Objective` - 목표 단위 (대체 목표 지원). `QuestRewards` - 보상 (관계 변동/아이템/경험치). `ChainEligibleNPC`, `RelationshipDelta`, `WorldChange`.
+
+### core/quest/probability.py
+- **목적:** 퀘스트 확률 판정 (순수 Python)
+- **핵심:** `roll_seed_chance` (5%), `determine_seed_tier` (3/2/1=60/30/10%), `roll_chain_chance` (티어별), `should_finalize_chain` (길이별), `can_generate_seed` (쿨다운), `get_default_ttl` (유형별 TTL).
+
+### core/quest/seed_logic.py
+- **목적:** 시드 생성 + TTL 처리 로직
+- **핵심:** `try_generate_seed` - 쿨다운+확률+체이닝 통합 판정. `process_seed_ttl` - 만료 체크. `select_seed_type` - 균등 분포.
+
+### core/quest/result_logic.py
+- **목적:** 퀘스트 결과 판정 + 보상 계산
+- **핵심:** `evaluate_quest_result` - success/partial/failure/None 4단계. `calculate_rewards` - 티어 스케일링. `calculate_pc_tendency` - 최근 퀘스트 기반 스타일 산출.
+
+### core/quest/objective_logic.py
+- **목적:** Objective 관련 로직 (hint 매핑, 대체 목표, fallback)
+- **핵심:** `map_hint_to_objective_type` - LLM hint→type. `validate_objectives_hint` - 검증+fallback. `generate_replacement_objectives` - 실패 시 대체 목표 (client_consult 필수). `create_fallback_objectives` - 퀘스트 유형별 기본 목표.
+
+### core/quest/chain_logic.py
+- **목적:** 체이닝 관련 로직
+- **핵심:** `match_unborn_npc` - 승격 NPC 매칭. `build_chain_eligible_npcs` - 티어별 eligible 생성. `build_chain_context` - LLM 체이닝 컨텍스트.
+
+### core/quest/context_builder.py
+- **목적:** LLM 프롬프트용 퀘스트 컨텍스트 빌더
+- **핵심:** `build_seed_context`, `build_activation_context`, `build_expired_seed_context`, `build_failure_report_context`, `build_quest_update_context`. TIER_INSTRUCTIONS(3단계), FINALE_INSTRUCTION.
+
 ---
 
 ## api/ - FastAPI 엔드포인트
@@ -238,8 +277,8 @@ modules/item/module.py → services/item_service.py → core/item/* + db/models_
 
 ### api/game.py
 - **목적:** 게임 API 라우터 (`/game` 접두사)
-- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리. ItemService로 inventory/pickup/drop/use/browse 아이템 처리.
-- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk, inventory, pickup, drop, use, browse.
+- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리. ItemService로 inventory/pickup/drop/use/browse 아이템 처리. QuestService로 quest_list/quest_detail/quest_abandon 퀘스트 처리.
+- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk, inventory, pickup, drop, use, browse, quest_list, quest_detail, quest_abandon.
 
 ---
 
@@ -261,7 +300,7 @@ modules/item/module.py → services/item_service.py → core/item/* + db/models_
 ### db/models_v2.py (506줄)
 - **목적:** Phase 2 ORM 모델 정의 (NPC/관계/퀘스트/대화/아이템)
 - **핵심:** 16개 테이블. `Mapped[T]` + `mapped_column()` 스타일 (models.py와 일관). `relationship()` 없음, FK 제약만. `__table_args__`에 Index/UniqueConstraint 선언.
-- **모델:** ItemPrototypeModel, QuestChainModel, BackgroundSlotModel, BackgroundEntityModel, NPCModel, NPCMemoryModel, RelationshipModel, QuestSeedModel, WorldPoolModel, QuestModel, QuestObjectiveModel, QuestChainEligibleModel, QuestUnresolvedThreadModel, DialogueSessionModel, DialogueTurnModel, ItemInstanceModel.
+- **모델:** ItemPrototypeModel, QuestChainModel, BackgroundSlotModel, BackgroundEntityModel, NPCModel, NPCMemoryModel, RelationshipModel, QuestSeedModel, WorldPoolModel, QuestModel, QuestObjectiveModel, QuestChainEligibleModel, QuestUnresolvedThreadModel, DialogueSessionModel, DialogueTurnModel, ItemInstanceModel, CompanionModel, CompanionLogModel.
 - **참조:** DDL은 docs/30_technical/db-schema-v2.md.
 
 ---
@@ -307,6 +346,15 @@ modules/item/module.py → services/item_service.py → core/item/* + db/models_
 - **핵심:** `ItemModule` - ItemService 래핑. on_node_enter에서 context.extra["item"]에 노드 아이템 정보 설정. inventory/pickup/drop/use/browse 5개 액션 제공. TEMPORARY: register_restock_config로 상점 재입고 설정, on_turn에서 쿨다운 기반 자동 재입고 실행.
 - **의존성:** [] (Layer 1).
 
+### modules/quest/\_\_init\_\_.py
+- **목적:** quest 모듈 패키지 초기화
+- **핵심:** QuestModule re-export.
+
+### modules/quest/module.py
+- **목적:** QuestModule — GameModule 인터페이스
+- **핵심:** `QuestModule` - QuestService 래핑. on_node_enter에서 context.extra["quest"]에 활성 퀘스트 수, 현재 노드 관련 퀘스트 정보 설정. quest_list/quest_detail/quest_abandon 3개 액션 제공.
+- **의존성:** ["npc_core", "relationship", "dialogue"].
+
 ---
 
 ## services/ - 비즈니스 로직
@@ -328,6 +376,11 @@ modules/item/module.py → services/item_service.py → core/item/* + db/models_
 - **목적:** 아이템 CRUD, 거래, 선물, 인벤토리 관리 Service (Core↔DB 연결)
 - **핵심:** `ItemService` - Prototype: get_prototype, sync_prototypes_to_db. Instance: create_instance(uuid+event), get_instance, get_instances_by_owner, count_instances, transfer_item(event). Durability: use_item(파괴 시 broken_result 생성). Trade: calculate_price, process_haggle, execute_trade(통화 갱신). Gift: process_gift(호감도+이전). Constraints: get_item_constraints. Inventory: get_inventory_bulk, get_inventory_capacity, can_add_to_inventory. EventBus 구독: DIALOGUE_ENDED(stub).
 - **의존:** core.item.*, core.event_bus, db.models, db.models_v2.
+
+### services/quest_service.py
+- **목적:** 퀘스트 CRUD, 시드 관리, 체이닝, 결과 판정, LLM 컨텍스트 빌드 Service (Core↔DB 연결)
+- **핵심:** `QuestService` - Seed: create_seed, get_seed, get_active_seeds_for_npc, process_all_seed_ttls. Quest: activate_quest, get_quest, get_active_quests, get_quest_objectives, get_active_objectives_by_type, abandon_quest. Result: check_quest_completion, complete_objective, fail_objective. Chaining: find_quests_with_eligible_npc, finalize_quest_chain, scan_unborn_eligible. Context: build_dialogue_quest_context, build_quest_activation_context, get_pc_tendency. Time: check_urgent_time_limits. EventBus 구독: DIALOGUE_STARTED/ENDED, TURN_PROCESSED, NPC_PROMOTED, OBJECTIVE_COMPLETED/FAILED. ORM↔Core 변환 메서드 포함.
+- **의존:** core.quest.*, core.event_bus, db.models_v2.
 
 ### services/dialogue_service.py
 - **목적:** 대화 세션 관리 Service (Core↔DB 연결, EventBus 통신)

@@ -20,6 +20,7 @@ from src.services.ai import get_ai_provider
 from src.services.dialogue_service import DialogueService
 from src.services.item_service import ItemService
 from src.services.narrative_service import NarrativeService
+from src.services.quest_service import QuestService
 
 setup_logging(settings.LOG_LEVEL)
 logger = get_logger(__name__)
@@ -86,6 +87,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     item_service.sync_prototypes_to_db()
     app.state.item_service = item_service
     logger.info("ItemService initialized (60 prototypes synced).")
+
+    # QuestService 초기화
+    logger.info("Initializing QuestService...")
+    quest_service = QuestService(
+        db=db_session,
+        event_bus=event_bus,
+    )
+    app.state.quest_service = quest_service
+    logger.info("QuestService initialized.")
 
     yield
 
