@@ -310,7 +310,7 @@ class TestCRUD:
 
         loaded = db_session.get(QuestObjectiveModel, "obj_001")
         assert loaded is not None
-        assert loaded.completed is False
+        assert loaded.status == "active"
 
     def test_quest_chain_eligible_crud(self, db_session: Session):
         db_session.add(_make_quest())

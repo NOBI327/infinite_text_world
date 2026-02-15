@@ -78,18 +78,21 @@
 - **체이닝:** 시드 티어 3단계(소60%/중30%/대10%), 시드 생성 시 DB 참조하여 연작 결정. chain_eligible_npcs(existing + unborn).
 - **판정:** 수단의 자유 원칙. 공리 역학 활용이 전투 핵심. NPC 한줄평(impression_tag)이 태도 태그에 반영.
 - **v1.1:** Objective 구조 재설계 — fetch 폐지→deliver 통합, escort 독립화, 목표 실패/대체 목표 생성, 전투 추상화.
+- **상태:** 확정 (v1.1), 구현 중
 
 ### quest-action-integration.md (v1.1)
 - **목적:** 퀘스트-액션 연동 설계 — Objective 달성/실패 판정, ObjectiveWatcher
 - **핵심:** Python 판정(LLM 서술만), 분산 감지·중앙 발행 구조. 5종 Objective(reach_node/deliver/escort/talk_to_npc/resolve_check) 달성 조건 정의.
 - **ObjectiveWatcher:** engine 내부 컴포넌트. player_moved, item_given, dialogue_started/ended, check_result 구독하여 목표 대조.
 - **대체 목표:** 목표 실패 시 PC 선택지 제시, 의뢰주 보고 필수 포함.
+- **상태:** 확정 (v1.1), 구현 중
 
 ### companion-system.md (v1.1)
 - **목적:** 동행(Companion) 시스템 설계 — 퀘스트/자발적 동행, 라이프사이클, escort 연동
 - **핵심:** 퀘스트 동행(escort 자동 요청) + 자발적 동행(recruit, 관계·성격 기반 수락), 1인 동행 제한(Alpha).
 - **라이프사이클:** 요청→수락(무조건/조건부)→동행(이동 동기화, 대화)→해산(자동/수동).
 - **해산 후 귀환:** 정주형(원래 위치), 구출 대상(의뢰인 위치), 방랑형(현재 잔류). Background Task 이동.
+- **상태:** 확정 (v1.1), 구현 중
 
 ### dialogue-system.md
 - **목적:** PC-NPC 대화 세션 관리, META JSON 통합, 행동 검증 시스템 설계

@@ -277,6 +277,9 @@ class QuestSeedModel(Base):
     expiry_result: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     chain_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    unresolved_threads: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default="[]"
+    )
 
     conversation_count_at_creation: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0
@@ -352,7 +355,7 @@ class QuestModel(Base):
     resolution_method_tag: Mapped[str | None] = mapped_column(Text, nullable=True)
     resolution_impression_tag: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    rewards: Mapped[str | None] = mapped_column(Text, nullable=True)
+    rewards_json: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     tags: Mapped[str] = mapped_column(Text, nullable=False, server_default="[]")
     created_at: Mapped[str] = mapped_column(
@@ -383,8 +386,16 @@ class QuestObjectiveModel(Base):
     objective_type: Mapped[str] = mapped_column(Text, nullable=False)
     target: Mapped[str] = mapped_column(Text, nullable=False, server_default="{}")
 
-    completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # 상태
+    status: Mapped[str] = mapped_column(Text, nullable=False, server_default="active")
     completed_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    failed_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    fail_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # 대체 목표
+    is_replacement: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    replaced_objective_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    replacement_origin: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     __table_args__ = (Index("idx_objective_quest", "quest_id"),)
 
@@ -496,6 +507,58 @@ class DialogueTurnModel(Base):
     )
 
     __table_args__ = (Index("idx_turn_session", "session_id"),)
+
+
+class CompanionModel(Base):
+    """동행 NPC (companion-system.md)"""
+
+    __tablename__ = "companions"
+
+    companion_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    player_id: Mapped[str] = mapped_column(Text, nullable=False)
+    npc_id: Mapped[str] = mapped_column(Text, nullable=False)
+
+    companion_type: Mapped[str] = mapped_column(Text, nullable=False)
+    quest_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    status: Mapped[str] = mapped_column(Text, nullable=False, server_default="active")
+    started_turn: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    ended_turn: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    disband_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    condition_type: Mapped[str | None] = mapped_column(Text, nullable=True)
+    condition_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+    condition_met: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    origin_node_id: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
+    created_at: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("datetime('now')")
+    )
+
+    __table_args__ = (
+        Index("idx_companion_player", "player_id"),
+        Index("idx_companion_npc", "npc_id"),
+        Index("idx_companion_status", "status"),
+    )
+
+
+class CompanionLogModel(Base):
+    """동행 이벤트 로그 (companion-system.md)"""
+
+    __tablename__ = "companion_log"
+
+    log_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    companion_id: Mapped[str] = mapped_column(
+        Text,
+        ForeignKey("companions.companion_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    turn_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    data: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    __table_args__ = (Index("idx_clog_companion", "companion_id"),)
 
 
 class ItemInstanceModel(Base):
