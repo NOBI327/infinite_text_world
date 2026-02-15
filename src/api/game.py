@@ -13,6 +13,8 @@ from src.api.schemas import (
     RegisterRequest,
 )
 from src.core.engine import ITWEngine
+from src.core.event_bus import EventBus, GameEvent
+from src.core.event_types import EventTypes
 from src.core.logging import get_logger
 from src.services.dialogue_service import DialogueService
 from src.services.item_service import ItemService
@@ -60,6 +62,12 @@ def get_companion_service(request: Request) -> CompanionService:
     """CompanionService 인스턴스 반환 (의존성 주입)"""
     service: CompanionService = request.app.state.companion_service
     return service
+
+
+def get_event_bus(request: Request) -> EventBus:
+    """EventBus 인스턴스 반환 (의존성 주입)"""
+    bus: EventBus = request.app.state.event_bus
+    return bus
 
 
 def _build_location_info(location_view) -> LocationInfo:
@@ -227,6 +235,21 @@ def execute_action(
                 "fame": player.fame,
             }
             narrative = narrative_service.generate_look(node_data, player_state)
+            # ACTION_COMPLETED 이벤트 발행
+            if result.success:
+                bus = get_event_bus(http_request)
+                bus.emit(
+                    GameEvent(
+                        event_type=EventTypes.ACTION_COMPLETED,
+                        data={
+                            "player_id": request.player_id,
+                            "action_type": "look",
+                            "node_id": f"{player.x}_{player.y}",
+                            "result_data": {},
+                        },
+                        source="game_api",
+                    )
+                )
         elif action == "move":
             direction = params.get("direction", "")
             if not direction:
@@ -234,22 +257,56 @@ def execute_action(
                     status_code=400, detail="Missing 'direction' parameter"
                 )
             # 이동 전 노드 정보 저장
+            from_node_str = f"{player.x}_{player.y}"
             from_node = {"x": player.x, "y": player.y}
             result = engine.move(request.player_id, direction)
-            # 이동 성공 시 Narrative 생성
+            # 이동 성공 시 Narrative 생성 + PLAYER_MOVED 발행
             if result.success:
                 updated_player = engine.get_player(request.player_id)
                 assert updated_player is not None
                 to_node = {"x": updated_player.x, "y": updated_player.y}
+                to_node_str = f"{updated_player.x}_{updated_player.y}"
                 narrative_service = get_narrative_service(http_request)
                 narrative = narrative_service.generate_move(
                     from_node, to_node, direction
+                )
+                # move_type 판정
+                move_type = "walk"
+                if direction in ("up", "down"):
+                    move_type = direction
+                bus = get_event_bus(http_request)
+                bus.emit(
+                    GameEvent(
+                        event_type=EventTypes.PLAYER_MOVED,
+                        data={
+                            "player_id": request.player_id,
+                            "from_node": from_node_str,
+                            "to_node": to_node_str,
+                            "move_type": move_type,
+                        },
+                        source="game_api",
+                    )
                 )
         elif action == "rest":
             result = engine.rest(request.player_id)
         elif action == "investigate":
             echo_index = params.get("echo_index", 0)
             result = engine.investigate(request.player_id, echo_index)
+            # ACTION_COMPLETED 이벤트 발행
+            if result.success:
+                bus = get_event_bus(http_request)
+                bus.emit(
+                    GameEvent(
+                        event_type=EventTypes.ACTION_COMPLETED,
+                        data={
+                            "player_id": request.player_id,
+                            "action_type": "investigate",
+                            "node_id": f"{player.x}_{player.y}",
+                            "result_data": {},
+                        },
+                        source="game_api",
+                    )
+                )
         elif action == "harvest":
             resource_id = params.get("resource_id", "")
             if not resource_id:
@@ -259,9 +316,52 @@ def execute_action(
             amount = params.get("amount", 1)
             result = engine.harvest(request.player_id, resource_id, amount)
         elif action == "enter":
+            from_node_str = f"{player.x}_{player.y}"
             result = engine.enter_depth(request.player_id)
+            if result.success:
+                updated_player = engine.get_player(request.player_id)
+                assert updated_player is not None
+                to_node_str = (
+                    f"{updated_player.x}_{updated_player.y}"
+                    f"_s{updated_player.sub_x}_{updated_player.sub_y}"
+                    f"_{updated_player.sub_z}"
+                )
+                bus = get_event_bus(http_request)
+                bus.emit(
+                    GameEvent(
+                        event_type=EventTypes.PLAYER_MOVED,
+                        data={
+                            "player_id": request.player_id,
+                            "from_node": from_node_str,
+                            "to_node": to_node_str,
+                            "move_type": "enter",
+                        },
+                        source="game_api",
+                    )
+                )
         elif action == "exit":
+            from_node_str = (
+                f"{player.x}_{player.y}"
+                f"_s{player.sub_x}_{player.sub_y}_{player.sub_z}"
+            )
             result = engine.exit_depth(request.player_id)
+            if result.success:
+                updated_player = engine.get_player(request.player_id)
+                assert updated_player is not None
+                to_node_str = f"{updated_player.x}_{updated_player.y}"
+                bus = get_event_bus(http_request)
+                bus.emit(
+                    GameEvent(
+                        event_type=EventTypes.PLAYER_MOVED,
+                        data={
+                            "player_id": request.player_id,
+                            "from_node": from_node_str,
+                            "to_node": to_node_str,
+                            "move_type": "exit",
+                        },
+                        source="game_api",
+                    )
+                )
         elif action == "talk":
             npc_id = params.get("npc_id", "")
             if not npc_id:
@@ -425,6 +525,69 @@ def execute_action(
                 data={"items": items_data},
                 narrative=None,
             )
+        elif action == "give":
+            npc_id = params.get("npc_id", "")
+            item_id = params.get("item_id", "")
+            if not npc_id or not item_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Missing 'npc_id' or 'item_id' parameter",
+                )
+            item_service = get_item_service(http_request)
+            # item_id를 instance_id 또는 prototype_id로 해석
+            instance = item_service.get_instance(item_id)
+            if instance is None:
+                # prototype_id로 인벤토리 검색
+                player_items = item_service.get_instances_by_owner(
+                    "player", request.player_id
+                )
+                for pi in player_items:
+                    if pi.prototype_id == item_id:
+                        instance = pi
+                        break
+            if instance is None:
+                raise HTTPException(
+                    status_code=400, detail=f"Item not found: {item_id}"
+                )
+            if (
+                instance.owner_type != "player"
+                or instance.owner_id != request.player_id
+            ):
+                raise HTTPException(status_code=400, detail="Item not in inventory")
+            # 소유권 이전
+            item_service.transfer_item(
+                instance.instance_id, "npc", npc_id, reason="give"
+            )
+            # 프로토타입 정보 조회
+            proto = item_service.get_prototype(instance.prototype_id)
+            item_tags = list(proto.tags) if proto else []
+            # ITEM_GIVEN 이벤트 발행
+            bus = get_event_bus(http_request)
+            bus.emit(
+                GameEvent(
+                    event_type=EventTypes.ITEM_GIVEN,
+                    data={
+                        "player_id": request.player_id,
+                        "recipient_npc_id": npc_id,
+                        "item_prototype_id": instance.prototype_id,
+                        "item_instance_id": instance.instance_id,
+                        "quantity": 1,
+                        "item_tags": item_tags,
+                    },
+                    source="game_api",
+                )
+            )
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Gave {instance.prototype_id} to {npc_id}",
+                data={
+                    "instance_id": instance.instance_id,
+                    "prototype_id": instance.prototype_id,
+                    "recipient_npc_id": npc_id,
+                },
+                narrative=None,
+            )
         elif action == "quest_list":
             quest_service = get_quest_service(http_request)
             active = quest_service.get_active_quests()
@@ -573,7 +736,7 @@ def execute_action(
                 detail=f"Unknown action: {action}. "
                 "Valid actions: look, move, rest, investigate, harvest, "
                 "enter, exit, talk, say, end_talk, "
-                "inventory, pickup, drop, use, browse, "
+                "inventory, pickup, drop, use, browse, give, "
                 "quest_list, quest_detail, quest_abandon, "
                 "recruit, dismiss",
             )

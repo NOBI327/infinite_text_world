@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from src.api.game import get_engine
 from src.core.engine import ITWEngine
+from src.core.event_bus import EventBus
 from src.main import app
 from src.services.ai.mock import MockProvider
 from src.services.narrative_service import NarrativeService
@@ -25,6 +26,8 @@ def client(engine: ITWEngine) -> TestClient:
     app.dependency_overrides[get_engine] = lambda: engine
     # NarrativeService 설정
     app.state.narrative_service = NarrativeService(MockProvider())
+    # EventBus 설정
+    app.state.event_bus = EventBus()
     yield TestClient(app)
     app.dependency_overrides.clear()
 
