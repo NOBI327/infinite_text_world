@@ -16,6 +16,7 @@ from src.db.models import Base
 import src.db.models_v2  # noqa: F401  Phase 2 테이블 등록
 from src.core.item.axiom_mapping import AxiomTagMapping
 from src.core.item.registry import PrototypeRegistry
+from src.engine.objective_watcher import ObjectiveWatcher
 from src.services.ai import get_ai_provider
 from src.services.dialogue_service import DialogueService
 from src.services.item_service import ItemService
@@ -106,6 +107,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     app.state.companion_service = companion_service
     logger.info("CompanionService initialized.")
+
+    # ObjectiveWatcher 초기화
+    logger.info("Initializing ObjectiveWatcher...")
+    objective_watcher = ObjectiveWatcher(
+        event_bus=event_bus,
+        quest_service=quest_service,
+        companion_service=companion_service,
+    )
+    app.state.objective_watcher = objective_watcher
+    logger.info("ObjectiveWatcher initialized.")
 
     yield
 

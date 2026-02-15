@@ -6,6 +6,7 @@ main.py → api/game.py → services/narrative_service.py → services/ai/base.p
                        → services/item_service.py → core/item/* + db/models_v2.py
                        → core/engine.py → (axiom, world_gen, navigator, echo, sub_grid, core_rule)
                        → db/models.py
+engine/objective_watcher.py → services/quest_service.py + services/companion_service.py
 modules/module_manager.py → modules/base.py, core/event_bus.py
 modules/geography/module.py → core/(world_gen, navigator, sub_grid)
 modules/npc/module.py → services/npc_service.py → core/npc/* + db/models_v2.py
@@ -24,8 +25,24 @@ modules/companion/module.py → services/companion_service.py → core/companion
 
 ### main.py
 - **목적:** FastAPI 앱 엔트리포인트 및 라이프사이클 관리
-- **핵심:** lifespan에서 DB 테이블 생성, ITWEngine 초기화, AI Provider/NarrativeService/DialogueService/ItemService/QuestService 초기화. PrototypeRegistry+AxiomTagMapping 로드 후 ItemService 생성, sync_prototypes_to_db 실행.
-- **의존:** config, core.engine, core.event_bus, core.item.registry, core.item.axiom_mapping, db, services.ai, services.narrative_service, services.dialogue_service, services.item_service, services.quest_service.
+- **핵심:** lifespan에서 DB 테이블 생성, ITWEngine 초기화, AI Provider/NarrativeService/DialogueService/ItemService/QuestService/CompanionService/ObjectiveWatcher 초기화. PrototypeRegistry+AxiomTagMapping 로드 후 ItemService 생성, sync_prototypes_to_db 실행. ObjectiveWatcher는 __init__에서 자동 구독.
+- **의존:** config, core.engine, core.event_bus, core.item.registry, core.item.axiom_mapping, engine.objective_watcher, db, services.ai, services.narrative_service, services.dialogue_service, services.item_service, services.quest_service, services.companion_service.
+
+---
+
+## engine/ - ModuleManager 내부 컴포넌트
+
+### engine/\_\_init\_\_.py
+- **목적:** engine 패키지 초기화
+
+### engine/objective_watcher.py
+- **목적:** 활성 퀘스트 목표 감시 + 달성/실패 판정
+- **핵심:** `ObjectiveWatcher` - EventBus를 구독하여 player_moved, action_completed, dialogue_started/ended, check_result, item_given, npc_died 이벤트를 감시. 활성 목표(reach_node, deliver, escort, talk_to_npc, resolve_check)와 대조하여 objective_completed/objective_failed 이벤트 발행. deliver 누적 수량은 in-memory dict 관리.
+- **의존:** core.event_bus, core.event_types. services.quest_service (get_active_objectives_by_type), services.companion_service (is_companion).
+
+### engine/replacement_choices.py
+- **목적:** 대체 목표 선택지 시스템 메시지 포맷
+- **핵심:** `format_replacement_choices` - 실패한 목표 설명 + 대체 목표 리스트를 시스템 메시지로 포맷. Alpha에서는 가이드 메시지, 대체 목표는 전부 active.
 
 ---
 
@@ -300,8 +317,8 @@ modules/companion/module.py → services/companion_service.py → core/companion
 
 ### api/game.py
 - **목적:** 게임 API 라우터 (`/game` 접두사)
-- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리. ItemService로 inventory/pickup/drop/use/browse 아이템 처리. QuestService로 quest_list/quest_detail/quest_abandon 퀘스트 처리. CompanionService로 recruit/dismiss 동행 처리.
-- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk, inventory, pickup, drop, use, browse, quest_list, quest_detail, quest_abandon, recruit, dismiss.
+- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리. ItemService로 inventory/pickup/drop/use/browse/give 아이템 처리. QuestService로 quest_list/quest_detail/quest_abandon 퀘스트 처리. CompanionService로 recruit/dismiss 동행 처리. 이벤트 훅: move/enter/exit → PLAYER_MOVED, look/investigate → ACTION_COMPLETED, give → ITEM_GIVEN.
+- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk, inventory, pickup, drop, use, browse, give, quest_list, quest_detail, quest_abandon, recruit, dismiss.
 
 ---
 
