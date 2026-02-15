@@ -17,6 +17,7 @@ from src.core.logging import get_logger
 from src.services.dialogue_service import DialogueService
 from src.services.item_service import ItemService
 from src.services.narrative_service import NarrativeService
+from src.services.companion_service import CompanionService
 from src.services.quest_service import QuestService
 
 logger = get_logger(__name__)
@@ -52,6 +53,12 @@ def get_item_service(request: Request) -> ItemService:
 def get_quest_service(request: Request) -> QuestService:
     """QuestService 인스턴스 반환 (의존성 주입)"""
     service: QuestService = request.app.state.quest_service
+    return service
+
+
+def get_companion_service(request: Request) -> CompanionService:
+    """CompanionService 인스턴스 반환 (의존성 주입)"""
+    service: CompanionService = request.app.state.companion_service
     return service
 
 
@@ -502,6 +509,64 @@ def execute_action(
                 data={"quest_id": quest_id},
                 narrative=None,
             )
+        elif action == "recruit":
+            npc_id = params.get("npc_id", "")
+            if not npc_id:
+                raise HTTPException(
+                    status_code=400, detail="Missing 'npc_id' parameter"
+                )
+            companion_service = get_companion_service(http_request)
+            relationship_status = params.get("relationship_status", "stranger")
+            trust = params.get("trust", 0)
+            npc_hexaco = params.get("npc_hexaco", {"X": 0.5, "E": 0.5, "C": 0.5})
+            npc_origin_node = params.get("npc_origin_node", f"{player.x}_{player.y}")
+            accepted, reason, state = companion_service.request_voluntary_companion(
+                player_id=request.player_id,
+                npc_id=npc_id,
+                relationship_status=relationship_status,
+                trust=trust,
+                npc_hexaco=npc_hexaco,
+                npc_origin_node=npc_origin_node,
+                current_turn=params.get("current_turn", 0),
+            )
+            if not accepted:
+                return ActionResponse(
+                    success=False,
+                    action=action,
+                    message=f"Recruit rejected: {reason}",
+                    data={"reason": reason},
+                    narrative=None,
+                )
+            data: dict = {
+                "companion_id": state.companion_id if state else None,
+                "npc_id": npc_id,
+            }
+            if state and state.condition_type:
+                data["condition_type"] = state.condition_type
+                data["condition_data"] = state.condition_data
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Recruited {npc_id}",
+                data=data,
+                narrative=None,
+            )
+        elif action == "dismiss":
+            companion_service = get_companion_service(http_request)
+            state = companion_service.dismiss_companion(
+                request.player_id, params.get("current_turn", 0)
+            )
+            if state is None:
+                raise HTTPException(
+                    status_code=400, detail="No active companion to dismiss"
+                )
+            return ActionResponse(
+                success=True,
+                action=action,
+                message=f"Dismissed {state.npc_id}",
+                data={"npc_id": state.npc_id},
+                narrative=None,
+            )
         else:
             raise HTTPException(
                 status_code=400,
@@ -509,7 +574,8 @@ def execute_action(
                 "Valid actions: look, move, rest, investigate, harvest, "
                 "enter, exit, talk, say, end_talk, "
                 "inventory, pickup, drop, use, browse, "
-                "quest_list, quest_detail, quest_abandon",
+                "quest_list, quest_detail, quest_abandon, "
+                "recruit, dismiss",
             )
 
         # 응답 생성

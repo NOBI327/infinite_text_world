@@ -20,6 +20,7 @@ from src.services.ai import get_ai_provider
 from src.services.dialogue_service import DialogueService
 from src.services.item_service import ItemService
 from src.services.narrative_service import NarrativeService
+from src.services.companion_service import CompanionService
 from src.services.quest_service import QuestService
 
 setup_logging(settings.LOG_LEVEL)
@@ -96,6 +97,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     app.state.quest_service = quest_service
     logger.info("QuestService initialized.")
+
+    # CompanionService 초기화
+    logger.info("Initializing CompanionService...")
+    companion_service = CompanionService(
+        db=db_session,
+        event_bus=event_bus,
+    )
+    app.state.companion_service = companion_service
+    logger.info("CompanionService initialized.")
 
     yield
 

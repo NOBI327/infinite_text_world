@@ -120,6 +120,15 @@ class TestCalculateBudget:
         # bonded(8) + X>=0.7(+1) + seed(+2) = 11
         assert calculate_budget("bonded", 0.9, True) == 11
 
+    def test_companion_bonus(self) -> None:
+        """동행 보정 +2 (#13-C)"""
+        # friend(6) + companion(+2) = 8
+        assert calculate_budget("friend", 0.5, False, is_companion=True) == 8
+
+    def test_companion_false_no_bonus(self) -> None:
+        """is_companion=False → 보정 없음 (기존 호환)"""
+        assert calculate_budget("friend", 0.5, False, is_companion=False) == 6
+
 
 # ── get_budget_phase ──
 

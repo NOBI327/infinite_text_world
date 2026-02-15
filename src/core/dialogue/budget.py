@@ -17,6 +17,7 @@ def calculate_budget(
     relationship_status: str,
     npc_hexaco_x: float,
     has_quest_seed: bool,
+    is_companion: bool = False,
 ) -> int:
     """대화 턴 예산 계산. 최소 2턴."""
     base = BASE_BUDGET.get(relationship_status, 3)
@@ -29,6 +30,10 @@ def calculate_budget(
 
     # 퀘스트 시드 보정
     if has_quest_seed:
+        base += 2
+
+    # 동행 보정 (companion-system.md 섹션 5.1)
+    if is_companion:
         base += 2
 
     return max(2, base)

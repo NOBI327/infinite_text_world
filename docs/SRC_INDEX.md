@@ -13,6 +13,7 @@ modules/relationship/module.py → services/relationship_service.py → core/rel
 modules/dialogue/module.py → services/dialogue_service.py → core/dialogue/* + services/narrative_service.py + db/models_v2.py
 modules/item/module.py → services/item_service.py → core/item/* + db/models_v2.py
 modules/quest/module.py → services/quest_service.py → core/quest/* + db/models_v2.py
+modules/companion/module.py → services/companion_service.py → core/companion/* + db/models_v2.py
 
 ## 루트
 
@@ -258,6 +259,28 @@ modules/quest/module.py → services/quest_service.py → core/quest/* + db/mode
 - **목적:** LLM 프롬프트용 퀘스트 컨텍스트 빌더
 - **핵심:** `build_seed_context`, `build_activation_context`, `build_expired_seed_context`, `build_failure_report_context`, `build_quest_update_context`. TIER_INSTRUCTIONS(3단계), FINALE_INSTRUCTION.
 
+### core/companion/ - 동행 시스템 Core 로직 (순수 Python, DB 무관)
+
+### core/companion/\_\_init\_\_.py
+- **목적:** companion 패키지 공개 API (re-export)
+- **핵심:** CompanionState, acceptance, conditions, return_logic 전체 심볼 re-export.
+
+### core/companion/models.py
+- **목적:** 동행 도메인 모델
+- **핵심:** `CompanionState` - companion_id, player_id, npc_id, companion_type, quest_id, status, condition 등.
+
+### core/companion/acceptance.py
+- **목적:** 동행 수락 판정
+- **핵심:** `quest_companion_accept_chance` - 퀘스트 동행 수락률 (기본 90%, 구출 98%). `roll_quest_companion` - 판정. `voluntary_companion_accept` - 관계·성격 기반 수락 (ACCEPT_BY_STATUS + trust/HEXACO 보정).
+
+### core/companion/conditions.py
+- **목적:** 동행 조건 생성 + 만료 판정
+- **핵심:** `roll_condition` (40%). `generate_condition_data` - 유형별 데이터 생성 (payment/time_limit/destination_only/safety_guarantee/item_request). `check_condition_expired` - 만료 판정.
+
+### core/companion/return_logic.py
+- **목적:** 해산 후 NPC 귀환 목적지 결정
+- **핵심:** `determine_return_destination` - escort 완료→잔류, 정주형→home_node, 방랑형→잔류.
+
 ---
 
 ## api/ - FastAPI 엔드포인트
@@ -277,8 +300,8 @@ modules/quest/module.py → services/quest_service.py → core/quest/* + db/mode
 
 ### api/game.py
 - **목적:** 게임 API 라우터 (`/game` 접두사)
-- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리. ItemService로 inventory/pickup/drop/use/browse 아이템 처리. QuestService로 quest_list/quest_detail/quest_abandon 퀘스트 처리.
-- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk, inventory, pickup, drop, use, browse, quest_list, quest_detail, quest_abandon.
+- **핵심:** `POST /game/register` (등록), `GET /game/state/{id}` (상태조회), `POST /game/action` (액션 실행). NarrativeService로 look/move 시 AI 서술 생성. DialogueService로 talk/say/end_talk 대화 처리. ItemService로 inventory/pickup/drop/use/browse 아이템 처리. QuestService로 quest_list/quest_detail/quest_abandon 퀘스트 처리. CompanionService로 recruit/dismiss 동행 처리.
+- **액션:** look, move, rest, investigate, harvest, enter, exit, talk, say, end_talk, inventory, pickup, drop, use, browse, quest_list, quest_detail, quest_abandon, recruit, dismiss.
 
 ---
 
@@ -355,6 +378,15 @@ modules/quest/module.py → services/quest_service.py → core/quest/* + db/mode
 - **핵심:** `QuestModule` - QuestService 래핑. on_node_enter에서 context.extra["quest"]에 활성 퀘스트 수, 현재 노드 관련 퀘스트 정보 설정. quest_list/quest_detail/quest_abandon 3개 액션 제공.
 - **의존성:** ["npc_core", "relationship", "dialogue"].
 
+### modules/companion/\_\_init\_\_.py
+- **목적:** companion 모듈 패키지 초기화
+- **핵심:** CompanionModule re-export.
+
+### modules/companion/module.py
+- **목적:** CompanionModule — GameModule 인터페이스
+- **핵심:** `CompanionModule` - CompanionService 래핑. on_node_enter에서 context.extra["companion"]에 동행 NPC 정보 설정. recruit/dismiss 2개 액션 제공.
+- **의존성:** ["npc_core", "relationship", "dialogue"].
+
 ---
 
 ## services/ - 비즈니스 로직
@@ -381,6 +413,11 @@ modules/quest/module.py → services/quest_service.py → core/quest/* + db/mode
 - **목적:** 퀘스트 CRUD, 시드 관리, 체이닝, 결과 판정, LLM 컨텍스트 빌드 Service (Core↔DB 연결)
 - **핵심:** `QuestService` - Seed: create_seed, get_seed, get_active_seeds_for_npc, process_all_seed_ttls. Quest: activate_quest, get_quest, get_active_quests, get_quest_objectives, get_active_objectives_by_type, abandon_quest. Result: check_quest_completion, complete_objective, fail_objective. Chaining: find_quests_with_eligible_npc, finalize_quest_chain, scan_unborn_eligible. Context: build_dialogue_quest_context, build_quest_activation_context, get_pc_tendency. Time: check_urgent_time_limits. EventBus 구독: DIALOGUE_STARTED/ENDED, TURN_PROCESSED, NPC_PROMOTED, OBJECTIVE_COMPLETED/FAILED. ORM↔Core 변환 메서드 포함.
 - **의존:** core.quest.*, core.event_bus, db.models_v2.
+
+### services/companion_service.py
+- **목적:** 동행 CRUD, 요청/수락/해산, 이동 동기화, 조건 체크, 퀘스트 동행 자동 처리 Service (Core↔DB 연결)
+- **핵심:** `CompanionService` - get_active_companion, is_companion, request_quest_companion, request_voluntary_companion, dismiss_companion, build_companion_context. EventBus 구독: PLAYER_MOVED(이동 동기화), QUEST_ACTIVATED/COMPLETED/FAILED/ABANDONED(퀘스트 동행 자동 처리), NPC_DIED(강제 해산), TURN_PROCESSED(조건 만료 체크). ORM↔Core 변환.
+- **의존:** core.companion.*, core.event_bus, db.models_v2.
 
 ### services/dialogue_service.py
 - **목적:** 대화 세션 관리 Service (Core↔DB 연결, EventBus 통신)
